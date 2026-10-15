@@ -584,27 +584,43 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-.hero-brand-clean {
+.hero-brand-max {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.hero-logo-box-max {
+  width: 100%;
+  max-width: 560px;
+  background-color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
-  margin-bottom: 12px;
-}
-
-.hero-logo-box {
-  background-color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), 0 0 0 1.5px rgba(255, 255, 255, 0.7);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  max-width: 100%;
 }
 
-.hero-logo-box:hover {
+.hero-logo-box-max:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42), 0 0 0 2px rgba(96, 165, 250, 0.8);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.42), 0 0 0 2px rgba(96, 165, 250, 0.85);
+}
+
+.brand-logo-img-max {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  aspect-ratio: 2422 / 736;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .hero-logo-box-max {
+    padding: 8px 12px;
+    border-radius: 12px;
+  }
 }
 
 /* Fluid responsive sizing for BrandLogo */

@@ -74,10 +74,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          {/* Large Prominent Official Logo */}
-          <div className="hero-brand-clean">
-            <div className="hero-logo-box">
-              <BrandLogo size="2xl" clickable={false} />
+          {/* Large Prominent Official Logo - Maximum Available Space */}
+          <div className="hero-brand-clean hero-brand-max">
+            <div className="hero-logo-box hero-logo-box-max">
+              <BrandLogo size="max" fluid={true} clickable={false} />
             </div>
           </div>
 
