@@ -574,6 +574,89 @@ button {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(96, 165, 250, 0.85);
 }
 
+/* Clean & Simple Hero Layout */
+.hero-card-clean {
+  padding: 28px 32px;
+  background: 
+    radial-gradient(ellipse at 85% 20%, rgba(37, 99, 235, 0.35) 0%, transparent 48%),
+    radial-gradient(circle at 15% 80%, rgba(245, 158, 11, 0.18) 0%, transparent 42%),
+    linear-gradient(135deg, #050e20 0%, #091a38 35%, #0e2f69 70%, #174ea6 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.hero-brand-clean {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.hero-logo-box {
+  background-color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.hero-logo-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42), 0 0 0 2px rgba(96, 165, 250, 0.8);
+}
+
+.hero-clean-tagline-group {
+  margin-bottom: 18px;
+}
+
+.hero-clean-expansion {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.4;
+  margin: 0 0 6px 0;
+  letter-spacing: 0.1px;
+}
+
+.hero-clean-slogan {
+  font-size: 13.5px;
+  font-style: italic;
+  font-weight: 600;
+  color: #fbbf24;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+.hero-command-card-clean {
+  background: rgba(4, 13, 30, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hero-image-frame-clean {
+  position: relative;
+  height: 200px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.hero-image-frame-clean:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+  border-color: rgba(96, 165, 250, 0.6);
+}
+
 .hero-tagline-chip {
   display: inline-flex;
   align-items: center;
