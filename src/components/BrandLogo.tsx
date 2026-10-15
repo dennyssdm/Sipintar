@@ -7,12 +7,14 @@ interface BrandLogoProps {
   customHeight?: number;
   showSubtitle?: boolean;
   clickable?: boolean;
+  className?: string;
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   customHeight,
   clickable = true,
+  className = '',
 }) => {
   const getHeight = () => {
     if (customHeight) return customHeight;
@@ -36,25 +38,31 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   const content = (
     <div
-      className="brand-logo-wrapper"
+      className={`brand-logo-wrapper brand-logo-wrapper-${size} ${className}`}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        padding: size === '2xl' || size === 'xl' ? '6px 14px' : '4px 8px',
+        padding: size === '2xl' || size === 'xl' ? '6px 12px' : '4px 8px',
         borderRadius: 'var(--radius-md)',
+        maxWidth: '100%',
         transition: 'all var(--transition-fast)',
       }}
     >
       <Image
-        src="/Logo Sipintar OK.png"
+        src="/Logo Sipintar OK.webp"
         alt="SiPINTAR - Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif"
         width={width}
         height={height}
         priority
+        className={`brand-logo-img brand-logo-img-${size}`}
+        sizes={
+          size === '2xl'
+            ? '(max-width: 480px) 180px, (max-width: 768px) 220px, 290px'
+            : '(max-width: 768px) 140px, 180px'
+        }
         style={{
           width: 'auto',
           maxWidth: '100%',
-          height: `${height}px`,
           objectFit: 'contain',
           display: 'block',
         }}
@@ -64,7 +72,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   if (clickable) {
     return (
-      <Link href="/" aria-label="SiPINTAR Beranda" style={{ display: 'inline-block' }}>
+      <Link href="/" aria-label="SiPINTAR Beranda" style={{ display: 'inline-block', maxWidth: '100%' }}>
         {content}
       </Link>
     );

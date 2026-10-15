@@ -599,11 +599,54 @@ button {
   justify-content: center;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.5);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  max-width: 100%;
 }
 
 .hero-logo-box:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42), 0 0 0 2px rgba(96, 165, 250, 0.8);
+}
+
+/* Fluid responsive sizing for BrandLogo */
+.brand-logo-img-2xl {
+  height: clamp(44px, 6.5vw, 84px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.brand-logo-img-xl {
+  height: clamp(38px, 5.5vw, 70px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.brand-logo-img-lg {
+  height: clamp(34px, 4.8vw, 56px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.brand-logo-img-md {
+  height: clamp(30px, 4vw, 44px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.brand-logo-img-sm {
+  height: clamp(26px, 3.5vw, 34px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .hero-logo-box {
+    padding: 6px 10px;
+  }
 }
 
 .hero-clean-tagline-group {
