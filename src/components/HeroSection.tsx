@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { BrandLogo } from './BrandLogo';
 
 interface HeroSectionProps {
@@ -17,6 +18,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onSearchSubmit,
   onQuickTagClick,
 }) => {
+  const [activeVisual, setActiveVisual] = useState<'campus' | 'learning'>('campus');
+  const [isImageZoomed, setIsImageZoomed] = useState<boolean>(false);
+
   const quickTags = [
     { label: 'Hanjar Kepemimpinan', query: 'Hanjar' },
     { label: 'Kurikulum 720 JP', query: 'Kurikulum' },
@@ -175,18 +179,84 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Institutional Command Deck & Values */}
+        {/* Right Column: Institutional Command Deck & Sespimma Visual Showcase */}
         <div className="hero-right-column">
           <div className="hero-command-card">
-            <div className="hero-command-header">
-              <div className="hero-command-title-box">
-                <span className="hero-command-kicker">KONSOL PRESTASI AKADEMIK</span>
-                <h3 className="hero-command-title">Capaian Tata Kelola SIPINTAR</h3>
+            {/* Visual Showcase Header & Switcher */}
+            <div className="hero-visual-deck">
+              <div className="hero-visual-tabs">
+                <button
+                  type="button"
+                  className={`hero-visual-tab ${activeVisual === 'campus' ? 'active' : ''}`}
+                  onClick={() => setActiveVisual('campus')}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 21h18" />
+                    <path d="M5 21V7l7-4 7 4v14" />
+                    <path d="M9 10h1" />
+                    <path d="M9 14h1" />
+                    <path d="M14 10h1" />
+                    <path d="M14 14h1" />
+                  </svg>
+                  <span>Gedung Sespimma</span>
+                </button>
+                <button
+                  type="button"
+                  className={`hero-visual-tab ${activeVisual === 'learning' ? 'active' : ''}`}
+                  onClick={() => setActiveVisual('learning')}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                  <span>Suasana Belajar Serdik</span>
+                </button>
               </div>
-              <span className="hero-live-pill">
-                <span className="hero-live-dot" />
-                TERVERIFIKASI
-              </span>
+
+              {/* Visual Display Frame */}
+              <div
+                className="hero-image-frame"
+                onClick={() => setIsImageZoomed(true)}
+                title="Klik untuk memperbesar visual"
+              >
+                <Image
+                  src={
+                    activeVisual === 'campus'
+                      ? '/hero-sespimma-campus.webp'
+                      : '/hero-sespimma-learning.webp'
+                  }
+                  alt={
+                    activeVisual === 'campus'
+                      ? 'Gedung Sespimma Lemdiklat Polri dan Peserta Didik'
+                      : 'Suasana Belajar Digital Serdik Sespimma Lemdiklat Polri'
+                  }
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 480px"
+                  style={{ objectFit: 'cover' }}
+                  className="hero-image-media"
+                />
+                <div className="hero-image-gradient" />
+                <div className="hero-image-caption">
+                  <span className="hero-image-badge">
+                    {activeVisual === 'campus' ? 'KAMPUS AKADEMIK POLRI' : 'DIGITAL LEARNING HUB'}
+                  </span>
+                  <p className="hero-image-text">
+                    {activeVisual === 'campus'
+                      ? 'Gedung Utama Sespimma Lemdiklat Polri & Serdik'
+                      : 'Ruang Kolaborasi Belajar Digital Siswa Sespimma'}
+                  </p>
+                </div>
+                <div className="hero-image-zoom-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 3 21 3 21 9" />
+                    <polyline points="9 21 3 21 3 15" />
+                    <line x1="21" y1="3" x2="14" y2="10" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* Metrics Grid */}
@@ -299,6 +369,53 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Lightbox Modal for Enlarge Image */}
+      {isImageZoomed && (
+        <div
+          className="hero-lightbox-overlay"
+          onClick={() => setIsImageZoomed(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Tampilan Penuh Ilustrasi Sespimma"
+        >
+          <div className="hero-lightbox-card" onClick={(e) => e.stopPropagation()}>
+            <div className="hero-lightbox-header">
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff' }}>
+                  {activeVisual === 'campus'
+                    ? 'Gedung Utama Sespimma Lemdiklat Polri & Siswa'
+                    : 'Suasana Belajar Digital Siswa/Peserta Didik Sespimma'}
+                </h3>
+                <p style={{ fontSize: '12px', color: '#cbd5e1' }}>
+                  Visual Resmi Ekosistem Pembelajaran SiPINTAR Sespimma Lemdiklat Polri
+                </p>
+              </div>
+              <button
+                type="button"
+                className="hero-lightbox-close"
+                onClick={() => setIsImageZoomed(false)}
+                aria-label="Tutup pratinjau"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="hero-lightbox-media">
+              <Image
+                src={
+                  activeVisual === 'campus'
+                    ? '/hero-sespimma-campus.webp'
+                    : '/hero-sespimma-learning.webp'
+                }
+                alt="Ilustrasi Visual Sespimma"
+                width={1100}
+                height={620}
+                style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

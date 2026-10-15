@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import Link from 'next/link';
 import { ResourceCategory, ResourceItem } from '@/types';
 import { MOCK_RESOURCES, CATEGORIES_DATA } from '@/data/mockData';
 import { ResourceCard } from './ResourceCard';
 import { ResourceDetailModal } from './ResourceDetailModal';
+import { PageHeroHeader } from './PageHeroHeader';
 
 interface CategoryViewProps {
   category: ResourceCategory;
@@ -84,70 +84,19 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ category }) => {
         onClose={() => setSelectedResource(null)}
       />
 
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" style={{ marginBottom: '16px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
-        <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
-          Beranda
-        </Link>
-        <span style={{ margin: '0 8px' }}>/</span>
-        <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>{categoryMeta.title}</span>
-      </nav>
-
-      {/* Category Banner */}
-      <header
-        style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '24px 28px',
-          marginBottom: '24px',
-          boxShadow: 'var(--shadow-sm)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-          <div>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                color: 'var(--color-primary)',
-                letterSpacing: '0.6px',
-              }}
-            >
-              Kategori Resmi Sespimma
-            </span>
-            <h1
-              style={{
-                fontSize: '22px',
-                fontWeight: 800,
-                color: 'var(--color-navy)',
-                margin: '4px 0 8px',
-              }}
-            >
-              {categoryMeta.title}
-            </h1>
-            <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', maxWidth: '780px', lineHeight: 1.5 }}>
-              {categoryMeta.description}
-            </p>
-          </div>
-
-          <div
-            style={{
-              padding: '10px 18px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-primary-light)',
-              color: 'var(--color-primary)',
-              textAlign: 'center',
-              fontWeight: 800,
-              fontSize: '18px',
-            }}
-          >
-            <div>{filteredResources.length}</div>
-            <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Berkas Ditemukan</div>
-          </div>
-        </div>
-      </header>
+      {/* Institutional Hero Banner with Sespimma Visual Switcher & Breadcrumbs */}
+      <PageHeroHeader
+        title={categoryMeta.title}
+        description={categoryMeta.description}
+        badgeText="Kategori Resmi Sespimma Lemdiklat Polri"
+        countValue={filteredResources.length}
+        countLabel="Berkas Terdaftar"
+        defaultVisual={['kurikulum', 'sop', 'pedoman', 'gadik'].includes(category) ? 'campus' : 'learning'}
+        breadcrumbs={[
+          { label: 'Beranda', href: '/' },
+          { label: categoryMeta.title },
+        ]}
+      />
 
       {/* Filter and Search Bar Controls */}
       <section
