@@ -159,7 +159,7 @@ export const PageHeroHeader: React.FC<PageHeroHeaderProps> = ({
             <Image
               src={
                 activeVisual === 'campus'
-                  ? '/hero-sespimma-campus.webp'
+                  ? '/hero-sespimma-campus.jpg'
                   : '/hero-sespimma-learning.webp'
               }
               alt={
@@ -230,7 +230,7 @@ export const PageHeroHeader: React.FC<PageHeroHeaderProps> = ({
               <Image
                 src={
                   activeVisual === 'campus'
-                    ? '/hero-sespimma-campus.webp'
+                    ? '/hero-sespimma-campus.jpg'
                     : '/hero-sespimma-learning.webp'
                 }
                 alt="Ilustrasi Visual Sespimma"

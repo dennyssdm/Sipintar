@@ -22,11 +22,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const [isImageZoomed, setIsImageZoomed] = useState<boolean>(false);
 
   const quickTags = [
-    { label: 'Hanjar Kepemimpinan', query: 'Hanjar' },
-    { label: 'Kurikulum 720 JP', query: 'Kurikulum' },
-    { label: 'SOP Sidang Taskap', query: 'SOP' },
-    { label: 'E-Library & Taskap', query: 'Buku' },
-    { label: 'Profil Gadik', query: 'Gadik' },
+    { label: 'Hanjar Kepemimpinan', query: 'Hanjar', icon: '📖' },
+    { label: 'Kurikulum 720 JP', query: 'Kurikulum', icon: '📋' },
+    { label: 'SOP Sidang Taskap', query: 'SOP', icon: '⚖️' },
+    { label: 'E-Library & Taskap', query: 'Buku', icon: '📚' },
+    { label: 'Direktori Gadik', query: 'Gadik', icon: '👨‍🏫' },
   ];
 
   const handleTagClick = (query: string) => {
@@ -53,10 +53,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   return (
-    <section className="hero-card" aria-labelledby="hero-heading">
+    <section className="hero-card hero-card-elite" aria-labelledby="hero-heading">
       {/* Decorative ambient lighting & grid overlay */}
       <div className="hero-ambient-glow-1" aria-hidden="true" />
       <div className="hero-ambient-glow-2" aria-hidden="true" />
+      <div className="hero-ambient-glow-3" aria-hidden="true" />
       <div className="hero-pattern-overlay" aria-hidden="true" />
 
       <div className="hero-layout">
@@ -64,15 +65,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="hero-left-column">
           {/* Institutional Badges Ribbon */}
           <div className="hero-badge-ribbon">
+            <div className="hero-status-pill">
+              <span className="hero-status-dot" />
+              <span>SISTEM AKTIF</span>
+            </div>
             <div className="hero-badge-gold">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="8" r="6" />
                 <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
               </svg>
               <span>PKN TINGKAT II ANGKATAN XXIX NAWASENA</span>
             </div>
             <div className="hero-badge-blue">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
               <span>SESPIMMA LEMDIKLAT POLRI TA 2026</span>
@@ -86,7 +91,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
             <div className="hero-tagline-chip">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
               <span>&ldquo;Mengintegrasikan Pengetahuan, Mengaselerasikan Kepemimpinan&rdquo;</span>
             </div>
@@ -95,9 +100,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           {/* Main Titles */}
           <div className="hero-title-group">
             <div className="hero-pretitle">
-              EKOSISTEM DIGITAL TATA KELOLA SUMBER BELAJAR
+              <span className="hero-pretitle-line" />
+              <span>EKOSISTEM DIGITAL TATA KELOLA SUMBER BELAJAR</span>
             </div>
-            <h1 id="hero-heading" className="hero-title">
+            <h1 id="hero-heading" className="hero-title hero-title-gradient">
               SiPINTAR
             </h1>
             <p className="hero-expansion">
@@ -110,23 +116,28 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             Platform sentral terintegrasi Sespimma Lemdiklat Polri dalam pengelolaan bahan ajar pokok (hanjar), kurikulum kepemimpinan manajemen, repositori kepustakaan ilmiah & kertas karya perorangan (Taskap), serta standarisasi kepakaran tenaga pendidik (gadik) secara transparan, akuntabel, dan berkesinambungan.
           </p>
 
-          {/* In-Hero Interactive Search Box */}
+          {/* In-Hero Interactive Command Search Box */}
           <form className="hero-search-wrapper" onSubmit={handleSubmit} role="search" aria-label="Pencarian Cepat Hero">
             <div className="hero-search-input-group">
-              <svg className="hero-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              <div className="hero-search-icon-wrap">
+                <svg className="hero-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
               <input
                 type="text"
                 className="hero-search-input"
-                placeholder="Cari hanjar kepemimpinan, modul silabus, SOP, atau nama gadik..."
+                placeholder="Cari hanjar kepemimpinan, modul silabus, SOP, pustaka, atau nama gadik..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
                 aria-label="Cari sumber belajar dalam beranda"
               />
+              <div className="hero-search-kbd-hint" aria-hidden="true">
+                <kbd>↵ Enter</kbd>
+              </div>
               <button type="submit" className="hero-search-button">
-                <span>Cari</span>
+                <span>Temukan</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
@@ -135,7 +146,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Quick Suggestion Pills */}
             <div className="hero-quick-tags" aria-label="Kata kunci pencarian populer">
-              <span className="hero-quick-label">Pilihan Cepat:</span>
+              <span className="hero-quick-label">Topik Populer:</span>
               {quickTags.map((t) => (
                 <button
                   key={t.label}
@@ -143,7 +154,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   className="hero-quick-pill"
                   onClick={() => handleTagClick(t.query)}
                 >
-                  {t.label}
+                  <span className="hero-quick-pill-icon">{t.icon}</span>
+                  <span>{t.label}</span>
                 </button>
               ))}
             </div>
@@ -179,51 +191,59 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Institutional Command Deck & Sespimma Visual Showcase */}
+        {/* Right Column: Institutional Command Deck & Sespimma Visual Cinema Showcase */}
         <div className="hero-right-column">
-          <div className="hero-command-card">
+          <div className="hero-command-card hero-command-card-cinema">
             {/* Visual Showcase Header & Switcher */}
             <div className="hero-visual-deck">
-              <div className="hero-visual-tabs">
-                <button
-                  type="button"
-                  className={`hero-visual-tab ${activeVisual === 'campus' ? 'active' : ''}`}
-                  onClick={() => setActiveVisual('campus')}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 21h18" />
-                    <path d="M5 21V7l7-4 7 4v14" />
-                    <path d="M9 10h1" />
-                    <path d="M9 14h1" />
-                    <path d="M14 10h1" />
-                    <path d="M14 14h1" />
-                  </svg>
-                  <span>Gedung Sespimma</span>
-                </button>
-                <button
-                  type="button"
-                  className={`hero-visual-tab ${activeVisual === 'learning' ? 'active' : ''}`}
-                  onClick={() => setActiveVisual('learning')}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                    <line x1="8" y1="21" x2="16" y2="21" />
-                    <line x1="12" y1="17" x2="12" y2="21" />
-                  </svg>
-                  <span>Suasana Belajar Serdik</span>
-                </button>
+              <div className="hero-visual-header-row">
+                <div className="hero-visual-deck-title">
+                  <span className="hero-visual-pulse-dot" />
+                  <span>DOKUMENTASI VISUAL RESMI</span>
+                </div>
+                <div className="hero-visual-tabs">
+                  <button
+                    type="button"
+                    className={`hero-visual-tab ${activeVisual === 'campus' ? 'active' : ''}`}
+                    onClick={() => setActiveVisual('campus')}
+                    aria-label="Lihat Gedung Sespimma"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 21h18" />
+                      <path d="M5 21V7l7-4 7 4v14" />
+                      <path d="M9 10h1" />
+                      <path d="M9 14h1" />
+                      <path d="M14 10h1" />
+                      <path d="M14 14h1" />
+                    </svg>
+                    <span>Gedung Sespimma</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`hero-visual-tab ${activeVisual === 'learning' ? 'active' : ''}`}
+                    onClick={() => setActiveVisual('learning')}
+                    aria-label="Lihat Suasana Belajar Serdik"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                      <line x1="8" y1="21" x2="16" y2="21" />
+                      <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                    <span>Suasana Belajar</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Visual Display Frame */}
+              {/* Visual Display Cinema Frame */}
               <div
-                className="hero-image-frame"
+                className="hero-image-frame hero-image-frame-cinema"
                 onClick={() => setIsImageZoomed(true)}
-                title="Klik untuk memperbesar visual"
+                title="Klik untuk memperbesar tampilan resolusi tinggi"
               >
                 <Image
                   src={
                     activeVisual === 'campus'
-                      ? '/hero-sespimma-campus.webp'
+                      ? '/hero-sespimma-campus.jpg'
                       : '/hero-sespimma-learning.webp'
                   }
                   alt={
@@ -233,37 +253,43 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   }
                   fill
                   priority
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 480px"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 560px"
                   style={{ objectFit: 'cover' }}
                   className="hero-image-media"
                 />
                 <div className="hero-image-gradient" />
-                <div className="hero-image-caption">
-                  <span className="hero-image-badge">
-                    {activeVisual === 'campus' ? 'KAMPUS AKADEMIK POLRI' : 'DIGITAL LEARNING HUB'}
+                
+                {/* Floating Tags on Image */}
+                <div className="hero-image-top-badges">
+                  <span className="hero-image-badge hero-image-badge-gold">
+                    {activeVisual === 'campus' ? '🏛️ KAMPUS UTAMA SESPIMMA POLRI' : '💻 DIGITAL LEARNING COMMAND HUB'}
                   </span>
+                  <div className="hero-image-zoom-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 3 21 3 21 9" />
+                      <polyline points="9 21 3 21 3 15" />
+                      <line x1="21" y1="3" x2="14" y2="10" />
+                      <line x1="3" y1="21" x2="10" y2="14" />
+                    </svg>
+                    <span>Perbesar</span>
+                  </div>
+                </div>
+
+                <div className="hero-image-caption">
                   <p className="hero-image-text">
                     {activeVisual === 'campus'
-                      ? 'Gedung Utama Sespimma Lemdiklat Polri & Serdik'
-                      : 'Ruang Kolaborasi Belajar Digital Siswa Sespimma'}
+                      ? 'Gedung Sespimma Lemdiklat Polri — Pusat Keunggulan Kepemimpinan Manajemen Tingkat Menengah Polri'
+                      : 'Ruang Kolaborasi Belajar Digital Siswa & Serdik — Akses Bahan Ajar Interaktif dan Repositori Ilmiah'}
                   </p>
-                </div>
-                <div className="hero-image-zoom-hint">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 3 21 3 21 9" />
-                    <polyline points="9 21 3 21 3 15" />
-                    <line x1="21" y1="3" x2="14" y2="10" />
-                    <line x1="3" y1="21" x2="10" y2="14" />
-                  </svg>
                 </div>
               </div>
             </div>
 
-            {/* Metrics Grid */}
+            {/* Metrics Grid HUD */}
             <div className="hero-stat-grid">
-              <a href="#koleksi-terkini" className="hero-stat-tile" title="Lihat semua sumber belajar">
+              <a href="#koleksi-terkini" className="hero-stat-tile hero-stat-tile-blue" title="Lihat semua sumber belajar">
                 <div className="hero-stat-icon-wrap" style={{ color: '#60a5fa' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                   </svg>
@@ -274,9 +300,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 </div>
               </a>
 
-              <Link href="/gadik" className="hero-stat-tile" title="Lihat direktori tenaga pendidik">
+              <Link href="/gadik" className="hero-stat-tile hero-stat-tile-green" title="Lihat direktori tenaga pendidik">
                 <div className="hero-stat-icon-wrap" style={{ color: '#34d399' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -289,9 +315,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 </div>
               </Link>
 
-              <Link href="/modul" className="hero-stat-tile" title="Lihat modul dan bahan ajar">
+              <Link href="/modul" className="hero-stat-tile hero-stat-tile-amber" title="Lihat modul dan bahan ajar">
                 <div className="hero-stat-icon-wrap" style={{ color: '#fbbf24' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                     <line x1="8" y1="21" x2="16" y2="21" />
                     <line x1="12" y1="17" x2="12" y2="21" />
@@ -303,9 +329,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 </div>
               </Link>
 
-              <Link href="/library" className="hero-stat-tile" title="Lihat koleksi perpustakaan & Taskap">
+              <Link href="/library" className="hero-stat-tile hero-stat-tile-purple" title="Lihat koleksi perpustakaan & Taskap">
                 <div className="hero-stat-icon-wrap" style={{ color: '#c084fc' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2l9 4.9V17L12 22 3 17V6.9z" />
                     <path d="M12 22V12" />
                   </svg>
@@ -319,34 +345,36 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* 4 Pillars of Excellence (IN-T-A-R) */}
             <div className="hero-pillars-box">
-              <div className="hero-pillars-title">4 PILAR KEUNGGULAN PEMBELAJARAN</div>
+              <div className="hero-pillars-header">
+                <span className="hero-pillars-title">4 PILAR KEUNGGULAN PEMBELAJARAN (IN-T-A-R)</span>
+              </div>
               <div className="hero-pillars-grid">
-                <div className="hero-pillar-item">
+                <div className="hero-pillar-item" title="Digitalisasi materi kepemimpinan modern">
                   <span className="hero-pillar-code">IN</span>
                   <div>
                     <div className="hero-pillar-name">INovatif</div>
-                    <div className="hero-pillar-desc">Digitalisasi materi kepemimpinan modern</div>
+                    <div className="hero-pillar-desc">Digitalisasi materi kepemimpinan</div>
                   </div>
                 </div>
-                <div className="hero-pillar-item">
+                <div className="hero-pillar-item" title="Integrasi 8 taksonomi sumber belajar">
                   <span className="hero-pillar-code">T</span>
                   <div>
                     <div className="hero-pillar-name">Terpadu</div>
-                    <div className="hero-pillar-desc">Integrasi 8 taksonomi sumber belajar</div>
+                    <div className="hero-pillar-desc">Integrasi 8 taksonomi sumber</div>
                   </div>
                 </div>
-                <div className="hero-pillar-item">
+                <div className="hero-pillar-item" title="Relevan menjawab tantangan pemolisian">
                   <span className="hero-pillar-code">A</span>
                   <div>
                     <div className="hero-pillar-name">Adaptif</div>
-                    <div className="hero-pillar-desc">Relevan menjawab tantangan pemolisian</div>
+                    <div className="hero-pillar-desc">Relevan menjawab tantangan</div>
                   </div>
                 </div>
-                <div className="hero-pillar-item">
+                <div className="hero-pillar-item" title="Akses cepat, transparan, dan akuntabel">
                   <span className="hero-pillar-code">R</span>
                   <div>
                     <div className="hero-pillar-name">Responsif</div>
-                    <div className="hero-pillar-desc">Akses cepat, transparan, dan akuntabel</div>
+                    <div className="hero-pillar-desc">Akses cepat & akuntabel</div>
                   </div>
                 </div>
               </div>
@@ -355,9 +383,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             {/* Project Leader Honor Ribbon */}
             <div className="hero-leader-card">
               <div className="hero-leader-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
                 <span>PROYEK PERUBAHAN</span>
               </div>
@@ -381,15 +408,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         >
           <div className="hero-lightbox-card" onClick={(e) => e.stopPropagation()}>
             <div className="hero-lightbox-header">
-              <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff' }}>
-                  {activeVisual === 'campus'
-                    ? 'Gedung Utama Sespimma Lemdiklat Polri & Siswa'
-                    : 'Suasana Belajar Digital Siswa/Peserta Didik Sespimma'}
-                </h3>
-                <p style={{ fontSize: '12px', color: '#cbd5e1' }}>
-                  Visual Resmi Ekosistem Pembelajaran SiPINTAR Sespimma Lemdiklat Polri
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="hero-lightbox-badge-icon">
+                  {activeVisual === 'campus' ? '🏛️' : '💻'}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                    {activeVisual === 'campus'
+                      ? 'Gedung Sespimma Lemdiklat Polri & Peserta Didik'
+                      : 'Suasana Belajar Digital Siswa/Peserta Didik Sespimma'}
+                  </h3>
+                  <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '2px 0 0' }}>
+                    Dokumentasi Visual Resmi Ekosistem Pembelajaran SiPINTAR Sespimma Lemdiklat Polri
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
@@ -404,13 +436,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <Image
                 src={
                   activeVisual === 'campus'
-                    ? '/hero-sespimma-campus.webp'
+                    ? '/hero-sespimma-campus.jpg'
                     : '/hero-sespimma-learning.webp'
                 }
                 alt="Ilustrasi Visual Sespimma"
-                width={1100}
-                height={620}
-                style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+                width={1280}
+                height={720}
+                style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }}
+                priority
               />
             </div>
           </div>
