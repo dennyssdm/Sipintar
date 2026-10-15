@@ -4,7 +4,7 @@ import { AppShell } from '@/components/AppShell';
 
 export const metadata: Metadata = {
   title: 'SiPINTAR — Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif',
-  description: 'SiPINTAR: Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif. Mengintegrasikan Pengetahuan, Mengaselerasikan Kepemimpinan — Sespimma Lemdiklat Polri.',
+  description: 'SiPINTAR: Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif. Mengintegrasikan Pengetahuan, Mengakselerasikan Kepemimpinan — Sespimma Lemdiklat Polri.',
 };
 
 export const viewport: Viewport = {

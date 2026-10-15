@@ -1,6 +1,6 @@
 # SiPINTAR — Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif
 
-> **Tagline:** *"Mengintegrasikan Pengetahuan, Mengaselerasikan Kepemimpinan"*  
+> **Tagline:** *"Mengintegrasikan Pengetahuan, Mengakselerasikan Kepemimpinan"*  
 > **Inisiator / Project Leader:** DEWI SUSILO PANGESTUTI, S.Ak — PKN TINGKAT II ANGKATAN XXIX NAWASENA TA 2026
 
 Prototipe antarmuka frontend resmi untuk **SiPINTAR** (*Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif*) di lingkungan **Sespimma Sespim Lemdiklat Polri**, dibangun berdasarkan *Buku Panduan Tata Kelola SiPINTAR* dan *Manual Book SiPINTAR (2026)*.

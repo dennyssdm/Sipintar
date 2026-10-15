@@ -87,7 +87,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               Sistem Informasi Pembelajaran <span className="highlight-gold">INovatif</span> Terpadu, <span className="highlight-gold">Adaptif</span>, dan <span className="highlight-gold">Responsif</span>
             </h1>
             <p className="hero-clean-slogan">
-              &ldquo;Mengintegrasikan Pengetahuan, Mengaselerasikan Kepemimpinan&rdquo;
+              &ldquo;Mengintegrasikan Pengetahuan, Mengakselerasikan Kepemimpinan&rdquo;
             </p>
           </div>
 

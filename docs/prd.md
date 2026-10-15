@@ -2,7 +2,7 @@
 
 **Status:** Draft v1.0 — awaiting user approval  
 **Product:** SiPINTAR — Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif  
-**Tagline:** Mengintegrasikan Pengetahuan, Mengaselerasikan Kepemimpinan  
+**Tagline:** Mengintegrasikan Pengetahuan, Mengakselerasikan Kepemimpinan  
 **Primary release:** Frontend prototype only  
 **Owner/context:** Sespimma Sespim Lemdiklat Polri  
 **Source basis:** *Buku Panduan Tata Kelola SIPINTAR* (2026), *Manual Book SIPINTAR* (2026), and supplied dashboard reference image.

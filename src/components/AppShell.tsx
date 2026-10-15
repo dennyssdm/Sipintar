@@ -412,7 +412,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 <span>SiPINTAR — Sespimma Lemdiklat Polri</span>
                 <span>•</span>
                 <span style={{ fontStyle: 'italic' }}>
-                  &ldquo;Mengintegrasikan Pengetahuan, Mengaselerasikan Kepemimpinan&rdquo;
+                  &ldquo;Mengintegrasikan Pengetahuan, Mengakselerasikan Kepemimpinan&rdquo;
                 </span>
               </div>
             </div>
