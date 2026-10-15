@@ -554,11 +554,24 @@ button {
 
 .hero-logo-container {
   background-color: #ffffff;
-  padding: 5px 14px;
+  padding: 6px 14px;
   border-radius: var(--radius-md);
   display: inline-flex;
   align-items: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.hero-logo-container-large {
+  background-color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.65);
+}
+
+.hero-logo-container-large:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(96, 165, 250, 0.85);
 }
 
 .hero-tagline-chip {

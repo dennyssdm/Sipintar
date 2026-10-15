@@ -86,8 +86,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* Logo & Tagline Header Row */}
           <div className="hero-brand-row">
-            <div className="hero-logo-container">
-              <BrandLogo size="md" clickable={false} />
+            <div className="hero-logo-container hero-logo-container-large">
+              <BrandLogo size="2xl" clickable={false} />
             </div>
             <div className="hero-tagline-chip">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
