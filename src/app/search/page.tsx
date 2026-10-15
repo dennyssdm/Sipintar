@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useMemo, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { MOCK_RESOURCES } from '@/data/mockData';
 import { ResourceCard } from '@/components/ResourceCard';
 import { ResourceDetailModal } from '@/components/ResourceDetailModal';
-import { PageHeroHeader } from '@/components/PageHeroHeader';
 import { ResourceItem } from '@/types';
 
 function SearchContent({ initialQuery }: { initialQuery: string }) {
@@ -90,19 +90,70 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
         onClose={() => setSelectedResource(null)}
       />
 
-      {/* Institutional Hero Banner with Sespimma Visual Switcher & Breadcrumbs */}
-      <PageHeroHeader
-        title="Pencarian Terpadu Sumber Belajar"
-        description="Telusuri seluruh khazanah pengetahuan kepolisian Sespimma Lemdiklat Polri secara lintas-kategori: modul pokok, hanjar, buku fisik perpustakaan, karya tulis Taskap, hingga profil kompetensi gadik."
-        badgeText="Pencarian Terpadu Multi-Kategori SiPINTAR"
-        countValue={searchResults.length}
-        countLabel="Hasil Ditemukan"
-        defaultVisual="learning"
-        breadcrumbs={[
-          { label: 'Beranda', href: '/' },
-          { label: 'Pencarian Terpadu' },
-        ]}
-      />
+      {/* Breadcrumb Navigation */}
+      <nav aria-label="Breadcrumb" style={{ marginBottom: '16px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+        <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 500, textDecoration: 'none' }}>
+          Beranda
+        </Link>
+        <span style={{ margin: '0 8px' }}>/</span>
+        <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>Pencarian Terpadu</span>
+      </nav>
+
+      {/* Clean Header Banner */}
+      <header
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '24px 28px',
+          marginBottom: '24px',
+          boxShadow: 'var(--shadow-sm)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ maxWidth: '800px' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                color: 'var(--color-primary)',
+                letterSpacing: '0.6px',
+              }}
+            >
+              Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif
+            </span>
+            <h1
+              style={{
+                fontSize: '24px',
+                fontWeight: 800,
+                color: 'var(--color-navy)',
+                margin: '4px 0 8px',
+              }}
+            >
+              Pencarian Terpadu Sumber Belajar — SiPINTAR
+            </h1>
+            <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', lineHeight: 1.5, margin: 0 }}>
+              Telusuri seluruh khazanah pengetahuan kepolisian secara lintas-kategori: dari modul hanjar pokok, buku fisik perpustakaan, karya tulis Taskap, hingga profil kompetensi tenaga pendidik.
+            </p>
+          </div>
+
+          <div
+            style={{
+              padding: '10px 18px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--color-primary-light)',
+              color: 'var(--color-primary)',
+              textAlign: 'center',
+              fontWeight: 800,
+              fontSize: '18px',
+            }}
+          >
+            <div>{searchResults.length}</div>
+            <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Hasil Ditemukan</div>
+          </div>
+        </div>
+      </header>
 
       {/* Main Search Panel */}
       <section
