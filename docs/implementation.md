@@ -114,6 +114,7 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 | D-11 | Footer attribution | DEWI SUSILO PANGESTUTI, S.Ak - PKN TINGKAT II ANGKATAN XXIX NAWASENA TA 2026 | User-confirmed |
 | D-12 | Institutional Hero System | Rich hero with dual-column layout, gold accents, in-hero search, command deck & 4 pillars | User-directed |
 | D-13 | Visual Illustration & Cross-Menu Hero | Realistic Sespimma Lemdiklat Polri building (/hero-sespimma-campus.webp) and student learning atmosphere (/hero-sespimma-learning.webp) with interactive switcher, applied across Beranda, Modul, Library, Kurikulum, SOP, Pedoman, Manual, and Pencarian Terpadu via PageHeroHeader | User-directed & Completed |
+| D-14 | Kurikulum & Berkas Asli Hanjar Sespimma 2025 | Integrasi 14 berkas PDF Hanjar Resmi Sespimma TA 2025 dengan pratinjau interaktif tersemat dan katalog komprehensif 78 berkas modul & hanjar | User-directed & Completed |
 
 ## Change-control rule
 

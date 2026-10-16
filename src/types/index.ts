@@ -40,6 +40,7 @@ export interface ResourceItem {
   hasDigitalFile: boolean;
   fileFormat?: 'PDF' | 'DOCX' | 'PPTX' | 'MP4' | 'EPUB';
   fileSize?: string;
+  fileUrl?: string;
   physicalLocation?: string; // e.g. "Lantai 2, Rak B-03 Sespimma"
   competencies?: string[]; // for Gadik
   tags?: string[];

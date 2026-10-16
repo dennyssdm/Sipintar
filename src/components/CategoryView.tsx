@@ -205,7 +205,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ category }) => {
         {/* Secondary Filter Row: Subcategory, Lifecycle, Access */}
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Subcategories */}
-          {subCategories.length > 2 && (
+          {subCategories.length > 1 && (
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Tipe:</span>
               {subCategories.map((sub) => (

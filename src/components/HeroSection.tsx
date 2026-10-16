@@ -206,7 +206,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </svg>
                 </div>
                 <div>
-                  <div className="hero-stat-number">64</div>
+                  <div className="hero-stat-number">78</div>
                   <div className="hero-stat-label">Modul & Hanjar</div>
                 </div>
               </Link>

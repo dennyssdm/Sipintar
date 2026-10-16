@@ -13,6 +13,24 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, onSelect }
       <div className="resource-card-badges">
         <StatusBadge type="lifecycle" value={resource.lifecycle} />
         <StatusBadge type="access" value={resource.access} />
+        {resource.fileUrl && (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '11px',
+              fontWeight: 700,
+              backgroundColor: 'rgba(180, 83, 9, 0.12)',
+              color: '#b45309',
+              border: '1px solid rgba(180, 83, 9, 0.25)',
+              borderRadius: 'var(--radius-full)',
+              padding: '2px 8px',
+            }}
+          >
+            PDF Sespimma 2025
+          </span>
+        )}
       </div>
 
       <h3 className="resource-card-title">{resource.title}</h3>
@@ -84,13 +102,14 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, onSelect }
           className="btn-secondary"
           style={{
             marginTop: '14px',
-            backgroundColor: 'var(--color-surface-hover)',
+            backgroundColor: resource.fileUrl ? 'var(--color-primary-light)' : 'var(--color-surface-hover)',
             color: 'var(--color-primary)',
-            borderColor: 'var(--color-border)',
+            borderColor: resource.fileUrl ? 'var(--color-primary)' : 'var(--color-border)',
+            fontWeight: resource.fileUrl ? 700 : 500,
             justifyContent: 'center',
           }}
         >
-          Lihat Rincian Metadata
+          {resource.fileUrl ? 'Buka & Baca Berkas PDF' : 'Lihat Rincian Metadata'}
         </button>
       )}
     </article>

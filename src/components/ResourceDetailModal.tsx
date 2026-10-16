@@ -268,13 +268,81 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
             </div>
 
             <p style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', margin: 0 }}>
-              {resource.hasDigitalFile
+              {resource.fileUrl
+                ? 'Naskah Hanjar resmi Sespimma Lemdiklat Polri TA 2025 telah diverifikasi dan siap dibaca atau diunduh secara penuh.'
+                : resource.hasDigitalFile
                 ? 'Dokumen telah diverifikasi dan dapat dibaca secara terpadu oleh personel dengan hak akses sesuai klasifikasi.'
                 : resource.physicalLocation
                 ? `Koleksi fisik tersimpan di: ${resource.physicalLocation}. Tidak ada salinan digital terbuka demi keamanan dokumen.`
                 : 'Berdasarkan pedoman tata kelola, entri ini tersedia sebagai indeks penelusuran pustaka.'}
             </p>
           </div>
+
+          {/* Embedded PDF Viewer for Authentic Hanjar Files */}
+          {resource.fileUrl && (
+            <div
+              style={{
+                marginTop: '16px',
+                borderRadius: 'var(--radius-md)',
+                overflow: 'hidden',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+              }}
+            >
+              <div
+                style={{
+                  padding: '10px 14px',
+                  backgroundColor: 'var(--color-surface-hover)',
+                  borderBottom: '1px solid var(--color-border)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-navy)' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" color="#dc2626">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  <span>Pratinjau Dokumen Hanjar Asli (PDF)</span>
+                </div>
+                <a
+                  href={resource.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'var(--color-primary)',
+                    textDecoration: 'none',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span>Buka Layar Penuh</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </a>
+              </div>
+              <iframe
+                src={resource.fileUrl}
+                title={resource.title}
+                style={{
+                  width: '100%',
+                  height: '460px',
+                  border: 'none',
+                  display: 'block',
+                  backgroundColor: '#525659',
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Modal Footer Actions */}
@@ -291,10 +359,10 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
           }}
         >
           <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-            ID Entri: <code>{resource.id}</code> (Data Fiktif Simulasi)
+            ID Entri: <code>{resource.id}</code> {resource.fileUrl ? '(Berkas Resmi Sespimma 2025)' : '(Data Simulasi)'}
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={onClose}
@@ -308,7 +376,52 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
               Tutup
             </button>
 
-            {resource.hasDigitalFile ? (
+            {resource.fileUrl ? (
+              <>
+                <a
+                  href={resource.fileUrl}
+                  download
+                  className="btn-secondary"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-text-main)',
+                    borderColor: 'var(--color-border)',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span>Unduh Dokumen PDF</span>
+                </a>
+
+                <a
+                  href={resource.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary"
+                  style={{
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <span>Buka PDF di Tab Baru</span>
+                </a>
+              </>
+            ) : resource.hasDigitalFile ? (
               <button
                 type="button"
                 onClick={() => handleMockAction('Buka Pratinjau Dokumen')}
