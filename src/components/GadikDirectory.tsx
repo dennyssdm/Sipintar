@@ -119,13 +119,16 @@ export const GadikDirectory: React.FC = () => {
       {/* Page Header Institusional Toned */}
       <header
         style={{
-          background: 'linear-gradient(135deg, #071731 0%, #0d2a58 50%, #174f9c 100%)',
+          background: 'linear-gradient(135deg, #091a38 0%, #153e75 50%, #1d4ed8 100%)',
           color: '#ffffff',
-          border: '1px solid rgba(251, 191, 36, 0.25)',
+          borderTop: '4px solid #f59e0b',
+          borderLeft: '1px solid rgba(251, 191, 36, 0.35)',
+          borderRight: '1px solid rgba(251, 191, 36, 0.35)',
+          borderBottom: '1px solid rgba(251, 191, 36, 0.35)',
           borderRadius: 'var(--radius-lg)',
-          padding: '26px 30px',
+          padding: '28px 32px',
           marginBottom: '24px',
-          boxShadow: '0 8px 24px rgba(7, 23, 49, 0.2)',
+          boxShadow: '0 10px 30px rgba(7, 23, 49, 0.25)',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -224,52 +227,74 @@ export const GadikDirectory: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick PDF Action Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '220px' }}>
-            <a
-              href={REKAPITULASI_NOMINATIF_GADIK.pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary"
+          {/* Quick PDF Action Buttons & Stats */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <div
               style={{
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '10px 16px',
-                fontSize: '13px',
-                fontWeight: 700,
-                boxShadow: 'var(--shadow-sm)',
+                padding: '12px 20px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(251, 191, 36, 0.4)',
+                color: '#ffffff',
+                textAlign: 'center',
+                fontWeight: 800,
+                fontSize: '22px',
+                minWidth: '140px',
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
-              <span>Buka Naskah Asli PDF</span>
-            </a>
+              <div style={{ color: '#fbbf24' }}>{filteredMembers.length} Personel</div>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#e2e8f0', letterSpacing: '0.4px' }}>
+                Fungsional Polri
+              </div>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => setShowDocPreview(!showDocPreview)}
-              className="btn btn-secondary"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '9px 16px',
-                fontSize: '12.5px',
-                fontWeight: 600,
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              <span>{showDocPreview ? 'Sembunyikan Naskah PDF' : 'Pratinjau Naskah di Halaman'}</span>
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '200px' }}>
+              <a
+                href={REKAPITULASI_NOMINATIF_GADIK.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '9px 16px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  boxShadow: 'var(--shadow-sm)',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <span>Buka Naskah Asli PDF</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setShowDocPreview(!showDocPreview)}
+                className="btn btn-secondary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <span>{showDocPreview ? 'Tutup Naskah' : 'Pratinjau di Halaman'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -736,24 +761,24 @@ export const GadikDirectory: React.FC = () => {
             <thead>
               <tr
                 style={{
-                  backgroundColor: 'var(--color-surface-hover)',
-                  borderBottom: '2px solid var(--color-border)',
-                  color: 'var(--color-navy)',
+                  background: 'linear-gradient(135deg, #091a38 0%, #103a74 50%, #1d4ed8 100%)',
+                  color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '11.5px',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.4px',
+                  letterSpacing: '0.5px',
+                  borderBottom: '3px solid #f59e0b',
                 }}
               >
-                <th style={{ padding: '12px 14px', width: '45px', textAlign: 'center' }}>No</th>
-                <th style={{ padding: '12px 16px', minWidth: '220px' }}>Nama Lengkap & Gelar</th>
-                <th style={{ padding: '12px 14px', minWidth: '150px' }}>Pangkat / NRP</th>
-                <th style={{ padding: '12px 16px', minWidth: '220px' }}>Jabatan Fungsional</th>
-                <th style={{ padding: '12px 12px', width: '80px', textAlign: 'center' }}>Agama</th>
-                <th style={{ padding: '12px 12px', width: '90px', textAlign: 'center' }}>Eselon</th>
-                <th style={{ padding: '12px 12px', width: '80px', textAlign: 'center' }}>Golongan</th>
-                <th style={{ padding: '12px 16px', minWidth: '240px' }}>Bidang Kepakaran Pengajaran</th>
-                <th style={{ padding: '12px 14px', width: '110px', textAlign: 'center' }}>Aksi</th>
+                <th style={{ padding: '14px 14px', width: '45px', textAlign: 'center', color: '#fbbf24' }}>No</th>
+                <th style={{ padding: '14px 16px', minWidth: '220px', color: '#ffffff' }}>Nama Lengkap & Gelar</th>
+                <th style={{ padding: '14px 14px', minWidth: '150px', color: '#38bdf8' }}>Pangkat / NRP</th>
+                <th style={{ padding: '14px 16px', minWidth: '220px', color: '#ffffff' }}>Jabatan Fungsional</th>
+                <th style={{ padding: '14px 12px', width: '80px', textAlign: 'center', color: '#e2e8f0' }}>Agama</th>
+                <th style={{ padding: '14px 12px', width: '90px', textAlign: 'center', color: '#e2e8f0' }}>Eselon</th>
+                <th style={{ padding: '14px 12px', width: '80px', textAlign: 'center', color: '#e2e8f0' }}>Golongan</th>
+                <th style={{ padding: '14px 16px', minWidth: '240px', color: '#ffffff' }}>Bidang Kepakaran Pengajaran</th>
+                <th style={{ padding: '14px 14px', width: '110px', textAlign: 'center', color: '#fbbf24' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
