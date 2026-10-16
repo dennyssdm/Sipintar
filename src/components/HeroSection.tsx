@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { BrandLogo } from './BrandLogo';
 
 interface HeroSectionProps {
   searchQuery?: string;
@@ -55,9 +54,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="hero-pattern-overlay" aria-hidden="true" />
 
       <div className="hero-layout">
-        {/* Left Column: Clean & Focused Identity, Search & CTAs */}
+        {/* Left Column: Clean, Spacious & Uncrowded Identity, Search & CTAs */}
         <div className="hero-left-column">
-          {/* Institutional Ribbon */}
+          {/* Institutional Badges Ribbon */}
           <div className="hero-badge-ribbon">
             <div className="hero-badge-gold">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -74,19 +73,83 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          {/* Large Prominent Official Logo - Maximum Available Space */}
-          <div className="hero-brand-clean hero-brand-max">
-            <div className="hero-logo-box hero-logo-box-max">
-              <BrandLogo size="max" fluid={true} clickable={false} />
+          {/* Typography Brand Identity - Spacious, Modern & Elegant */}
+          <div className="hero-title-group" style={{ marginBottom: '22px' }}>
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#93c5fd',
+                letterSpacing: '1.2px',
+                textTransform: 'uppercase',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '8px',
+              }}
+            >
+              <span style={{ width: '18px', height: '2px', backgroundColor: '#60a5fa', display: 'inline-block' }} />
+              <span>PLATFORM TATA KELOLA SUMBER BELAJAR TERPADU</span>
             </div>
-          </div>
 
-          {/* Subtitle & Tagline Group */}
-          <div className="hero-clean-tagline-group">
-            <h1 id="hero-title" className="hero-clean-expansion">
-              Sistem Informasi Pembelajaran <span className="highlight-gold">INovatif</span> Terpadu, <span className="highlight-gold">Adaptif</span>, dan <span className="highlight-gold">Responsif</span>
+            <h1
+              id="hero-title"
+              style={{
+                fontSize: 'clamp(32px, 4.2vw, 46px)',
+                fontWeight: 900,
+                color: '#ffffff',
+                lineHeight: 1.15,
+                margin: '0 0 12px',
+                letterSpacing: '-0.5px',
+                textShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+              }}
+            >
+              SiPINTAR{' '}
+              <span
+                style={{
+                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                Sespimma
+              </span>
             </h1>
-            <p className="hero-clean-slogan">
+
+            <p
+              style={{
+                fontSize: 'clamp(14.5px, 1.3vw, 17px)',
+                fontWeight: 600,
+                color: '#e2e8f0',
+                lineHeight: 1.5,
+                margin: '0 0 8px',
+                maxWidth: '720px',
+              }}
+            >
+              Sistem Informasi Pembelajaran{' '}
+              <span style={{ color: '#fbbf24', fontWeight: 800, backgroundColor: 'rgba(251, 191, 36, 0.15)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(251, 191, 36, 0.35)' }}>
+                INovatif
+              </span>{' '}
+              Terpadu,{' '}
+              <span style={{ color: '#38bdf8', fontWeight: 800, backgroundColor: 'rgba(56, 189, 248, 0.15)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.35)' }}>
+                Adaptif
+              </span>
+              , dan{' '}
+              <span style={{ color: '#34d399', fontWeight: 800, backgroundColor: 'rgba(52, 211, 153, 0.15)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(52, 211, 153, 0.35)' }}>
+                Responsif
+              </span>
+            </p>
+
+            <p
+              style={{
+                fontSize: '13.5px',
+                fontStyle: 'italic',
+                fontWeight: 500,
+                color: '#cbd5e1',
+                margin: 0,
+                letterSpacing: '0.2px',
+              }}
+            >
               &ldquo;Mengintegrasikan Pengetahuan, Mengakselerasikan Kepemimpinan&rdquo;
             </p>
           </div>
