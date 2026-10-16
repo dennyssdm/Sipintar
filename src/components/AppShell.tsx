@@ -192,7 +192,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </div>
 
           <nav className="sidebar-nav">
-            <div className="nav-section-title">Sumber Belajar</div>
+            <div className="nav-section-title-sumber">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+              <span>SUMBER BELAJAR</span>
+            </div>
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -208,8 +214,11 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               );
             })}
 
-            <div className="nav-section-title" style={{ marginTop: '14px' }}>
-              Fungsi Administrator
+            <div className="nav-section-title-admin">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              <span>FUNGSI ADMINISTRATOR</span>
             </div>
             {adminNavItems.map((item) => {
               const isActive = pathname === item.href;

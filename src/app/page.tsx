@@ -141,7 +141,7 @@ export default function HomePage() {
         <div className="admin-header">
           <div>
             <h2 id="admin-strip-title" className="section-title">
-              Pusat Kendali Administrator
+              Pusat Kendali <span style={{ color: '#b45309', backgroundColor: 'rgba(245, 158, 11, 0.12)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(245, 158, 11, 0.3)' }}>Administrator</span>
             </h2>
             <p className="section-subtitle">
               Pintasan cepat tata kelola data, verifikasi naskah, matriks hak akses, dan monitoring (Klik untuk pratinjau alur)
@@ -202,7 +202,7 @@ export default function HomePage() {
         <div className="section-header">
           <div>
             <h2 id="kategori-title" className="section-title">
-              Kategori Sumber Belajar
+              Kategori <span style={{ color: '#1d4ed8', backgroundColor: 'rgba(29, 78, 216, 0.1)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(29, 78, 216, 0.25)' }}>Sumber Belajar</span>
             </h2>
             <p className="section-subtitle">
               Klasifikasi taksonomi resmi sesuai Buku Panduan Tata Kelola SIPINTAR
@@ -246,7 +246,7 @@ export default function HomePage() {
         <div className="section-header" style={{ flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h2 id="recent-title" className="section-title">
-              Pembaruan & Pratinjau Sumber Belajar
+              Pembaruan & Pratinjau <span style={{ color: '#1d4ed8', backgroundColor: 'rgba(29, 78, 216, 0.1)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(29, 78, 216, 0.25)' }}>Sumber Belajar</span>
             </h2>
             <p className="section-subtitle">
               Eksplorasi materi terverifikasi dan koleksi pustaka terdaftar secara interaktif
