@@ -44,6 +44,36 @@ export interface ResourceItem {
   physicalLocation?: string; // e.g. "Lantai 2, Rak B-03 Sespimma"
   competencies?: string[]; // for Gadik
   tags?: string[];
+  // Fungsional Polri & Gadik specific metadata
+  nrp?: string;
+  jabatan?: string;
+  eselon?: string;
+  golongan?: string;
+  pangkat?: string;
+  agama?: string;
+  noUrutNominatif?: number;
+}
+
+export interface GadikMember {
+  id: string;
+  noUrut: number;
+  nama: string;
+  pangkat: 'KOMBES POL' | 'AKBP' | 'KOMPOL' | 'IPTU';
+  nrp: string;
+  jabatan: string;
+  kategoriJabatan:
+    | 'Anjak Madya'
+    | 'Widyaiswara Madya Tk. III'
+    | 'Gadik Madya'
+    | 'Widyaiswara Muda Tk. I'
+    | 'Widyaiswara Pratama Tk. I';
+  agama: 'ISLAM' | 'KRISTEN';
+  eselon: 'II B3' | 'III A2' | 'III B' | 'IV B';
+  golongan: 'IV-C' | 'IV-B' | 'IV-A' | 'III-C' | 'III-B';
+  bidangKepakaran: string[];
+  mataAjarHanjar: string[];
+  status: 'Aktif Fungsional';
+  bio: string;
 }
 
 export type UserRole =
@@ -68,3 +98,4 @@ export interface CategorySummary {
   icon: string;
   href: string;
 }
+

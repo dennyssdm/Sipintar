@@ -632,6 +632,71 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
           ) : (
             /* MODE 2: INFORMASI & METADATA OVERVIEW */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {/* Fungsional Polri Metadata if applicable */}
+              {resource.nrp && (
+                <div
+                  style={{
+                    backgroundColor: 'var(--color-primary-light)',
+                    border: '1px solid var(--color-primary)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '16px',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      color: 'var(--color-primary)',
+                      letterSpacing: '0.5px',
+                      marginBottom: '10px',
+                    }}
+                  >
+                    Identitas Fungsional Polri (Berdasarkan Naskah Nominatif Sespimma 2026)
+                  </div>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                      gap: '12px',
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+                        Pangkat & NRP
+                      </span>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-navy)', marginTop: '2px' }}>
+                        {resource.pangkat} / {resource.nrp}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+                        Jabatan Fungsional
+                      </span>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', marginTop: '2px' }}>
+                        {resource.jabatan}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+                        Eselon & Golongan
+                      </span>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', marginTop: '2px' }}>
+                        Eselon {resource.eselon} • Gol. {resource.golongan}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+                        Agama
+                      </span>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', marginTop: '2px' }}>
+                        {resource.agama}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Description */}
               <div>
                 <h4 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '6px' }}>

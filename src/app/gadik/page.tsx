@@ -1,12 +1,14 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { CategoryView } from '@/components/CategoryView';
+import { GadikDirectory } from '@/components/GadikDirectory';
 
 export const metadata: Metadata = {
   title: 'Gadik & Kompetensi — SIPINTAR Sespimma',
-  description: 'Direktori profil tenaga pendidik (Gadik), rekam kepakaran, dan bidang ajar Sespimma.',
+  description:
+    'Direktori resmi nominatif anggota Polri (Fungsional) dan Tenaga Pendidik Sespimma Sespim Lemdiklat Polri Bulan Oktober 2026.',
 };
 
 export default function GadikPage() {
-  return <CategoryView category="Gadik & Kompetensi" />;
+  return <GadikDirectory />;
 }
+

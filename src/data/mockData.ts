@@ -1,11 +1,22 @@
 import { ResourceItem, CategorySummary, AdminShortcut } from '@/types';
+import {
+  GADIK_RESOURCES,
+  GADIK_NOMINATIF_MEMBERS,
+  REKAPITULASI_NOMINATIF_GADIK,
+} from './gadikData';
+
+export {
+  GADIK_RESOURCES,
+  GADIK_NOMINATIF_MEMBERS,
+  REKAPITULASI_NOMINATIF_GADIK,
+};
 
 export const CATEGORIES_DATA: CategorySummary[] = [
   {
     category: 'Gadik & Kompetensi',
     title: 'Gadik & Kompetensi',
-    description: 'Profil tenaga pendidik, kepakaran spesifik, dan rekam jejak pengajaran Sespimma.',
-    count: 28,
+    description: 'Profil fungsional Polri & tenaga pendidik resmi Sespimma Lemdiklat Polri (Oktober 2026).',
+    count: 16,
     icon: 'user-check',
     href: '/gadik',
   },
@@ -398,21 +409,7 @@ export const MOCK_RESOURCES: ResourceItem[] = [
     fileSize: '1.9 MB',
     tags: ['SOP', 'Evaluasi', 'Sidang Akademik'],
   },
-  {
-    id: 'res-005',
-    title: 'Profil Tenaga Pendidik: Manajemen Reserse & Investigasi Kejahatan Siber',
-    category: 'Gadik & Kompetensi',
-    subCategory: 'Profil Gadik',
-    description: 'Gadik Madya spesialisasi penyidikan kejahatan teknologi informasi, forensik digital, dan intelijen cyber.',
-    authorOrInstructor: 'AKBP Dewi Suryani, S.H., S.I.K., M.Kom.',
-    unitOrSource: 'Korps Tenaga Pendidik Sespimma',
-    updatedAt: '2026-10-01',
-    lifecycle: 'Dipublikasikan',
-    access: 'Terbuka',
-    hasDigitalFile: false,
-    competencies: ['Cyber Crime Investigation', 'Digital Forensics', 'Criminal Intelligence'],
-    tags: ['Gadik Madya', 'Siber', 'Reserse'],
-  },
+  ...GADIK_RESOURCES,
   {
     id: 'res-006',
     title: 'Pedoman Penulisan dan Pembimbingan Kertas Karya Perorangan (Taskap) TA 2026',
@@ -540,21 +537,6 @@ export const MOCK_RESOURCES: ResourceItem[] = [
     fileFormat: 'PDF',
     fileSize: '6.7 MB',
     tags: ['Tata Kelola', 'SOP Admin', 'Klasifikasi Akses'],
-  },
-  {
-    id: 'res-014',
-    title: 'Profil Tenaga Pendidik: Manajemen Strategik dan Reformasi Birokrasi Polri',
-    category: 'Gadik & Kompetensi',
-    subCategory: 'Profil Gadik',
-    description: 'Gadik Utama spesialisasi kebijakan publik kepolisian, restrukturisasi organisasi, dan integritas kepemimpinan.',
-    authorOrInstructor: 'Brigjen Pol. Prof. Dr. Irawan Setiadi, S.H., M.H.',
-    unitOrSource: 'Korps Tenaga Pendidik Sespimma',
-    updatedAt: '2026-09-12',
-    lifecycle: 'Dipublikasikan',
-    access: 'Terbuka',
-    hasDigitalFile: false,
-    competencies: ['Strategic Management', 'Police Reform', 'Public Policy Analysis'],
-    tags: ['Gadik Utama', 'Manajemen Strategik', 'Reformasi Birokrasi'],
   },
   {
     id: 'res-015',
