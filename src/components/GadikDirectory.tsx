@@ -118,6 +118,7 @@ export const GadikDirectory: React.FC = () => {
 
       {/* Page Header Institusional Toned */}
       <header
+        className="category-header-toned"
         style={{
           background: 'linear-gradient(135deg, #091a38 0%, #153e75 50%, #1d4ed8 100%)',
           color: '#ffffff',

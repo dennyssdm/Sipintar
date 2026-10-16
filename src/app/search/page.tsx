@@ -101,6 +101,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
 
       {/* Toned Header Banner */}
       <header
+        className="category-header-toned"
         style={{
           background: 'linear-gradient(135deg, #091c3c 0%, #103369 50%, #185ab4 100%)',
           color: '#ffffff',

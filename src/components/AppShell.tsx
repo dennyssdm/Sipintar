@@ -315,7 +315,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
             <div className="header-right">
               {/* Notifications Indicator */}
-              <div style={{ position: 'relative' }}>
+              <div className="header-notif-wrap" style={{ position: 'relative' }}>
                 <button
                   type="button"
                   className="theme-toggle-btn"
@@ -367,12 +367,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </div>
 
               {/* Demo Role Switcher & Registration Button */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <label htmlFor="role-select" style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+              <div className="header-role-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <label htmlFor="role-select" className="header-role-label" style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                   Peran:
                 </label>
                 <select
                   id="role-select"
+                  className="header-role-select"
                   value={currentRole}
                   onChange={(e) => {
                     if (e.target.value === 'DAFTAR_BARU') {
@@ -391,30 +392,32 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                   }}
                   title="Simulasi tampilan berdasarkan peran (hanya di frontend)"
                 >
-                  <option value="Serdik">Serdik (Peserta Didik)</option>
-                  <option value="Gadik">Gadik (Tenaga Pendidik)</option>
+                  <option value="Serdik">Serdik</option>
+                  <option value="Gadik">Gadik</option>
                   <option value="Pengelola Perpustakaan">Pengelola Pustaka</option>
                   <option value="Administrator">Administrator</option>
-                  <option value="DAFTAR_BARU">+ Ingin Bergabung? Daftar...</option>
+                  <option value="DAFTAR_BARU">+ Daftar Baru...</option>
                 </select>
 
                 <button
                   type="button"
+                  className="header-daftar-btn"
                   onClick={() => setRegisterModalOpen(true)}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '5px',
-                    padding: '5px 10px',
+                    gap: '4px',
+                    padding: '5px 9px',
                     borderRadius: 'var(--radius-sm)',
                     background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
                     color: '#ffffff',
-                    fontSize: '12px',
+                    fontSize: '11.5px',
                     fontWeight: 700,
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     cursor: 'pointer',
                     boxShadow: '0 2px 4px rgba(29, 78, 216, 0.25)',
                     transition: 'all 0.15s ease',
+                    whiteSpace: 'nowrap',
                   }}
                   title="Daftar keanggotaan baru sebagai Serdik, Gadik, atau Pengelola Pustaka"
                 >

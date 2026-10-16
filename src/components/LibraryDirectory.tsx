@@ -104,6 +104,7 @@ export const LibraryDirectory: React.FC = () => {
 
       {/* Page Header Institusional Toned */}
       <header
+        className="category-header-toned"
         style={{
           background: 'linear-gradient(135deg, #061933 0%, #0a2952 50%, #0f4882 100%)',
           color: '#ffffff',

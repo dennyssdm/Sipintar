@@ -148,6 +148,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ category }) => {
 
       {/* Toned Category Header */}
       <header
+        className="category-header-toned"
         style={{
           background: categoryTheme.bg,
           color: '#ffffff',
