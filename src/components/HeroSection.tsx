@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface HeroSectionProps {
   searchQuery?: string;
@@ -11,11 +12,15 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({
-  searchQuery = '',
+  searchQuery: externalQuery,
   onSearchChange,
   onSearchSubmit,
   onQuickTagClick,
 }) => {
+  const router = useRouter();
+  const [internalQuery, setInternalQuery] = useState('');
+  const query = externalQuery !== undefined ? externalQuery : internalQuery;
+
   const quickTags = [
     { label: 'Hanjar Kepemimpinan', query: 'Hanjar' },
     { label: 'Kurikulum 720 JP', query: 'Kurikulum' },
@@ -23,15 +28,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     { label: 'E-Library & Pustaka', query: 'Buku' },
   ];
 
-  const handleTagClick = (query: string) => {
+  const handleTagClick = (tagQuery: string) => {
     if (onQuickTagClick) {
-      onQuickTagClick(query);
-    } else if (onSearchChange) {
-      onSearchChange(query);
-    }
-    const el = document.getElementById('koleksi-terkini');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      onQuickTagClick(tagQuery);
+    } else {
+      router.push(`/search?q=${encodeURIComponent(tagQuery)}`);
     }
   };
 
@@ -39,10 +40,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     e.preventDefault();
     if (onSearchSubmit) {
       onSearchSubmit(e);
-    }
-    const el = document.getElementById('koleksi-terkini');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+    } else if (query.trim()) {
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    } else {
+      router.push('/search');
     }
   };
 
@@ -165,8 +166,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 type="text"
                 className="hero-search-input"
                 placeholder="Cari materi hanjar, kurikulum, SOP, buku pustaka, atau gadik..."
-                value={searchQuery}
-                onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+                value={query}
+                onChange={(e) => {
+                  if (onSearchChange) onSearchChange(e.target.value);
+                  else setInternalQuery(e.target.value);
+                }}
                 aria-label="Cari sumber belajar"
               />
               <button type="submit" className="hero-search-button">
