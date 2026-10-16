@@ -4,11 +4,19 @@ import {
   GADIK_NOMINATIF_MEMBERS,
   REKAPITULASI_NOMINATIF_GADIK,
 } from './gadikData';
+import {
+  MOCK_BOOKS,
+  LIBRARY_CATEGORIES,
+  BOOK_RESOURCES,
+} from './libraryData';
 
 export {
   GADIK_RESOURCES,
   GADIK_NOMINATIF_MEMBERS,
   REKAPITULASI_NOMINATIF_GADIK,
+  MOCK_BOOKS,
+  LIBRARY_CATEGORIES,
+  BOOK_RESOURCES,
 };
 
 export const CATEGORIES_DATA: CategorySummary[] = [
@@ -363,36 +371,7 @@ export const MOCK_RESOURCES: ResourceItem[] = [
     fileSize: '4.8 MB',
     tags: ['Kepemimpinan', 'Strategis', 'Manajemen Polri'],
   },
-  {
-    id: 'res-002',
-    title: 'Buku Referensi: Hukum Acara Pidana dan Hak Asasi Manusia',
-    category: 'E-Library/Perpustakaan',
-    subCategory: 'Buku Fisik',
-    description: 'Kajian komparatif penegakan hukum acara pidana modern berlandaskan asas perlindungan HAM.',
-    authorOrInstructor: 'Prof. Dr. Bagus Wicaksono, S.H., LL.M.',
-    unitOrSource: 'Perpustakaan Sespimma Lemdiklat Polri',
-    updatedAt: '2026-08-11',
-    lifecycle: 'Dipublikasikan',
-    access: 'Terbuka',
-    hasDigitalFile: false,
-    physicalLocation: 'Gedung Utama Lt. 2, Rak Buku Hukum No. H-14',
-    tags: ['Hukum Pidana', 'HAM', 'Koleksi Fisik'],
-  },
-  {
-    id: 'res-003',
-    title: 'Taskap: Optimalisasi Pelayanan Publik Terpadu Berbasis AI di Tingkat Polres',
-    category: 'E-Library/Perpustakaan',
-    subCategory: 'Taskap Serdik',
-    description: 'Kertas Karya Perorangan peserta didik Sespimma tentang rancang bangun integrasi layanan kepolisian.',
-    authorOrInstructor: 'Kompol Arya Ramadhan, S.I.K.',
-    unitOrSource: 'Perpustakaan Sespimma (Arsip Taskap)',
-    updatedAt: '2026-07-29',
-    lifecycle: 'Dipublikasikan',
-    access: 'Metadata Saja',
-    hasDigitalFile: false,
-    physicalLocation: 'Ruang Arsip Taskap, Lemari C-02 (Akses baca di tempat)',
-    tags: ['Taskap', 'Inovasi', 'Pelayanan Publik'],
-  },
+  ...BOOK_RESOURCES,
   {
     id: 'res-004',
     title: 'SOP Penyelenggaraan Evaluasi Akademik dan Sidang Kertas Karya Perorangan',

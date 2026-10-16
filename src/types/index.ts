@@ -99,3 +99,43 @@ export interface CategorySummary {
   href: string;
 }
 
+/**
+ * E-Library / Perpustakaan Data Schema
+ * Aligned with struktur buku.docx:
+ * - Table 1: books (Metadata Deskriptif with synopsis)
+ * - Table 2: book_files (Metadata Teknis with preview_file_path & full file_path)
+ */
+export interface BookFileMetadata {
+  id: string;
+  bookId: string;
+  filePath: string; // File utuh (akses peminjaman/hak khusus)
+  previewFilePath: string; // File pratinjau sampel (akses publik 10-20 halaman pertama)
+  fileFormat: 'PDF' | 'EPUB';
+  fileSize: string;
+  totalPages: number;
+  previewPages: number;
+}
+
+export interface BookItem {
+  id: string;
+  isbn: string;
+  title: string;
+  author: string;
+  publisher: string;
+  publishedYear: number;
+  synopsis: string; // Ringkasan komprehensif atau abstrak buku
+  categoryId: string;
+  categoryName: string;
+  language: 'Indonesia' | 'Inggris';
+  digitalFile: BookFileMetadata;
+  callNumber: string;
+  physicalLocation: string;
+  stockAvailable: number;
+  stockTotal: number;
+  coverImage?: string;
+  coverColor?: string;
+  coverGradient?: string;
+  tags: string[];
+}
+
+
