@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
 import { SearchBar } from './SearchBar';
 import { BrandLogo } from './BrandLogo';
+import { RoleRegistrationModal } from './RoleRegistrationModal';
 import { UserRole } from '@/types';
 
 interface AppShellProps {
@@ -17,6 +18,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState<UserRole>('Serdik');
   const [notifOpen, setNotifOpen] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -246,7 +248,31 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </div>
               <div className="user-info">
                 <div className="user-name">Pengguna Simulasi</div>
-                <div className="user-role-badge">Peran Aktif: {currentRole}</div>
+                <div className="user-role-badge">Peran: {currentRole}</div>
+                <button
+                  type="button"
+                  onClick={() => setRegisterModalOpen(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    padding: '3px 0 0',
+                    textAlign: 'left',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                  title="Daftar peran baru sebagai Serdik, Gadik, atau Pengelola Pustaka"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span>Daftar Peran Baru</span>
+                </button>
               </div>
             </div>
           </div>
@@ -332,7 +358,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 )}
               </div>
 
-              {/* Demo Role Switcher */}
+              {/* Demo Role Switcher & Registration Button */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <label htmlFor="role-select" style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                   Peran:
@@ -340,7 +366,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 <select
                   id="role-select"
                   value={currentRole}
-                  onChange={(e) => setCurrentRole(e.target.value as UserRole)}
+                  onChange={(e) => {
+                    if (e.target.value === 'DAFTAR_BARU') {
+                      setRegisterModalOpen(true);
+                    } else {
+                      setCurrentRole(e.target.value as UserRole);
+                    }
+                  }}
                   style={{
                     fontSize: '12px',
                     padding: '5px 8px',
@@ -355,7 +387,37 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                   <option value="Gadik">Gadik (Tenaga Pendidik)</option>
                   <option value="Pengelola Perpustakaan">Pengelola Pustaka</option>
                   <option value="Administrator">Administrator</option>
+                  <option value="DAFTAR_BARU">+ Ingin Bergabung? Daftar...</option>
                 </select>
+
+                <button
+                  type="button"
+                  onClick={() => setRegisterModalOpen(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '5px 10px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(29, 78, 216, 0.25)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="Daftar keanggotaan baru sebagai Serdik, Gadik, atau Pengelola Pustaka"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
+                  </svg>
+                  <span>Daftar</span>
+                </button>
               </div>
 
               {/* Theme Toggle */}
@@ -419,6 +481,17 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </footer>
         </div>
       </div>
+
+      {/* Role Registration Modal for New Members (Serdik, Gadik, Pengelola Pustaka) */}
+      <RoleRegistrationModal
+        isOpen={registerModalOpen}
+        onClose={() => setRegisterModalOpen(false)}
+        onSuccessRole={(newRole) => {
+          setCurrentRole(newRole);
+          setRegisterModalOpen(false);
+        }}
+        initialRole={currentRole}
+      />
     </div>
   );
 };
