@@ -116,89 +116,110 @@ export const GadikDirectory: React.FC = () => {
         <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>Gadik & Kompetensi</span>
       </nav>
 
-      {/* Page Header Institusional */}
+      {/* Page Header Institusional Toned */}
       <header
         style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
+          background: 'linear-gradient(135deg, #071731 0%, #0d2a58 50%, #174f9c 100%)',
+          color: '#ffffff',
+          border: '1px solid rgba(251, 191, 36, 0.25)',
           borderRadius: 'var(--radius-lg)',
-          padding: '24px 28px',
+          padding: '26px 30px',
           marginBottom: '24px',
-          boxShadow: 'var(--shadow-sm)',
+          boxShadow: '0 8px 24px rgba(7, 23, 49, 0.2)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+        {/* Subtle decorative glow */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-50px',
+            right: '-50px',
+            width: '240px',
+            height: '240px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
           <div style={{ flex: '1 1 540px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
               <span
                 style={{
                   fontSize: '11px',
                   fontWeight: 800,
                   textTransform: 'uppercase',
-                  color: 'var(--color-primary)',
+                  color: '#fbbf24',
                   letterSpacing: '0.8px',
-                  backgroundColor: 'var(--color-primary-light)',
+                  backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                  border: '1px solid rgba(251, 191, 36, 0.35)',
                   padding: '3px 8px',
                   borderRadius: 'var(--radius-sm)',
                 }}
               >
                 SESPIM LEMDIKLAT POLRI
               </span>
-              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>•</span>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-navy)', letterSpacing: '0.4px' }}>
+              <span style={{ fontSize: '12px', color: '#94a3b8' }}>•</span>
+              <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.4px' }}>
                 SEKOLAH STAF DAN PIMPINAN PERTAMA
               </span>
             </div>
 
             <h1
               style={{
-                fontSize: '24px',
+                fontSize: '26px',
                 fontWeight: 800,
-                color: 'var(--color-navy)',
+                color: '#ffffff',
                 margin: '4px 0 10px',
                 lineHeight: 1.25,
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
               }}
             >
               Gadik & Kompetensi
             </h1>
 
-            <p style={{ fontSize: '13.5px', color: 'var(--color-text-muted)', lineHeight: 1.55, margin: 0 }}>
-              Daftar resmi <strong>Nominatif Anggota Polri (Fungsional) & Tenaga Pendidik</strong> Sespimma Sespim Lemdiklat Polri{' '}
-              <strong>Bulan Oktober 2026</strong>. Menampilkan struktur kepangkatan, NRP, jabatan fungsional, eselon, golongan ruang, dan kepakaran pengajaran.
+            <p style={{ fontSize: '13.5px', color: '#cbd5e1', lineHeight: 1.6, margin: 0, maxWidth: '780px' }}>
+              Daftar resmi <strong style={{ color: '#ffffff' }}>Nominatif Anggota Polri (Fungsional) & Tenaga Pendidik</strong> Sespimma Sespim Lemdiklat Polri{' '}
+              <strong style={{ color: '#fbbf24' }}>Bulan Oktober 2026</strong>. Menampilkan struktur kepangkatan, NRP, jabatan fungsional, eselon, golongan ruang, dan kepakaran pengajaran.
             </p>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
               <span
                 style={{
                   fontSize: '11.5px',
-                  backgroundColor: 'var(--color-surface-hover)',
-                  border: '1px solid var(--color-border)',
-                  padding: '4px 10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(6px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  padding: '5px 12px',
                   borderRadius: 'var(--radius-full)',
-                  color: 'var(--color-text-main)',
+                  color: '#f1f5f9',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
                 }}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" color="var(--color-primary)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" color="#fbbf24">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
-                <span>Pengesahan: <strong>PS Kasubbag Renmin KOMPOL Sunu Prihandoyo, S.T. (NRP. 82050054)</strong></span>
+                <span>Pengesahan: <strong style={{ color: '#ffffff' }}>PS Kasubbag Renmin KOMPOL Sunu Prihandoyo, S.T. (NRP. 82050054)</strong></span>
               </span>
 
               <span
                 style={{
                   fontSize: '11.5px',
-                  backgroundColor: 'var(--color-success-bg)',
-                  border: '1px solid var(--color-success-border)',
-                  color: 'var(--color-success)',
-                  padding: '4px 10px',
+                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: '#6ee7b7',
+                  padding: '5px 12px',
                   borderRadius: 'var(--radius-full)',
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
               >
-                Status: Resmi & Terverifikasi
+                ✓ Status: Resmi & Terverifikasi
               </span>
             </div>
           </div>

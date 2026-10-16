@@ -79,45 +79,70 @@ export default function AdminDataPage() {
         <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>Fungsi Admin: Manajemen Data</span>
       </nav>
 
-      {/* Header Banner */}
+      {/* Toned Header Banner */}
       <header
         style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
+          background: 'linear-gradient(135deg, #07162d 0%, #0d2549 50%, #16407c 100%)',
+          color: '#ffffff',
+          border: '1px solid rgba(251, 191, 36, 0.25)',
           borderRadius: 'var(--radius-lg)',
-          padding: '24px 28px',
+          padding: '26px 30px',
           marginBottom: '24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '16px',
           flexWrap: 'wrap',
-          boxShadow: 'var(--shadow-sm)',
+          boxShadow: '0 8px 24px rgba(7, 22, 45, 0.2)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div>
+        {/* Subtle decorative glow */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-50px',
+            right: '-50px',
+            width: '240px',
+            height: '240px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
           <span
             style={{
               fontSize: '11px',
-              fontWeight: 700,
+              fontWeight: 800,
               textTransform: 'uppercase',
-              color: 'var(--color-primary)',
+              color: '#fbbf24',
+              backgroundColor: 'rgba(251, 191, 36, 0.15)',
+              border: '1px solid rgba(251, 191, 36, 0.35)',
+              padding: '3px 8px',
+              borderRadius: 'var(--radius-sm)',
               letterSpacing: '0.6px',
+              display: 'inline-block',
+              marginBottom: '6px',
             }}
           >
             Tata Kelola Dokumen & Bahan Ajar
           </span>
           <h1
             style={{
-              fontSize: '22px',
+              fontSize: '24px',
               fontWeight: 800,
-              color: 'var(--color-navy)',
-              margin: '4px 0 6px',
+              color: '#ffffff',
+              margin: '2px 0 6px',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
             }}
           >
             Manajemen Data Sumber Belajar
           </h1>
-          <p style={{ fontSize: '13.5px', color: 'var(--color-text-muted)', maxWidth: '720px' }}>
+          <p style={{ fontSize: '13.5px', color: '#cbd5e1', maxWidth: '720px', lineHeight: 1.55, margin: 0 }}>
             Kelola katalog berkas materi, hak akses klasifikasi, dan siklus naskah pembelajaran Sespimma. Setiap aksi pada prototipe ini berjalan pada state lokal.
           </p>
         </div>

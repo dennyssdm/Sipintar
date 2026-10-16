@@ -400,7 +400,8 @@ button {
 .app-header {
   height: var(--header-height);
   background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 2px solid var(--color-primary);
+  box-shadow: 0 2px 10px rgba(10, 25, 47, 0.06);
   padding: 0 24px;
   display: flex;
   align-items: center;

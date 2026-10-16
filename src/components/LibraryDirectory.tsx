@@ -102,89 +102,110 @@ export const LibraryDirectory: React.FC = () => {
         <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>E-Library / Perpustakaan</span>
       </nav>
 
-      {/* Page Header Institusional */}
+      {/* Page Header Institusional Toned */}
       <header
         style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
+          background: 'linear-gradient(135deg, #061933 0%, #0a2952 50%, #0f4882 100%)',
+          color: '#ffffff',
+          border: '1px solid rgba(56, 189, 248, 0.25)',
           borderRadius: 'var(--radius-lg)',
-          padding: '24px 28px',
+          padding: '26px 30px',
           marginBottom: '24px',
-          boxShadow: 'var(--shadow-sm)',
+          boxShadow: '0 8px 24px rgba(6, 25, 51, 0.2)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+        {/* Subtle decorative glow */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-50px',
+            right: '-50px',
+            width: '240px',
+            height: '240px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
           <div style={{ flex: '1 1 540px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
               <span
                 style={{
                   fontSize: '11px',
                   fontWeight: 800,
                   textTransform: 'uppercase',
-                  color: 'var(--color-primary)',
+                  color: '#38bdf8',
                   letterSpacing: '0.8px',
-                  backgroundColor: 'var(--color-primary-light)',
+                  backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                  border: '1px solid rgba(56, 189, 248, 0.35)',
                   padding: '3px 8px',
                   borderRadius: 'var(--radius-sm)',
                 }}
               >
                 UNIT PERPUSTAKAAN SESPIMMA
               </span>
-              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>•</span>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-navy)', letterSpacing: '0.4px' }}>
+              <span style={{ fontSize: '12px', color: '#94a3b8' }}>•</span>
+              <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.4px' }}>
                 KATALOG SUMBER PUSTAKA RESMI
               </span>
             </div>
 
             <h1
               style={{
-                fontSize: '24px',
+                fontSize: '26px',
                 fontWeight: 800,
-                color: 'var(--color-navy)',
+                color: '#ffffff',
                 margin: '4px 0 10px',
                 lineHeight: 1.25,
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
               }}
             >
               E-Library / Perpustakaan
             </h1>
 
-            <p style={{ fontSize: '13.5px', color: 'var(--color-text-muted)', lineHeight: 1.55, margin: 0 }}>
-              Katalog terpadu koleksi <strong>buku teks kepolisian</strong>, <strong>karya tulis perorangan (Taskap)</strong>,{' '}
+            <p style={{ fontSize: '13.5px', color: '#cbd5e1', lineHeight: 1.6, margin: 0, maxWidth: '780px' }}>
+              Katalog terpadu koleksi <strong style={{ color: '#ffffff' }}>buku teks kepolisian</strong>, <strong style={{ color: '#ffffff' }}>karya tulis perorangan (Taskap)</strong>,{' '}
               serta naskah referensi hukum dan kepemimpinan Sespimma Lemdiklat Polri. Dilengkapi{' '}
-              <strong>fitur pratinjau sampel digital (*Sample Preview*)</strong> dan <strong>sinopsis komprehensif</strong> pada setiap naskah.
+              <strong style={{ color: '#38bdf8' }}>fitur pratinjau sampel digital (*Sample Preview*)</strong> dan <strong style={{ color: '#fbbf24' }}>sinopsis komprehensif</strong> pada setiap naskah.
             </p>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
               <span
                 style={{
                   fontSize: '11.5px',
-                  backgroundColor: 'var(--color-surface-hover)',
-                  border: '1px solid var(--color-border)',
-                  padding: '4px 10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(6px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  padding: '5px 12px',
                   borderRadius: 'var(--radius-full)',
-                  color: 'var(--color-text-main)',
+                  color: '#f1f5f9',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
                 }}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" color="var(--color-primary)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" color="#38bdf8">
                   <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
                   <path d="M6 6h10" />
                   <path d="M6 10h10" />
                 </svg>
-                <span>Standar Skema: <strong>Tabel books (Metadata Deskriptif & Sinopsis) + book_files (Pratinjau Teknis)</strong></span>
+                <span>Standar Skema: <strong style={{ color: '#ffffff' }}>Tabel books (Metadata Deskriptif & Sinopsis) + book_files (Pratinjau Teknis)</strong></span>
               </span>
 
               <span
                 style={{
                   fontSize: '11.5px',
-                  backgroundColor: 'var(--color-success-bg)',
-                  border: '1px solid var(--color-success-border)',
-                  color: 'var(--color-success)',
-                  padding: '4px 10px',
+                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: '#6ee7b7',
+                  padding: '5px 12px',
                   borderRadius: 'var(--radius-full)',
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
               >
                 ✓ Akses Pratinjau Terbuka (Public Sample Ready)
@@ -203,36 +224,38 @@ export const LibraryDirectory: React.FC = () => {
           >
             <div
               style={{
-                backgroundColor: 'var(--color-primary-light)',
-                border: '1px solid var(--color-primary)',
+                backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
                 borderRadius: 'var(--radius-md)',
-                padding: '12px 18px',
+                padding: '14px 20px',
                 textAlign: 'center',
                 minWidth: '130px',
               }}
             >
-              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-primary)' }}>
+              <div style={{ fontSize: '26px', fontWeight: 900, color: '#38bdf8' }}>
                 {MOCK_BOOKS.length}
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-navy)', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase' }}>
                 Judul Terkurasi
               </div>
             </div>
 
             <div
               style={{
-                backgroundColor: 'var(--color-surface-hover)',
-                border: '1px solid var(--color-border)',
+                backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
                 borderRadius: 'var(--radius-md)',
-                padding: '12px 18px',
+                padding: '14px 20px',
                 textAlign: 'center',
                 minWidth: '130px',
               }}
             >
-              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)' }}>
+              <div style={{ fontSize: '26px', fontWeight: 900, color: '#10b981' }}>
                 100%
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase' }}>
                 Ada Pratinjau PDF
               </div>
             </div>

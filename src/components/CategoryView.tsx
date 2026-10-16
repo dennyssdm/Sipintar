@@ -77,6 +77,59 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ category }) => {
     return result;
   }, [baseResources, selectedSubCategory, lifecycleFilter, accessFilter, searchQuery, sortBy]);
 
+  const categoryTheme = useMemo(() => {
+    switch (category) {
+      case 'Modul & Hanjar':
+        return {
+          bg: 'linear-gradient(135deg, #081a38 0%, #0e2f63 50%, #1557b7 100%)',
+          ribbonColor: '#fbbf24',
+          ribbonBg: 'rgba(251, 191, 36, 0.15)',
+          ribbonBorder: 'rgba(251, 191, 36, 0.35)',
+          accentBorder: 'rgba(37, 99, 235, 0.3)',
+        };
+      case 'Kurikulum & Standar Layanan':
+        return {
+          bg: 'linear-gradient(135deg, #091b3a 0%, #113368 50%, #1a58a6 100%)',
+          ribbonColor: '#38bdf8',
+          ribbonBg: 'rgba(56, 189, 248, 0.15)',
+          ribbonBorder: 'rgba(56, 189, 248, 0.35)',
+          accentBorder: 'rgba(56, 189, 248, 0.3)',
+        };
+      case 'SOP':
+        return {
+          bg: 'linear-gradient(135deg, #081934 0%, #0e2a57 50%, #17488f 100%)',
+          ribbonColor: '#34d399',
+          ribbonBg: 'rgba(52, 211, 153, 0.15)',
+          ribbonBorder: 'rgba(52, 211, 153, 0.35)',
+          accentBorder: 'rgba(52, 211, 153, 0.3)',
+        };
+      case 'Pedoman':
+        return {
+          bg: 'linear-gradient(135deg, #0a1b36 0%, #112d59 50%, #1d4e94 100%)',
+          ribbonColor: '#a78bfa',
+          ribbonBg: 'rgba(167, 139, 250, 0.15)',
+          ribbonBorder: 'rgba(167, 139, 250, 0.35)',
+          accentBorder: 'rgba(167, 139, 250, 0.3)',
+        };
+      case 'Manual Book':
+        return {
+          bg: 'linear-gradient(135deg, #071932 0%, #0d2c55 50%, #154c8e 100%)',
+          ribbonColor: '#f472b6',
+          ribbonBg: 'rgba(244, 114, 182, 0.15)',
+          ribbonBorder: 'rgba(244, 114, 182, 0.35)',
+          accentBorder: 'rgba(244, 114, 182, 0.3)',
+        };
+      default:
+        return {
+          bg: 'linear-gradient(135deg, #091a36 0%, #0d2856 50%, #154e9e 100%)',
+          ribbonColor: '#fbbf24',
+          ribbonBg: 'rgba(255, 255, 255, 0.15)',
+          ribbonBorder: 'rgba(255, 255, 255, 0.3)',
+          accentBorder: 'rgba(255, 255, 255, 0.2)',
+        };
+    }
+  }, [category]);
+
   return (
     <div>
       <ResourceDetailModal
@@ -93,58 +146,88 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ category }) => {
         <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>{categoryMeta.title}</span>
       </nav>
 
-      {/* Clean Category Header */}
+      {/* Toned Category Header */}
       <header
         style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
+          background: categoryTheme.bg,
+          color: '#ffffff',
+          border: `1px solid ${categoryTheme.accentBorder}`,
           borderRadius: 'var(--radius-lg)',
           padding: '24px 28px',
           marginBottom: '24px',
-          boxShadow: 'var(--shadow-sm)',
+          boxShadow: '0 8px 24px rgba(10, 26, 54, 0.16)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-          <div>
+        {/* Subtle decorative glow */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-40px',
+            right: '-40px',
+            width: '200px',
+            height: '200px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: '820px' }}>
             <span
               style={{
                 fontSize: '11px',
-                fontWeight: 700,
+                fontWeight: 800,
                 textTransform: 'uppercase',
-                color: 'var(--color-primary)',
+                color: categoryTheme.ribbonColor,
+                backgroundColor: categoryTheme.ribbonBg,
+                border: `1px solid ${categoryTheme.ribbonBorder}`,
+                padding: '3px 8px',
+                borderRadius: 'var(--radius-sm)',
                 letterSpacing: '0.6px',
+                display: 'inline-block',
+                marginBottom: '6px',
               }}
             >
               Kategori Resmi Sespimma Lemdiklat Polri
             </span>
             <h1
               style={{
-                fontSize: '22px',
+                fontSize: '24px',
                 fontWeight: 800,
-                color: 'var(--color-navy)',
-                margin: '4px 0 8px',
+                color: '#ffffff',
+                margin: '2px 0 8px',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
               }}
             >
               {categoryMeta.title}
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', maxWidth: '780px', lineHeight: 1.5, margin: 0 }}>
+            <p style={{ fontSize: '14px', color: '#cbd5e1', maxWidth: '780px', lineHeight: 1.55, margin: 0 }}>
               {categoryMeta.description}
             </p>
           </div>
 
           <div
             style={{
-              padding: '10px 18px',
+              padding: '12px 20px',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-primary-light)',
-              color: 'var(--color-primary)',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#ffffff',
               textAlign: 'center',
               fontWeight: 800,
-              fontSize: '18px',
+              fontSize: '20px',
+              minWidth: '130px',
             }}
           >
-            <div>{filteredResources.length}</div>
-            <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Berkas Ditemukan</div>
+            <div style={{ color: categoryTheme.ribbonColor }}>{filteredResources.length}</div>
+            <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', color: '#e2e8f0', letterSpacing: '0.4px' }}>
+              Berkas Ditemukan
+            </div>
           </div>
         </div>
       </header>

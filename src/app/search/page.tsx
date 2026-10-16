@@ -99,26 +99,50 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
         <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>Pencarian Terpadu</span>
       </nav>
 
-      {/* Clean Header Banner */}
+      {/* Toned Header Banner */}
       <header
         style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
+          background: 'linear-gradient(135deg, #091c3c 0%, #103369 50%, #185ab4 100%)',
+          color: '#ffffff',
+          border: '1px solid rgba(56, 189, 248, 0.25)',
           borderRadius: 'var(--radius-lg)',
-          padding: '24px 28px',
+          padding: '26px 30px',
           marginBottom: '24px',
-          boxShadow: 'var(--shadow-sm)',
+          boxShadow: '0 8px 24px rgba(9, 28, 60, 0.2)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+        {/* Subtle decorative glow */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-50px',
+            right: '-50px',
+            width: '240px',
+            height: '240px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
           <div style={{ maxWidth: '800px' }}>
             <span
               style={{
                 fontSize: '11px',
-                fontWeight: 700,
+                fontWeight: 800,
                 textTransform: 'uppercase',
-                color: 'var(--color-primary)',
+                color: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                border: '1px solid rgba(56, 189, 248, 0.35)',
+                padding: '3px 8px',
+                borderRadius: 'var(--radius-sm)',
                 letterSpacing: '0.6px',
+                display: 'inline-block',
+                marginBottom: '6px',
               }}
             >
               Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif
@@ -127,30 +151,36 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
               style={{
                 fontSize: '24px',
                 fontWeight: 800,
-                color: 'var(--color-navy)',
-                margin: '4px 0 8px',
+                color: '#ffffff',
+                margin: '2px 0 8px',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
               }}
             >
               Pencarian Terpadu Sumber Belajar — SiPINTAR
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', lineHeight: 1.5, margin: 0 }}>
+            <p style={{ fontSize: '14px', color: '#cbd5e1', lineHeight: 1.55, margin: 0 }}>
               Telusuri seluruh khazanah pengetahuan kepolisian secara lintas-kategori: dari modul hanjar pokok, buku fisik perpustakaan, karya tulis Taskap, hingga profil kompetensi tenaga pendidik.
             </p>
           </div>
 
           <div
             style={{
-              padding: '10px 18px',
+              padding: '12px 20px',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-primary-light)',
-              color: 'var(--color-primary)',
+              backgroundColor: 'rgba(255, 255, 255, 0.12)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: '#ffffff',
               textAlign: 'center',
               fontWeight: 800,
-              fontSize: '18px',
+              fontSize: '22px',
+              minWidth: '130px',
             }}
           >
-            <div>{searchResults.length}</div>
-            <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Hasil Ditemukan</div>
+            <div style={{ color: '#38bdf8' }}>{searchResults.length}</div>
+            <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', color: '#e2e8f0', letterSpacing: '0.4px' }}>
+              Hasil Ditemukan
+            </div>
           </div>
         </div>
       </header>
