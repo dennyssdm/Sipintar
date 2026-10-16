@@ -8,30 +8,72 @@ interface ResourceCardProps {
 }
 
 export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, onSelect }) => {
+  const isHanjar = resource.category === 'Modul & Hanjar';
+  const showCoverPreview = isHanjar || resource.hasDigitalFile;
+
   return (
     <article className="resource-card">
       <div className="resource-card-badges">
         <StatusBadge type="lifecycle" value={resource.lifecycle} />
         <StatusBadge type="access" value={resource.access} />
         {resource.fileUrl && (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-              backgroundColor: 'rgba(180, 83, 9, 0.12)',
-              color: '#b45309',
-              border: '1px solid rgba(180, 83, 9, 0.25)',
-              borderRadius: 'var(--radius-full)',
-              padding: '2px 8px',
-            }}
-          >
+          <span className="badge-sespimma-pdf">
             PDF Sespimma 2025
           </span>
         )}
       </div>
+
+      {/* Visual Document Cover Preview on Every Hanjar */}
+      {showCoverPreview && (
+        <div
+          className="resource-card-cover"
+          onClick={() => onSelect && onSelect(resource)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              if (onSelect) {
+                onSelect(resource);
+              }
+            }
+          }}
+          title={`Klik untuk Pratinjau Dokumen: ${resource.title}`}
+          aria-label={`Pratinjau Dokumen ${resource.title}`}
+        >
+          <div className="resource-card-cover-header">
+            <span className="cover-institution-tag">SESPIMMA LEMDIKLAT POLRI</span>
+            <span className={`resource-card-format-tag format-${(resource.fileFormat || 'pdf').toLowerCase()}`}>
+              {resource.fileFormat || 'PDF'}
+            </span>
+          </div>
+
+          <div className="resource-card-cover-center">
+            <div className="cover-doc-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <div className="cover-title-snippet">
+              {resource.title}
+            </div>
+          </div>
+
+          <div className="resource-card-cover-footer">
+            <span className="cover-filesize">{resource.fileSize || 'Naskah Digital'}</span>
+            <span className="resource-card-preview-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <span>Pratinjau</span>
+            </span>
+          </div>
+        </div>
+      )}
 
       <h3 className="resource-card-title">{resource.title}</h3>
 
@@ -77,7 +119,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, onSelect }
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            <span>Berkas Digital Tersedia ({resource.fileFormat} • {resource.fileSize})</span>
+            <span>Berkas Digital Siap ({resource.fileFormat} • {resource.fileSize})</span>
           </span>
         ) : (
           <span className="file-unavailable" style={{ display: 'flex', alignContent: 'center', gap: '4px' }}>
@@ -96,21 +138,74 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, onSelect }
       </div>
 
       {onSelect && (
-        <button
-          type="button"
-          onClick={() => onSelect(resource)}
-          className="btn-secondary"
-          style={{
-            marginTop: '14px',
-            backgroundColor: resource.fileUrl ? 'var(--color-primary-light)' : 'var(--color-surface-hover)',
-            color: 'var(--color-primary)',
-            borderColor: resource.fileUrl ? 'var(--color-primary)' : 'var(--color-border)',
-            fontWeight: resource.fileUrl ? 700 : 500,
-            justifyContent: 'center',
-          }}
-        >
-          {resource.fileUrl ? 'Buka & Baca Berkas PDF' : 'Lihat Rincian Metadata'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '14px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => onSelect(resource)}
+            className="btn-primary"
+            style={{
+              flex: 1,
+              backgroundColor: 'var(--color-primary)',
+              color: '#ffffff',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              padding: '8px 12px',
+              justifyContent: 'center',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span>Pratinjau Dokumen</span>
+          </button>
+
+          {resource.fileUrl ? (
+            <a
+              href={resource.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary"
+              style={{
+                fontSize: '12px',
+                padding: '8px 10px',
+                borderColor: 'var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text-main)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                textDecoration: 'none',
+              }}
+              title="Buka berkas PDF resmi di tab baru"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span>PDF</span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onSelect(resource)}
+              className="btn-secondary"
+              style={{
+                fontSize: '12px',
+                padding: '8px 12px',
+                borderColor: 'var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              Rincian
+            </button>
+          )}
+        </div>
       )}
     </article>
   );
