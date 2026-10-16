@@ -116,6 +116,7 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 | D-13 | Visual Illustration & Cross-Menu Hero | Realistic Sespimma Lemdiklat Polri building (/hero-sespimma-campus.webp) and student learning atmosphere (/hero-sespimma-learning.webp) with interactive switcher, applied across Beranda, Modul, Library, Kurikulum, SOP, Pedoman, Manual, and Pencarian Terpadu via PageHeroHeader | User-directed & Completed |
 | D-14 | Kurikulum & Berkas Asli Hanjar Sespimma 2025 | Integrasi 14 berkas PDF Hanjar Resmi Sespimma TA 2025 dengan pratinjau interaktif tersemat dan katalog komprehensif 78 berkas modul & hanjar | User-directed & Completed |
 | D-15 | Pratinjau Dokumen pada Setiap Hanjar | Penambahan visual cover preview banner pada kartu materi, tombol aksi Pratinjau Dokumen, pembaca PDF interaktif untuk naskah asli, dan simulator digital manuscript reader lengkap untuk seluruh hanjar kurikulum | User-directed & Completed |
+| D-16 | Dedicated Document Reading Preview (Mode Pratinjau Membaca Dokumen) | Penataan ulang modal pembaca dokumen dengan mode membaca imersif (lebar 1140px/95vw), tab switcher terdedikasi (Pratinjau Membaca Dokumen vs Rincian Metadata & Status), layout pembaca digital 2 kolom dengan navigasi bab lengkap (Kop, SKL, Bab I-IV, Tugas Serdik), dan tombol aksi "Baca Dokumen" pada seluruh kartu katalog | User-directed & Completed |
 
 ## Change-control rule
 
