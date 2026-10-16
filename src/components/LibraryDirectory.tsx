@@ -240,6 +240,177 @@ export const LibraryDirectory: React.FC = () => {
         </div>
       </header>
 
+      {/* 4 PILAR KATEGORI UTAMA PERPUSTAKAAN SESUAI PERMINTAAN */}
+      <section
+        aria-label="4 Kategori Pustaka Utama Sespimma"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+          gap: '14px',
+          marginBottom: '24px',
+        }}
+      >
+        {/* Pilar 1: Koleksi Buku Fisik */}
+        <div
+          onClick={() => setSelectedCategory(selectedCategory === 'buku-fisik' ? 'all' : 'buku-fisik')}
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: `2px solid ${selectedCategory === 'buku-fisik' ? 'var(--color-primary)' : 'var(--color-border)'}`,
+            borderRadius: 'var(--radius-md)',
+            padding: '16px',
+            cursor: 'pointer',
+            transition: 'var(--transition-fast)',
+            boxShadow: selectedCategory === 'buku-fisik' ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  backgroundColor: '#e0f2fe',
+                  color: '#0369a1',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid #38bdf8',
+                }}
+              >
+                Koleksi Fisik
+              </span>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)', marginTop: '6px' }}>
+                {MOCK_BOOKS.filter((b) => b.categoryId === 'buku-fisik').length}{' '}
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Judul</span>
+              </div>
+            </div>
+            <div style={{ fontSize: '22px' }}>📚</div>
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            Buku teks cetak dan monograf referensi di rak Gedung Perpustakaan Sespimma Lembang.
+          </div>
+        </div>
+
+        {/* Pilar 2: E-Book */}
+        <div
+          onClick={() => setSelectedCategory(selectedCategory === 'ebook' ? 'all' : 'ebook')}
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: `2px solid ${selectedCategory === 'ebook' ? '#b45309' : 'var(--color-border)'}`,
+            borderRadius: 'var(--radius-md)',
+            padding: '16px',
+            cursor: 'pointer',
+            transition: 'var(--transition-fast)',
+            boxShadow: selectedCategory === 'ebook' ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  backgroundColor: '#fef3c7',
+                  color: '#92400e',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid #f59e0b',
+                }}
+              >
+                E-Book Digital
+              </span>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)', marginTop: '6px' }}>
+                {MOCK_BOOKS.filter((b) => b.categoryId === 'ebook').length}{' '}
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Judul</span>
+              </div>
+            </div>
+            <div style={{ fontSize: '22px' }}>📱</div>
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            Buku digital PDF/EPUB lengkap dengan sampel bab pembuka yang siap dibaca langsung.
+          </div>
+        </div>
+
+        {/* Pilar 3: Karya Tulis Kepolisian (Taskap) */}
+        <div
+          onClick={() => setSelectedCategory(selectedCategory === 'taskap' ? 'all' : 'taskap')}
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: `2px solid ${selectedCategory === 'taskap' ? '#4338ca' : 'var(--color-border)'}`,
+            borderRadius: 'var(--radius-md)',
+            padding: '16px',
+            cursor: 'pointer',
+            transition: 'var(--transition-fast)',
+            boxShadow: selectedCategory === 'taskap' ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  backgroundColor: '#ede9fe',
+                  color: '#6d28d9',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid #a78bfa',
+                }}
+              >
+                Karya Tulis (Taskap)
+              </span>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)', marginTop: '6px' }}>
+                {MOCK_BOOKS.filter((b) => b.categoryId === 'taskap').length}{' '}
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Naskah</span>
+              </div>
+            </div>
+            <div style={{ fontSize: '22px' }}>📑</div>
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            Kertas Karya Perorangan (Taskap) peserta didik Sespimma dan pedoman riset ilmiah terapan.
+          </div>
+        </div>
+
+        {/* Pilar 4: Jurnal Ilmiah Terbitan */}
+        <div
+          onClick={() => setSelectedCategory(selectedCategory === 'jurnal' ? 'all' : 'jurnal')}
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: `2px solid ${selectedCategory === 'jurnal' ? '#047857' : 'var(--color-border)'}`,
+            borderRadius: 'var(--radius-md)',
+            padding: '16px',
+            cursor: 'pointer',
+            transition: 'var(--transition-fast)',
+            boxShadow: selectedCategory === 'jurnal' ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  backgroundColor: '#ecfdf5',
+                  color: '#065f46',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid #34d399',
+                }}
+              >
+                Jurnal Ilmiah
+              </span>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)', marginTop: '6px' }}>
+                {MOCK_BOOKS.filter((b) => b.categoryId === 'jurnal').length}{' '}
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Edisi</span>
+              </div>
+            </div>
+            <div style={{ fontSize: '22px' }}>🏛️</div>
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            Terbitan berkala ilmiah terakreditasi ISSN memuat hasil riset empiris dan kepakaran kepolisian.
+          </div>
+        </div>
+      </section>
+
       {/* FILTER, SEARCH & VIEW MODE CONTROLS */}
       <section
         aria-label="Pencarian dan Filter E-Library"
@@ -359,27 +530,48 @@ export const LibraryDirectory: React.FC = () => {
           <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', marginRight: '4px' }}>
             Kategori:
           </span>
-          {LIBRARY_CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              style={{
-                fontSize: '11.5px',
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid',
-                borderColor: selectedCategory === cat.id ? 'var(--color-primary)' : 'var(--color-border)',
-                backgroundColor: selectedCategory === cat.id ? 'var(--color-primary)' : 'transparent',
-                color: selectedCategory === cat.id ? 'white' : 'var(--color-text-main)',
-                fontWeight: selectedCategory === cat.id ? 700 : 500,
-                cursor: 'pointer',
-                transition: 'var(--transition-fast)',
-              }}
-            >
-              {cat.name}
-            </button>
-          ))}
+          {LIBRARY_CATEGORIES.map((cat) => {
+            const count =
+              cat.id === 'all'
+                ? MOCK_BOOKS.length
+                : MOCK_BOOKS.filter((b) => b.categoryId === cat.id).length;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                style={{
+                  fontSize: '11.5px',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid',
+                  borderColor: selectedCategory === cat.id ? 'var(--color-primary)' : 'var(--color-border)',
+                  backgroundColor: selectedCategory === cat.id ? 'var(--color-primary)' : 'transparent',
+                  color: selectedCategory === cat.id ? 'white' : 'var(--color-text-main)',
+                  fontWeight: selectedCategory === cat.id ? 700 : 500,
+                  cursor: 'pointer',
+                  transition: 'var(--transition-fast)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>{cat.name}</span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    padding: '1px 5px',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: selectedCategory === cat.id ? 'rgba(255,255,255,0.25)' : 'var(--color-surface-hover)',
+                    color: selectedCategory === cat.id ? 'white' : 'var(--color-text-muted)',
+                    fontWeight: 700,
+                  }}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </section>
 

@@ -126,6 +126,7 @@ export interface BookItem {
   synopsis: string; // Ringkasan komprehensif atau abstrak buku
   categoryId: string;
   categoryName: string;
+  subCategory?: string;
   language: 'Indonesia' | 'Inggris';
   digitalFile: BookFileMetadata;
   callNumber: string;
