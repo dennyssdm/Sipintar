@@ -154,20 +154,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Prototype Demo Banner */}
-      <aside className="demo-banner" aria-label="Pemberitahuan Status Prototipe">
-        <span className="demo-banner-badge">PROTOTIPE FRONTEND</span>
-        <span>SIPINTAR Sespimma • Mode Demo Interaktif Lokal • Tidak terhubung ke database atau server langsung.</span>
-      </aside>
-
-      <div className="app-container">
-        {/* Mobile Backdrop */}
-        <div
-          className={`drawer-overlay ${mobileOpen ? 'open' : ''}`}
-          onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
-        />
+    <div className="app-container">
+      {/* Mobile Backdrop */}
+      <div
+        className={`drawer-overlay ${mobileOpen ? 'open' : ''}`}
+        onClick={() => setMobileOpen(false)}
+        aria-hidden="true"
+      />
 
         {/* Sidebar Navigation */}
         <aside
@@ -289,6 +282,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
         {/* Main Content Viewport */}
         <div className="app-main">
+          {/* Prototype Demo Banner */}
+          <aside className="demo-banner" aria-label="Pemberitahuan Status Prototipe">
+            <span className="demo-banner-badge">PROTOTIPE FRONTEND</span>
+            <span>SIPINTAR Sespimma • Mode Demo Interaktif Lokal • Tidak terhubung ke database atau server langsung.</span>
+          </aside>
+
           {/* Header */}
           <header className="app-header">
             <div className="header-left">
@@ -489,7 +488,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             </div>
           </footer>
         </div>
-      </div>
 
       {/* Role Registration Modal for New Members (Serdik, Gadik, Pengelola Pustaka) */}
       <RoleRegistrationModal

@@ -213,24 +213,40 @@ button {
 /* App Layout Grid */
 .app-container {
   display: flex;
-  min-height: calc(100vh - 36px);
+  min-height: 100vh;
   position: relative;
 }
 
-/* Sidebar Styles */
+/* Sidebar Styles - Permanently Steady & Fixed */
 .app-sidebar {
   width: var(--sidebar-width);
   background-color: var(--color-surface);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  bottom: 0;
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
+  overflow-x: hidden;
   transition: transform var(--transition-normal);
   z-index: 40;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.app-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+.app-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app-sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
 }
 
 .sidebar-header {
@@ -445,6 +461,7 @@ button {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-left: var(--sidebar-width);
 }
 
 /* Header Styles */
@@ -2343,6 +2360,10 @@ button {
 
   .app-sidebar.open {
     transform: translateX(0);
+  }
+
+  .app-main {
+    margin-left: 0;
   }
 
   .drawer-overlay.open {
