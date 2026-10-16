@@ -282,11 +282,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
         {/* Main Content Viewport */}
         <div className="app-main">
-          {/* Prototype Demo Banner */}
-          <aside className="demo-banner" aria-label="Pemberitahuan Status Prototipe">
-            <span className="demo-banner-badge">PROTOTIPE FRONTEND</span>
-            <span>SIPINTAR Sespimma • Mode Demo Interaktif Lokal • Tidak terhubung ke database atau server langsung.</span>
-          </aside>
 
           {/* Header */}
           <header className="app-header">
