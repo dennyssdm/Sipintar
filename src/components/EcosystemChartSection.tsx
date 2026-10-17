@@ -200,7 +200,7 @@ export const EcosystemChartSection: React.FC = () => {
                           </div>
 
                           <div
-                            className="vbar-fill-bar"
+                            className="vbar-fill-bar vbar-7col"
                             style={{
                               height: `${barHeightPct}%`,
                               background: `linear-gradient(180deg, ${cat.color} 0%, ${cat.color}dd 100%)`,
@@ -318,9 +318,8 @@ export const EcosystemChartSection: React.FC = () => {
                           </div>
 
                           <div
-                            className="vbar-fill-bar"
+                            className="vbar-fill-bar vbar-4col"
                             style={{
-                              width: '56px',
                               height: `${barHeightPct}%`,
                               background: `linear-gradient(180deg, ${item.color} 0%, ${item.color}dd 100%)`,
                               boxShadow: isHovered ? `0 8px 24px ${item.color}70` : `0 3px 10px ${item.color}30`,
@@ -422,9 +421,8 @@ export const EcosystemChartSection: React.FC = () => {
                           </div>
 
                           <div
-                            className="vbar-fill-bar"
+                            className="vbar-fill-bar vbar-4col"
                             style={{
-                              width: '56px',
                               height: `${barHeightPct}%`,
                               background: `linear-gradient(180deg, ${rk.color} 0%, ${rk.color}dd 100%)`,
                               boxShadow: isHovered ? `0 8px 24px ${rk.color}70` : `0 3px 10px ${rk.color}30`,
@@ -530,9 +528,8 @@ export const EcosystemChartSection: React.FC = () => {
                           </div>
 
                           <div
-                            className="vbar-fill-bar"
+                            className="vbar-fill-bar vbar-4col"
                             style={{
-                              width: '56px',
                               height: `${barHeightPct}%`,
                               background: `linear-gradient(180deg, ${c.color} 0%, ${c.color}dd 100%)`,
                               boxShadow: isHovered ? `0 8px 24px ${c.color}70` : `0 3px 10px ${c.color}30`,

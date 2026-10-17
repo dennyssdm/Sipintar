@@ -3740,15 +3740,15 @@ button {
 .vbar-canvas-scroll {
   width: 100%;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
   margin-bottom: 24px;
 }
 
 .vbar-canvas-wrap {
   position: relative;
-  min-width: 600px;
-  height: 290px;
-  padding: 24px 20px 0 44px;
+  width: 100%;
+  height: 310px;
+  padding: 24px 20px 0 46px;
 }
 
 /* Y-Axis Gridlines */
@@ -3757,7 +3757,7 @@ button {
   top: 24px;
   left: 0;
   right: 20px;
-  bottom: 60px;
+  bottom: 64px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -3787,16 +3787,17 @@ button {
 .vbar-columns-row {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 14px;
+  gap: 16px;
   height: 100%;
   z-index: 1;
+  width: 100%;
 }
 
 .vbar-col-item {
   display: flex;
   flex-direction: column;
   height: 100%;
+  align-items: center;
   transition: all 0.2s ease;
 }
 
@@ -3808,7 +3809,8 @@ button {
 /* The Rising Bar Column Track */
 .vbar-track-wrap {
   position: relative;
-  height: 206px;
+  height: 222px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -3821,7 +3823,8 @@ button {
   flex-direction: column;
   align-items: center;
   margin-bottom: 6px;
-  font-size: 14px;
+  font-size: 14.5px;
+  font-weight: 900;
   line-height: 1.1;
   transition: transform 0.2s ease;
 }
@@ -3832,15 +3835,16 @@ button {
   color: var(--color-text-muted);
 }
 
+/* Base Bar Styling */
 .vbar-fill-bar {
-  width: 44px;
-  max-width: 80%;
-  border-radius: 8px 8px 0 0;
+  border-radius: 10px 10px 0 0;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   padding-top: 6px;
-  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, filter 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: none;
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, filter 0.2s ease, transform 0.2s ease;
   cursor: pointer;
 }
 
@@ -3848,22 +3852,34 @@ button {
   filter: brightness(1.1);
 }
 
+/* DESKTOP: BARS DIBUAT GEMUK AGAR TERLIHAT PENUH */
+.vbar-7col {
+  width: 72px;
+  max-width: 82%;
+}
+
+.vbar-4col {
+  width: 120px;
+  max-width: 78%;
+}
+
 .vbar-rank-tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 /* X-Axis Footer */
 .vbar-col-footer {
-  height: 60px;
+  height: 64px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   padding-top: 8px;
-  gap: 2px;
+  gap: 3px;
 }
 
 .vbar-dot-icon {
@@ -3874,7 +3890,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .vbar-name-label {
@@ -3896,6 +3912,121 @@ button {
 
 .vbar-link-btn:hover {
   text-decoration: underline;
+}
+
+/* RESPONSIVE MOBILE VIEW (PENUH DAN RAPI) */
+@media (max-width: 768px) {
+  .vbar-chart-card {
+    padding: 16px 10px;
+  }
+
+  .vbar-canvas-scroll {
+    overflow-x: hidden;
+  }
+
+  .vbar-canvas-wrap {
+    min-width: 0;
+    width: 100%;
+    height: 260px;
+    padding: 18px 4px 0 28px;
+  }
+
+  .vbar-grid-layer {
+    left: 0;
+    right: 4px;
+    bottom: 50px;
+  }
+
+  .vbar-y-label {
+    left: 0;
+    font-size: 9.5px;
+  }
+
+  .vbar-columns-row {
+    gap: 6px;
+  }
+
+  .vbar-track-wrap {
+    height: 182px;
+  }
+
+  .vbar-val-bubble {
+    font-size: 11.5px;
+    margin-bottom: 3px;
+  }
+
+  .vbar-pct-text {
+    font-size: 9.5px;
+  }
+
+  .vbar-7col {
+    width: 100%;
+    max-width: 38px;
+    border-radius: 6px 6px 0 0;
+  }
+
+  .vbar-4col {
+    width: 100%;
+    max-width: 68px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .vbar-rank-tag {
+    font-size: 8px;
+  }
+
+  .vbar-col-footer {
+    height: 52px;
+    padding-top: 6px;
+    gap: 1px;
+  }
+
+  .vbar-dot-icon {
+    display: none;
+  }
+
+  .vbar-name-label {
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .vbar-link-btn {
+    font-size: 9.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .vbar-columns-row {
+    gap: 3px;
+  }
+
+  .vbar-canvas-wrap {
+    padding: 16px 2px 0 22px;
+  }
+
+  .vbar-y-label {
+    font-size: 8.5px;
+  }
+
+  .vbar-7col {
+    max-width: 32px;
+  }
+
+  .vbar-4col {
+    max-width: 54px;
+  }
+
+  .vbar-val-bubble {
+    font-size: 10.5px;
+  }
+
+  .vbar-pct-text {
+    font-size: 8.5px;
+  }
+
+  .vbar-name-label {
+    font-size: 9px;
+  }
 }
 
 /* 4 Summary Highlight Tiles Below Vertical Chart */
