@@ -42,11 +42,6 @@ export const EcosystemChartSection: React.FC = () => {
     { subject: 'Latihan Taktis & Sidang Naskah Taskap', jp: 120, pct: 16.7, color: '#f59e0b', desc: 'Simulasi manajerial posko, penyusunan karya tulis perorangan, dan uji panel naskah.' },
   ];
 
-  // Helper SVG Donut Angles calculation
-  let accumulatedAngle = 0;
-  const radius = 70;
-  const circumference = 2 * Math.PI * radius;
-
   return (
     <section className="ecosystem-chart-section" aria-labelledby="chart-section-title">
       {/* Top Header & Context Badges */}
@@ -141,119 +136,138 @@ export const EcosystemChartSection: React.FC = () => {
         </button>
       </div>
 
-      {/* TAB 1: KOMPOSISI 8 KATEGORI SUMBER BELAJAR */}
+      {/* TAB 1: KOMPOSISI 8 KATEGORI SUMBER BELAJAR - COMPACT SLEEK HORIZONTAL BAR & MATRIX */}
       {activeTab === 'kategori' && (
         <div className="chart-view-panel">
-          <div className="chart-display-grid">
-            {/* Left: SVG Donut Ring Chart */}
-            <div className="donut-chart-container">
-              <div className="donut-wrapper">
-                <svg viewBox="0 0 200 200" className="donut-svg">
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r={radius}
-                    fill="none"
-                    stroke="var(--color-border-subtle)"
-                    strokeWidth="24"
-                  />
-                  {categoryData.map((item) => {
-                    const strokeDasharray = `${(item.pct / 100) * circumference} ${circumference}`;
-                    const strokeDashoffset = -accumulatedAngle;
-                    accumulatedAngle += (item.pct / 100) * circumference;
-                    const isHovered = hoveredCategory === item.name;
-
-                    return (
-                      <circle
-                        key={item.name}
-                        cx="100"
-                        cy="100"
-                        r={radius}
-                        fill="none"
-                        stroke={item.color}
-                        strokeWidth={isHovered ? '28' : '22'}
-                        strokeDasharray={strokeDasharray}
-                        strokeDashoffset={strokeDashoffset}
-                        strokeLinecap="butt"
-                        style={{
-                          transform: 'rotate(-90deg)',
-                          transformOrigin: '50% 50%',
-                          transition: 'all 0.25s ease',
-                          cursor: 'pointer',
-                          filter: isHovered ? 'drop-shadow(0 0 6px rgba(0,0,0,0.3))' : 'none',
-                        }}
-                        onMouseEnter={() => setHoveredCategory(item.name)}
-                        onMouseLeave={() => setHoveredCategory(null)}
-                      />
-                    );
-                  })}
-                </svg>
-
-                {/* Donut Center Display */}
-                <div className="donut-center-info">
-                  <span className="donut-center-title">
-                    {hoveredCategory
-                      ? categoryData.find((c) => c.name === hoveredCategory)?.count
-                      : '316'}
-                  </span>
-                  <span className="donut-center-sub">
-                    {hoveredCategory
-                      ? `${categoryData.find((c) => c.name === hoveredCategory)?.pct}% Total`
-                      : 'Total Berkas'}
-                  </span>
-                </div>
+          {/* Top: 100% Full-Width Segmented Ribbon Gauge */}
+          <div className="segmented-gauge-card">
+            <div className="segmented-gauge-header">
+              <div>
+                <span className="segmented-gauge-title">Pita Distribusi Komposisi Repositori (316 Berkas)</span>
+                <span className="segmented-gauge-sub">Proporsi volume naskah berdasarkan 7 taksonomi sumber belajar aktif</span>
               </div>
-
-              <div className="donut-caption">
-                Porsi terbesar dipegang oleh <strong>Koleksi Perpustakaan (44.9%)</strong> dan <strong>Modul/Hanjar (24.7%)</strong> sebagai pilar utama pembelajaran.
+              <div className="segmented-active-pill">
+                {hoveredCategory ? (
+                  <>
+                    <span className="dot-pulse-blue" style={{ backgroundColor: categoryData.find((c) => c.name === hoveredCategory)?.color }} />
+                    <strong>{hoveredCategory}</strong>: {categoryData.find((c) => c.name === hoveredCategory)?.count} Berkas ({categoryData.find((c) => c.name === hoveredCategory)?.pct}%)
+                  </>
+                ) : (
+                  <>
+                    <span className="dot-pulse-blue" />
+                    <span>Arahkan kursor pada segmen untuk melihat rincian</span>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Right: Category Breakdown Progress Rows */}
-            <div className="chart-breakdown-list">
-              <div className="chart-breakdown-header">
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>KATEGORI TAKSONOMI</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>JUMLAH & PORSI</span>
-              </div>
-
-              {categoryData.map((cat) => {
-                const isHovered = hoveredCategory === cat.name;
+            {/* The Horizontal Segmented Bar Meter */}
+            <div className="segmented-gauge-bar">
+              {categoryData.map((item) => {
+                const isHovered = hoveredCategory === item.name;
                 return (
                   <div
-                    key={cat.name}
-                    className={`chart-bar-row ${isHovered ? 'hovered' : ''}`}
-                    onMouseEnter={() => setHoveredCategory(cat.name)}
+                    key={item.name}
+                    className="segmented-gauge-slice"
+                    style={{
+                      width: `${item.pct}%`,
+                      backgroundColor: item.color,
+                      opacity: hoveredCategory && !isHovered ? 0.35 : 1,
+                      transform: isHovered ? 'scaleY(1.15)' : 'none',
+                    }}
+                    onMouseEnter={() => setHoveredCategory(item.name)}
                     onMouseLeave={() => setHoveredCategory(null)}
+                    title={`${item.name}: ${item.count} Berkas (${item.pct}%)`}
                   >
-                    <div className="chart-bar-info">
-                      <div className="chart-bar-title-wrap">
-                        <span className="chart-color-dot" style={{ backgroundColor: cat.color }} />
-                        <span className="chart-bar-title">{cat.name}</span>
-                      </div>
-                      <div className="chart-bar-val">
-                        <strong>{cat.count} Berkas</strong>
-                        <span className="chart-bar-pct">({cat.pct}%)</span>
-                      </div>
-                    </div>
-
-                    <div className="chart-progress-bg">
-                      <div
-                        className="chart-progress-fill"
-                        style={{
-                          width: `${cat.pct}%`,
-                          backgroundColor: cat.color,
-                        }}
-                      />
-                    </div>
-
-                    <div className="chart-bar-action">
-                      <Link href={cat.href} className="chart-link-btn">
-                        <span>Buka Menu &rarr;</span>
-                      </Link>
-                    </div>
+                    {item.pct >= 6 && <span className="gauge-slice-label">{item.pct}%</span>}
                   </div>
                 );
               })}
+            </div>
+
+            {/* Interactive Legend Chips */}
+            <div className="segmented-legend-wrap">
+              {categoryData.map((item) => {
+                const isHovered = hoveredCategory === item.name;
+                return (
+                  <button
+                    key={item.name}
+                    type="button"
+                    className={`segmented-legend-chip ${isHovered ? 'active' : ''}`}
+                    onMouseEnter={() => setHoveredCategory(item.name)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                  >
+                    <span className="legend-chip-dot" style={{ backgroundColor: item.color }} />
+                    <span className="legend-chip-name">{item.name}</span>
+                    <strong className="legend-chip-count">{item.count}</strong>
+                    <span className="legend-chip-pct">({item.pct}%)</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Bottom: Modern 2-Column Ranked Comparative Bar Grid */}
+          <div className="ranked-bars-grid">
+            {categoryData.map((cat, idx) => {
+              const isHovered = hoveredCategory === cat.name;
+              return (
+                <div
+                  key={cat.name}
+                  className={`ranked-bar-card ${isHovered ? 'hovered' : ''}`}
+                  onMouseEnter={() => setHoveredCategory(cat.name)}
+                  onMouseLeave={() => setHoveredCategory(null)}
+                >
+                  <div className="ranked-card-top">
+                    <div className="ranked-badge-title">
+                      <span className="rank-num-badge">#{idx + 1}</span>
+                      <span className="ranked-cat-dot" style={{ backgroundColor: cat.color }} />
+                      <strong className="ranked-cat-title">{cat.name}</strong>
+                    </div>
+                    <div className="ranked-stat-val">
+                      <span className="ranked-count-num" style={{ color: cat.color }}>{cat.count}</span>
+                      <span className="ranked-count-unit">Berkas</span>
+                      <span className="ranked-pct-badge" style={{ backgroundColor: `${cat.color}15`, color: cat.color, borderColor: `${cat.color}35` }}>
+                        {cat.pct}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Horizontal Bar */}
+                  <div className="chart-progress-bg" style={{ height: '7px', margin: '8px 0 10px 0' }}>
+                    <div
+                      className="chart-progress-fill"
+                      style={{
+                        width: `${cat.pct * 2.1}%`,
+                        backgroundColor: cat.color,
+                      }}
+                    />
+                  </div>
+
+                  <div className="ranked-card-footer">
+                    <span className="ranked-desc-hint">
+                      {cat.count >= 70 ? 'Pilar Utama Pembelajaran' : cat.count >= 20 ? 'Pedoman & Tata Kelola' : 'Regulasi & Panduan Teknis'}
+                    </span>
+                    <Link href={cat.href} className="ranked-link-action">
+                      <span>Buka Menu &rarr;</span>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Summary Insight Banner */}
+          <div className="chart-highlight-box" style={{ marginTop: '16px' }}>
+            <div className="highlight-icon" style={{ color: '#2563eb' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            </div>
+            <div className="highlight-content">
+              <strong>Konsentrasi Sumber Belajar:</strong> <strong>Koleksi E-Library & Perpustakaan (142 berkas)</strong> serta <strong>Modul & Hanjar Resmi (78 berkas)</strong> mencakup <strong>69.6%</strong> dari total ekosistem 316 berkas materi Sespimma. Seluruh materi didukung oleh 35 SOP kedinasan dan 22 pedoman penjaminan mutu.
             </div>
           </div>
         </div>
