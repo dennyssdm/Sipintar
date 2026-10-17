@@ -3599,4 +3599,598 @@ button {
   text-decoration: underline;
 }
 
+/* ==========================================================================
+   ECOSYSTEM CHART SECTION STYLES
+   ========================================================================== */
+
+.ecosystem-chart-section {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px 30px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 36px;
+  transition: box-shadow var(--transition-fast);
+}
+
+.ecosystem-chart-section:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Top KPI Ribbon */
+.chart-kpi-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chart-kpi-item {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 14px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.chart-kpi-val {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.chart-kpi-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* Chart Tabs Navigation */
+.chart-tabs-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.chart-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.chart-tab-btn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.chart-tab-btn.active {
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 6px rgba(29, 78, 216, 0.15);
+}
+
+.chart-view-panel {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab 1: Donut Layout */
+.chart-display-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .chart-display-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.donut-chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.donut-wrapper {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin-bottom: 14px;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.donut-center-info {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.donut-center-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--color-text-main);
+  line-height: 1.1;
+}
+
+.donut-center-sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.donut-caption {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  max-width: 280px;
+  background-color: var(--color-bg);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* Category Breakdown Bars */
+.chart-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chart-breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.chart-bar-row {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  transition: all 0.2s ease;
+}
+
+.chart-bar-row.hovered, .chart-bar-row:hover {
+  border-color: var(--color-primary);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.chart-bar-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.chart-bar-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chart-bar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.chart-bar-val {
+  font-size: 12px;
+  color: var(--color-text-main);
+  display: flex;
+  gap: 6px;
+}
+
+.chart-bar-pct {
+  color: var(--color-text-muted);
+}
+
+.chart-progress-bg {
+  width: 100%;
+  height: 6px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.chart-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+.chart-bar-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.chart-link-btn {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.chart-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* Tab 2: Pustaka Grid */
+.chart-pustaka-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 1024px) {
+  .chart-pustaka-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .chart-pustaka-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pustaka-chart-card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pustaka-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.pustaka-type-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+}
+
+.pustaka-count-box {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.pustaka-count-num {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.pustaka-count-lbl {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.pustaka-card-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--color-text-main);
+  margin: 0 0 6px 0;
+}
+
+.pustaka-card-desc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin: 0 0 14px 0;
+  flex-grow: 1;
+}
+
+.pustaka-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.pustaka-action-btn:hover {
+  text-decoration: underline;
+}
+
+.chart-highlight-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.highlight-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.highlight-content {
+  font-size: 12.5px;
+  color: var(--color-text-main);
+  line-height: 1.5;
+}
+
+/* Tab 3: Gadik Rank Chart */
+.gadik-chart-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .gadik-chart-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gadik-summary-card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 22px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gadik-summary-icon {
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.gadik-summary-number {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--color-text-main);
+  line-height: 1.1;
+}
+
+.gadik-summary-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.gadik-summary-desc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.gadik-rank-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rank-bar-card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.rank-bar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.rank-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rank-insignia {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.rank-name {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--color-text-main);
+}
+
+.rank-stat {
+  font-size: 12.5px;
+  color: var(--color-text-main);
+  display: flex;
+  gap: 6px;
+}
+
+.rank-count {
+  font-weight: 700;
+}
+
+.rank-pct {
+  color: var(--color-text-muted);
+}
+
+.rank-role-desc {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+}
+
+/* Tab 4: Curriculum Stacked Timeline */
+.curriculum-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.curriculum-stacked-bar {
+  display: flex;
+  width: 100%;
+  height: 38px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.curriculum-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  transition: opacity 0.2s ease;
+  position: relative;
+}
+
+.curriculum-segment:hover {
+  opacity: 0.9;
+}
+
+.curriculum-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 1024px) {
+  .curriculum-detail-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .curriculum-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.curriculum-item-card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.curriculum-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.curriculum-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.curriculum-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.curriculum-item-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--color-text-main);
+  margin: 0 0 6px 0;
+  line-height: 1.35;
+}
+
+.curriculum-item-desc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.curriculum-footer-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  color: var(--color-text-main);
+  flex-wrap: wrap;
+}
+
 
