@@ -136,17 +136,17 @@ export const EcosystemChartSection: React.FC = () => {
         </button>
       </div>
 
-      {/* TAB 1: KOMPOSISI 8 KATEGORI SUMBER BELAJAR - COMPACT SLEEK HORIZONTAL BAR & MATRIX */}
+      {/* TAB 1: VERTICAL COLUMN BAR CHART (BAR CHART KE ATAS) */}
       {activeTab === 'kategori' && (
         <div className="chart-view-panel">
-          {/* Top: 100% Full-Width Segmented Ribbon Gauge */}
-          <div className="segmented-gauge-card">
-            <div className="segmented-gauge-header">
+          <div className="vbar-chart-card">
+            {/* Header with Active Info Pill */}
+            <div className="vbar-chart-header">
               <div>
-                <span className="segmented-gauge-title">Pita Distribusi Komposisi Repositori (316 Berkas)</span>
-                <span className="segmented-gauge-sub">Proporsi volume naskah berdasarkan 7 taksonomi sumber belajar aktif</span>
+                <span className="vbar-chart-title">Diagram Batang Vertikal Repositori (316 Berkas)</span>
+                <span className="vbar-chart-sub">Perbandingan volume materi 7 taksonomi dengan visualisasi batang tegak ke atas</span>
               </div>
-              <div className="segmented-active-pill">
+              <div className="vbar-active-pill">
                 {hoveredCategory ? (
                   <>
                     <span className="dot-pulse-blue" style={{ backgroundColor: categoryData.find((c) => c.name === hoveredCategory)?.color }} />
@@ -155,119 +155,101 @@ export const EcosystemChartSection: React.FC = () => {
                 ) : (
                   <>
                     <span className="dot-pulse-blue" />
-                    <span>Arahkan kursor pada segmen untuk melihat rincian</span>
+                    <span>Arahkan kursor pada batang untuk melihat rincian</span>
                   </>
                 )}
               </div>
             </div>
 
-            {/* The Horizontal Segmented Bar Meter */}
-            <div className="segmented-gauge-bar">
-              {categoryData.map((item) => {
-                const isHovered = hoveredCategory === item.name;
-                return (
-                  <div
-                    key={item.name}
-                    className="segmented-gauge-slice"
-                    style={{
-                      width: `${item.pct}%`,
-                      backgroundColor: item.color,
-                      opacity: hoveredCategory && !isHovered ? 0.35 : 1,
-                      transform: isHovered ? 'scaleY(1.15)' : 'none',
-                    }}
-                    onMouseEnter={() => setHoveredCategory(item.name)}
-                    onMouseLeave={() => setHoveredCategory(null)}
-                    title={`${item.name}: ${item.count} Berkas (${item.pct}%)`}
-                  >
-                    {item.pct >= 6 && <span className="gauge-slice-label">{item.pct}%</span>}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Interactive Legend Chips */}
-            <div className="segmented-legend-wrap">
-              {categoryData.map((item) => {
-                const isHovered = hoveredCategory === item.name;
-                return (
-                  <button
-                    key={item.name}
-                    type="button"
-                    className={`segmented-legend-chip ${isHovered ? 'active' : ''}`}
-                    onMouseEnter={() => setHoveredCategory(item.name)}
-                    onMouseLeave={() => setHoveredCategory(null)}
-                  >
-                    <span className="legend-chip-dot" style={{ backgroundColor: item.color }} />
-                    <span className="legend-chip-name">{item.name}</span>
-                    <strong className="legend-chip-count">{item.count}</strong>
-                    <span className="legend-chip-pct">({item.pct}%)</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Bottom: Modern 2-Column Ranked Comparative Bar Grid */}
-          <div className="ranked-bars-grid">
-            {categoryData.map((cat, idx) => {
-              const isHovered = hoveredCategory === cat.name;
-              return (
-                <div
-                  key={cat.name}
-                  className={`ranked-bar-card ${isHovered ? 'hovered' : ''}`}
-                  onMouseEnter={() => setHoveredCategory(cat.name)}
-                  onMouseLeave={() => setHoveredCategory(null)}
-                >
-                  <div className="ranked-card-top">
-                    <div className="ranked-badge-title">
-                      <span className="rank-num-badge">#{idx + 1}</span>
-                      <span className="ranked-cat-dot" style={{ backgroundColor: cat.color }} />
-                      <strong className="ranked-cat-title">{cat.name}</strong>
-                    </div>
-                    <div className="ranked-stat-val">
-                      <span className="ranked-count-num" style={{ color: cat.color }}>{cat.count}</span>
-                      <span className="ranked-count-unit">Berkas</span>
-                      <span className="ranked-pct-badge" style={{ backgroundColor: `${cat.color}15`, color: cat.color, borderColor: `${cat.color}35` }}>
-                        {cat.pct}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Horizontal Bar */}
-                  <div className="chart-progress-bg" style={{ height: '7px', margin: '8px 0 10px 0' }}>
-                    <div
-                      className="chart-progress-fill"
-                      style={{
-                        width: `${cat.pct * 2.1}%`,
-                        backgroundColor: cat.color,
-                      }}
-                    />
-                  </div>
-
-                  <div className="ranked-card-footer">
-                    <span className="ranked-desc-hint">
-                      {cat.count >= 70 ? 'Pilar Utama Pembelajaran' : cat.count >= 20 ? 'Pedoman & Tata Kelola' : 'Regulasi & Panduan Teknis'}
-                    </span>
-                    <Link href={cat.href} className="ranked-link-action">
-                      <span>Buka Menu &rarr;</span>
-                    </Link>
-                  </div>
+            {/* Vertical Bar Canvas Container with Y-Axis and Gridlines */}
+            <div className="vbar-canvas-scroll">
+              <div className="vbar-canvas-wrap">
+                {/* Y-Axis Scale Marks & Gridlines Layer */}
+                <div className="vbar-grid-layer" aria-hidden="true">
+                  <div className="vbar-grid-line"><span className="vbar-y-label">150</span></div>
+                  <div className="vbar-grid-line"><span className="vbar-y-label">100</span></div>
+                  <div className="vbar-grid-line"><span className="vbar-y-label">50</span></div>
+                  <div className="vbar-grid-line baseline"><span className="vbar-y-label">0</span></div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Summary Insight Banner */}
-          <div className="chart-highlight-box" style={{ marginTop: '16px' }}>
-            <div className="highlight-icon" style={{ color: '#2563eb' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
+                {/* 7 Vertical Bars Standing Upwards */}
+                <div className="vbar-columns-row">
+                  {categoryData.map((cat, idx) => {
+                    const isHovered = hoveredCategory === cat.name;
+                    // Scale maximum is 150 for 100% height headroom
+                    const barHeightPct = Math.min(100, Math.max(8, (cat.count / 150) * 100));
+
+                    return (
+                      <div
+                        key={cat.name}
+                        className={`vbar-col-item ${isHovered ? 'hovered' : ''}`}
+                        onMouseEnter={() => setHoveredCategory(cat.name)}
+                        onMouseLeave={() => setHoveredCategory(null)}
+                      >
+                        {/* The Rising Bar Column */}
+                        <div className="vbar-track-wrap">
+                          {/* Floating Value on top of the bar */}
+                          <div className="vbar-val-bubble" style={{ color: cat.color }}>
+                            <strong>{cat.count}</strong>
+                            <span className="vbar-pct-text">{cat.pct}%</span>
+                          </div>
+
+                          <div
+                            className="vbar-fill-bar"
+                            style={{
+                              height: `${barHeightPct}%`,
+                              background: `linear-gradient(180deg, ${cat.color} 0%, ${cat.color}dd 100%)`,
+                              boxShadow: isHovered ? `0 8px 24px ${cat.color}70` : `0 3px 10px ${cat.color}30`,
+                            }}
+                          >
+                            <span className="vbar-rank-tag">#{idx + 1}</span>
+                          </div>
+                        </div>
+
+                        {/* X-Axis Column Label Below */}
+                        <div className="vbar-col-footer">
+                          <div className="vbar-dot-icon" style={{ backgroundColor: `${cat.color}15`, color: cat.color, borderColor: `${cat.color}35` }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: cat.color }} />
+                          </div>
+                          <span className="vbar-name-label" title={cat.name}>
+                            {cat.name.split('/')[0].trim()}
+                          </span>
+                          <Link href={cat.href} className="vbar-link-btn" title={`Buka ${cat.name}`}>
+                            <span>Buka &rarr;</span>
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-            <div className="highlight-content">
-              <strong>Konsentrasi Sumber Belajar:</strong> <strong>Koleksi E-Library & Perpustakaan (142 berkas)</strong> serta <strong>Modul & Hanjar Resmi (78 berkas)</strong> mencakup <strong>69.6%</strong> dari total ekosistem 316 berkas materi Sespimma. Seluruh materi didukung oleh 35 SOP kedinasan dan 22 pedoman penjaminan mutu.
+
+            {/* 4 Summary Highlight Tiles Below Chart */}
+            <div className="vbar-summary-tiles">
+              <div className="vbar-tile">
+                <span className="vbar-tile-badge badge-purple">Paling Dominan</span>
+                <div className="vbar-tile-val">142 Berkas</div>
+                <div className="vbar-tile-name">E-Library & Taskap (44.9%)</div>
+              </div>
+
+              <div className="vbar-tile">
+                <span className="vbar-tile-badge badge-blue">Bahan Ajar Inti</span>
+                <div className="vbar-tile-val">78 Berkas</div>
+                <div className="vbar-tile-name">Modul & Hanjar (24.7%)</div>
+              </div>
+
+              <div className="vbar-tile">
+                <span className="vbar-tile-badge badge-amber">Tata Kelola & Mutu</span>
+                <div className="vbar-tile-val">57 Berkas</div>
+                <div className="vbar-tile-name">SOP & Pedoman (18.1%)</div>
+              </div>
+
+              <div className="vbar-tile">
+                <span className="vbar-tile-badge badge-green">Pendidik & Sistem</span>
+                <div className="vbar-tile-val">41 Berkas</div>
+                <div className="vbar-tile-name">Kurikulum, Gadik, Manual (13.0%)</div>
+              </div>
             </div>
           </div>
         </div>

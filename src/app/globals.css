@@ -3695,38 +3695,37 @@ button {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Tab 1: Compact Segmented Ribbon Gauge & Ranked Bar Matrix (No Pie) */
-.segmented-gauge-card {
+/* Tab 1: Vertical Column Bar Chart (Bar Chart Ke Atas) */
+.vbar-chart-card {
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 20px 22px;
-  margin-bottom: 20px;
+  padding: 24px 22px;
 }
 
-.segmented-gauge-header {
+.vbar-chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 22px;
 }
 
-.segmented-gauge-title {
+.vbar-chart-title {
   display: block;
-  font-size: 15px;
+  font-size: 15.5px;
   font-weight: 800;
   color: var(--color-text-main);
 }
 
-.segmented-gauge-sub {
+.vbar-chart-sub {
   display: block;
   font-size: 12px;
   color: var(--color-text-muted);
 }
 
-.segmented-active-pill {
+.vbar-active-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -3738,191 +3737,220 @@ button {
   color: var(--color-text-main);
 }
 
-.segmented-gauge-bar {
-  display: flex;
+.vbar-canvas-scroll {
   width: 100%;
-  height: 28px;
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.12);
-  margin-bottom: 14px;
-  background-color: var(--color-surface);
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 24px;
 }
 
-.segmented-gauge-slice {
+.vbar-canvas-wrap {
+  position: relative;
+  min-width: 600px;
+  height: 290px;
+  padding: 24px 20px 0 44px;
+}
+
+/* Y-Axis Gridlines */
+.vbar-grid-layer {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 20px;
+  bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.vbar-grid-line {
+  position: relative;
+  width: 100%;
+  border-bottom: 1px dashed var(--color-border-subtle);
+}
+
+.vbar-grid-line.baseline {
+  border-bottom: 2px solid var(--color-border);
+}
+
+.vbar-y-label {
+  position: absolute;
+  left: 6px;
+  top: -9px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+/* Vertical Columns Row */
+.vbar-columns-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 14px;
+  height: 100%;
+  z-index: 1;
+}
+
+.vbar-col-item {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.2s ease;
+}
+
+.vbar-col-item:hover,
+.vbar-col-item.hovered {
+  transform: translateY(-4px);
+}
+
+/* The Rising Bar Column Track */
+.vbar-track-wrap {
+  position: relative;
+  height: 206px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 2px;
+}
+
+.vbar-val-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 1.1;
+  transition: transform 0.2s ease;
+}
+
+.vbar-pct-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.vbar-fill-bar {
+  width: 44px;
+  max-width: 80%;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 6px;
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, filter 0.2s ease;
+  cursor: pointer;
+}
+
+.vbar-fill-bar:hover {
+  filter: brightness(1.1);
+}
+
+.vbar-rank-tag {
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* X-Axis Footer */
+.vbar-col-footer {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 8px;
+  gap: 2px;
+}
+
+.vbar-dot-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
+  margin-bottom: 2px;
 }
 
-.segmented-gauge-slice:hover {
-  filter: brightness(1.1);
-  z-index: 2;
-}
-
-.gauge-slice-label {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.segmented-legend-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.segmented-legend-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  font-size: 11.5px;
+.vbar-name-label {
+  font-size: 12px;
+  font-weight: 700;
   color: var(--color-text-main);
-  cursor: pointer;
-  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.segmented-legend-chip:hover,
-.segmented-legend-chip.active {
-  border-color: var(--color-primary);
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-  transform: translateY(-1px);
-}
-
-.legend-chip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.legend-chip-name {
-  font-weight: 600;
-}
-
-.legend-chip-count {
-  font-weight: 800;
-}
-
-.legend-chip-pct {
-  color: var(--color-text-muted);
-}
-
-/* Ranked Bars Grid */
-.ranked-bars-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-@media (max-width: 840px) {
-  .ranked-bars-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.ranked-bar-card {
-  background-color: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  transition: all 0.2s ease;
-}
-
-.ranked-bar-card:hover,
-.ranked-bar-card.hovered {
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-}
-
-.ranked-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.ranked-badge-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.rank-num-badge {
+.vbar-link-btn {
   font-size: 11px;
-  font-weight: 800;
-  color: var(--color-text-muted);
-  background-color: var(--color-surface);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-subtle);
-}
-
-.ranked-cat-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.ranked-cat-title {
-  font-size: 13.5px;
-  color: var(--color-text-main);
-}
-
-.ranked-stat-val {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.ranked-count-num {
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.ranked-count-unit {
-  font-size: 11.5px;
-  color: var(--color-text-muted);
-}
-
-.ranked-pct-badge {
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: var(--radius-full);
-}
-
-.ranked-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ranked-desc-hint {
-  font-size: 11.5px;
-  color: var(--color-text-muted);
-}
-
-.ranked-link-action {
-  font-size: 11.5px;
   font-weight: 700;
   color: var(--color-primary);
   text-decoration: none;
 }
 
-.ranked-link-action:hover {
+.vbar-link-btn:hover {
   text-decoration: underline;
+}
+
+/* 4 Summary Highlight Tiles Below Vertical Chart */
+.vbar-summary-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 18px;
+}
+
+@media (max-width: 1024px) {
+  .vbar-summary-tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .vbar-summary-tiles {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vbar-tile {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.vbar-tile-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.vbar-tile-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--color-text-main);
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.vbar-tile-name {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
 }
 
 /* Tab 2: Pustaka Grid */
