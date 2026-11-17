@@ -87,9 +87,9 @@ export async function getResourceFile(identifier, user = null, isDownload = fals
       error.code = 'UNAUTHORIZED';
       throw error;
     }
-    const allowedRoles = ['admin', 'verifikator', 'gadik'];
+    const allowedRoles = ['admin', 'verifikator', 'gadik', 'pimpinan'];
     if (!allowedRoles.includes(user.role_code)) {
-      const error = new Error('Akses ditolak: Dokumen berklasifikasi Terbatas hanya dapat diakses oleh Admin, Verifikator, atau Tenaga Pendidik.');
+      const error = new Error('Akses ditolak: Dokumen berklasifikasi Terbatas hanya dapat diakses oleh Pimpinan, Admin, Verifikator, atau Tenaga Pendidik.');
       error.statusCode = 403;
       error.code = 'FORBIDDEN';
       throw error;
