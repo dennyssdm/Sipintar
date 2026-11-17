@@ -432,12 +432,18 @@ async function runTests() {
     assert(false, '24. Siklus Tata Kelola Lengkap', err.message);
   }
 
-  // 25. Perlindungan Akses Sampel Buku Berklasifikasi "Metadata Saja"
+  // 25. Perlindungan Akses Sampel Buku & Sanitasi Jalur Berkas "Metadata Saja"
   try {
-    const res = await request('/library/books/9/preview');
+    const previewRes = await request('/library/books/9/preview');
+    const detailRes = await request('/library/books/9');
     assert(
-      res.status === 403 && res.data?.error?.code === 'FORBIDDEN',
-      '25. Perlindungan Sampel Buku "Metadata Saja" (Strict 403 FORBIDDEN)'
+      previewRes.status === 403 && previewRes.data?.error?.code === 'FORBIDDEN' &&
+      detailRes.status === 200 &&
+      detailRes.data?.data?.has_digital_file === 0 &&
+      detailRes.data?.data?.has_preview === 0 &&
+      detailRes.data?.data?.file_path === undefined &&
+      detailRes.data?.data?.preview_file_path === undefined,
+      '25. Perlindungan Sampel & Sanitasi Berkas "Metadata Saja" (Strict 403 & No Leaked Paths)'
     );
   } catch (err) {
     assert(false, '25. Perlindungan Sampel Metadata Saja', err.message);
