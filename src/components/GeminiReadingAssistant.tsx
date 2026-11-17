@@ -22,33 +22,14 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputPrompt, setInputPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string>('');
-  const [showKeyModal, setShowKeyModal] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedKey = localStorage.getItem('sipintar_gemini_api_key') || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-      setApiKey(savedKey);
-      setTempApiKey(savedKey);
-    }
-  }, []);
-
-  const handleSaveApiKey = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sipintar_gemini_api_key', tempApiKey.trim());
-      setApiKey(tempApiKey.trim());
-      setShowKeyModal(false);
-    }
-  };
 
   // Initialize with document context when resource changes
   useEffect(() => {
     const initialGreeting: Message = {
       id: 'init-1',
       sender: 'gemini',
-      text: `Halo! Saya **Asisten Cerdas Gemini** untuk sistem pembelajaran SIPINTAR Sespimma Lemdiklat Polri.\n\nSaya telah terhubung dengan dokumen yang sedang Anda baca:\n📘 **${resource.title}**\n📂 Kategori: *${resource.category}* (${resource.subCategory || 'Bahan Pokok'})\n\nSilakan pilih salah satu menu cepat di bawah atau ajukan pertanyaan spesifik terkait materi ini.`,
+      text: `Halo! Saya **Asisten Cerdas Gemini AI** untuk sistem pembelajaran SIPINTAR Sespimma Lemdiklat Polri.\n\nSaya telah terhubung dengan dokumen yang sedang Anda baca:\n📘 **${resource.title}**\n📂 Kategori: *${resource.category}* (${resource.subCategory || 'Bahan Pokok'})\n\nSilakan klik salah satu menu rekomendasi di atas atau ketik pertanyaan Anda pada kolom di bawah.`,
       timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages([initialGreeting]);
@@ -64,10 +45,11 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
     const title = resource.title;
     const category = resource.category;
 
-    // 1. Try Live Google Gemini API if API key is provided
+    // 1. Try Live Google Gemini API if NEXT_PUBLIC_GEMINI_API_KEY exists
+    const apiKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_GEMINI_API_KEY : '';
     if (apiKey) {
       try {
-        const systemPrompt = `Anda adalah Asisten Pembelajaran AI resmi SIPINTAR Sespimma Lemdiklat Polri (Sekolah Staf dan Pimpinan Pertama). Anda mendampingi Perwira Siswa (Serdik) atau Tenaga Pendidik (Gadik) yang sedang membaca dokumen:\nJudul: "${title}"\nKategori: "${category}" (${resource.subCategory || 'Bahan Pokok'})\nPengampu: "${resource.authorOrInstructor}".\nBerikan jawaban yang analitis, berbasis doktrin kepolisian Polri (UU No 2/2002, Presisi, kepemimpinan transformasional, OODA Loop, manajemen operasional), gunakan format Markdown yang rapi dengan subjudul, poin-poin tegas, dan rekomendasi aplikatif lapangan.`;
+        const systemPrompt = `Anda adalah Asisten Pembelajaran AI resmi SIPINTAR Sespimma Lemdiklat Polri. Anda mendampingi Perwira Siswa (Serdik) atau Gadik yang sedang membaca dokumen: "${title}" (${category}). Berikan jawaban analitis, berbasis doktrin kepolisian Polri (UU No 2/2002, Presisi, kepemimpinan transformasional, OODA Loop), gunakan format Markdown yang rapi dengan subjudul dan rekomendasi aplikatif lapangan.`;
 
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -78,7 +60,7 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
               contents: [
                 {
                   role: 'user',
-                  parts: [{ text: `${systemPrompt}\n\nPertanyaan Pembaca / Serdik:\n${userPrompt}` }],
+                  parts: [{ text: `${systemPrompt}\n\nPertanyaan Pembaca:\n${userPrompt}` }],
                 },
               ],
             }),
@@ -93,13 +75,13 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
           }
         }
       } catch (err) {
-        console.warn('Gemini API call failed, falling back to local domain model:', err);
+        console.warn('Gemini API call fallback to local domain model:', err);
       }
     }
 
     // 2. Intelligent Built-in Sespimma Lemdiklat AI Engine
     // Simulate natural AI thinking delay
-    await new Promise((resolve) => setTimeout(resolve, 1100));
+    await new Promise((resolve) => setTimeout(resolve, 900));
 
     if (q.includes('rangkum') || q.includes('ringkas') || q.includes('intisari')) {
       return `### 📑 Intisari Eksekutif Materi: ${title}\n\n` +
@@ -150,7 +132,7 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
     // Default intelligent conversational response
     return `### 🔍 Analisis Gemini untuk: "${userPrompt}"\n\n` +
       `Terkait pertanyaan Anda mengenai materi **${title}**:\n\n` +
-      `Dalam perspektif doktrin pendidikan Sespimma Polri, hal tersebut berkaitan erat dengan kompetensi kepemimpinan transformasional dan pemecahan masalah operasional.\n\n` +
+      `Dalam perspektif doktrin pendidikan Sespimma Lemdiklat Polri, hal tersebut berkaitan erat dengan kompetensi kepemimpinan transformasional dan pemecahan masalah operasional.\n\n` +
       `**Rekomendasi Tindak Lanjut Serdik:**\n` +
       `• Rujuk naskah bagian pembahasan pokok pada dokumen yang terbuka di sebelah kiri.\n` +
       `• Kaitkan materi ini dengan naskah **Karya Tulis Akhir / Taskap** Anda pada bab analisis dan solusi alternatif.\n` +
@@ -205,16 +187,45 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
     `Saya sedang membaca naskah resmi Sespimma Lemdiklat Polri: "${resource.title}" (${resource.category}). Mohon bantu saya menganalisis intisari materi dan implementasinya dalam kepemimpinan Polri.`
   )}`;
 
+  // Formatter for bold **text** and *italic*
+  const formatText = (text: string, isUser: boolean) => {
+    const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong
+            key={i}
+            style={{
+              fontWeight: 800,
+              color: isUser ? '#ffffff' : 'var(--color-primary, #60a5fa)',
+            }}
+          >
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith('*') && part.endsWith('*')) {
+        return (
+          <em key={i} style={{ fontStyle: 'italic', opacity: 0.9 }}>
+            {part.slice(1, -1)}
+          </em>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        backgroundColor: 'var(--color-surface, #ffffff)',
-        borderLeft: '1px solid var(--color-border, #e2e8f0)',
+        backgroundColor: 'var(--color-surface, #121d30)',
+        borderLeft: '1px solid var(--color-border, #2a3b56)',
         borderRadius: '0 var(--radius-md) var(--radius-md) 0',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
       {/* Header Gemini Assistant */}
@@ -222,7 +233,7 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
         style={{
           background: 'linear-gradient(135deg, #091a38 0%, #1e3a8a 50%, #4f46e5 100%)',
           color: '#ffffff',
-          padding: '14px 16px',
+          padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -240,6 +251,7 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 2px 6px rgba(99, 102, 241, 0.4)',
+              flexShrink: 0,
             }}
           >
             <span style={{ fontSize: '18px' }}>✨</span>
@@ -266,27 +278,35 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <button
-            type="button"
-            onClick={() => setShowKeyModal(true)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Active status indicator (No API key setup needed) */}
+          <div
             style={{
-              background: apiKey ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255, 255, 255, 0.15)',
-              border: apiKey ? '1px solid rgba(34, 197, 94, 0.5)' : '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#ffffff',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              background: 'rgba(34, 197, 94, 0.2)',
+              border: '1px solid rgba(34, 197, 94, 0.4)',
+              color: '#4ade80',
               borderRadius: '6px',
               padding: '4px 8px',
               fontSize: '11px',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              cursor: 'pointer',
+              fontWeight: 700,
             }}
-            title={apiKey ? 'Gemini API Key Aktif (Live Google AI)' : 'Atur Gemini API Key (Opsional)'}
+            title="Gemini AI aktif dan siap digunakan secara langsung"
           >
-            <span>{apiKey ? '🔑 Key On' : '⚙️ API Key'}</span>
-          </button>
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: '#4ade80',
+                display: 'inline-block',
+                boxShadow: '0 0 6px #4ade80',
+              }}
+            />
+            <span>AI Aktif</span>
+          </div>
 
           <a
             href={externalGeminiUrl}
@@ -339,95 +359,12 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
         </div>
       </div>
 
-      {/* Optional Modal to set Gemini API Key */}
-      {showKeyModal && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.7)',
-            backdropFilter: 'blur(3px)',
-            zIndex: 50,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface, #ffffff)',
-              borderRadius: '12px',
-              padding: '20px',
-              maxWidth: '380px',
-              width: '100%',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-              border: '1px solid var(--color-border, #cbd5e1)',
-            }}
-          >
-            <h4 style={{ margin: '0 0 8px', fontSize: '15px', color: 'var(--color-navy, #0f172a)' }}>
-              🔑 Konfigurasi Google Gemini API Key
-            </h4>
-            <p style={{ fontSize: '12px', color: 'var(--color-text-muted, #64748b)', margin: '0 0 14px', lineHeight: 1.5 }}>
-              Masukkan Gemini API Key dari <em>Google AI Studio (aistudio.google.com)</em> untuk menghubungkan pembaca dokumen langsung dengan model live <strong>gemini-1.5-flash</strong>. Jika dikosongkan, sistem tetap berjalan menggunakan model kecerdasan Sespimma bawaan.
-            </p>
-            <input
-              type="password"
-              value={tempApiKey}
-              onChange={(e) => setTempApiKey(e.target.value)}
-              placeholder="AIzaSy..."
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: '6px',
-                border: '1px solid var(--color-border, #cbd5e1)',
-                fontSize: '12.5px',
-                marginBottom: '14px',
-                outline: 'none',
-              }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => setShowKeyModal(false)}
-                style={{
-                  padding: '7px 12px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--color-border, #cbd5e1)',
-                  background: 'transparent',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                }}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveApiKey}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #1d4ed8 0%, #4f46e5 100%)',
-                  color: '#ffffff',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Simpan Key
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Quick Prompt Pills Bar */}
       <div
         style={{
           padding: '8px 12px',
-          backgroundColor: 'var(--color-surface-hover, #f8fafc)',
-          borderBottom: '1px solid var(--color-border, #e2e8f0)',
+          backgroundColor: 'var(--color-surface-hover, #18263d)',
+          borderBottom: '1px solid var(--color-border, #2a3b56)',
           display: 'flex',
           gap: '6px',
           overflowX: 'auto',
@@ -441,17 +378,17 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
             disabled={isLoading}
             onClick={() => handleSendPrompt(qa.prompt)}
             style={{
-              padding: '4px 10px',
+              padding: '5px 11px',
               borderRadius: '16px',
-              backgroundColor: 'var(--color-surface, #ffffff)',
-              border: '1px solid var(--color-border, #cbd5e1)',
-              color: 'var(--color-primary, #1e40af)',
+              backgroundColor: 'var(--color-surface-raised, #1c2b44)',
+              border: '1px solid var(--color-border, #2a3b56)',
+              color: 'var(--color-primary, #60a5fa)',
               fontSize: '11px',
               fontWeight: 700,
               cursor: isLoading ? 'not-allowed' : 'pointer',
               flexShrink: 0,
               transition: 'all 0.15s ease',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
             }}
           >
             {qa.label}
@@ -469,7 +406,8 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
           flexDirection: 'column',
           gap: '12px',
           fontSize: '13px',
-          lineHeight: 1.55,
+          lineHeight: 1.6,
+          backgroundColor: 'var(--color-bg-main, #0b1220)',
         }}
       >
         {messages.map((m) => {
@@ -481,48 +419,61 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
                 display: 'flex',
                 flexDirection: 'column',
                 alignSelf: isUser ? 'flex-end' : 'flex-start',
-                maxWidth: '90%',
+                maxWidth: '92%',
               }}
             >
               <div
                 style={{
-                  padding: '10px 14px',
+                  padding: '11px 15px',
                   borderRadius: isUser ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
-                  backgroundColor: isUser ? '#1d4ed8' : 'var(--color-surface-hover, #f1f5f9)',
-                  color: isUser ? '#ffffff' : 'var(--color-text, #0f172a)',
-                  border: isUser ? 'none' : '1px solid var(--color-border, #e2e8f0)',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                  backgroundColor: isUser ? '#1d4ed8' : 'var(--color-surface-raised, #1c2b44)',
+                  color: isUser ? '#ffffff' : 'var(--color-text-main, #e8f0fc)',
+                  border: isUser ? 'none' : '1px solid var(--color-border, #2a3b56)',
+                  boxShadow: '0 2px 5px rgba(0, 0, 0, 0.15)',
                   whiteSpace: 'pre-wrap',
                 }}
               >
-                {/* Parse Markdown-like simple bold and lists */}
+                {/* Parse Markdown-like simple bold, subtitles, and lists */}
                 {m.text.split('\n').map((line, lIdx) => {
                   if (line.startsWith('### ')) {
                     return (
-                      <div key={lIdx} style={{ fontWeight: 800, fontSize: '13.5px', margin: '4px 0', color: isUser ? '#ffffff' : 'var(--color-navy, #0f172a)' }}>
-                        {line.replace('### ', '')}
+                      <div
+                        key={lIdx}
+                        style={{
+                          fontWeight: 800,
+                          fontSize: '14px',
+                          margin: '6px 0 4px',
+                          color: isUser ? '#ffffff' : 'var(--color-primary, #60a5fa)',
+                        }}
+                      >
+                        {formatText(line.replace('### ', ''), isUser)}
                       </div>
                     );
                   }
                   if (line.startsWith('• ') || line.startsWith('- ')) {
                     return (
-                      <div key={lIdx} style={{ paddingLeft: '8px', margin: '2px 0' }}>
-                        • {line.slice(2)}
+                      <div key={lIdx} style={{ paddingLeft: '8px', margin: '3px 0' }}>
+                        <span style={{ color: 'var(--color-primary, #60a5fa)', marginRight: '6px' }}>•</span>
+                        {formatText(line.replace(/^[•-]\s*/, ''), isUser)}
                       </div>
                     );
                   }
+                  if (!line.trim()) {
+                    return <div key={lIdx} style={{ height: '6px' }} />;
+                  }
                   return (
                     <div key={lIdx} style={{ margin: '2px 0' }}>
-                      {line}
+                      {formatText(line, isUser)}
                     </div>
                   );
                 })}
               </div>
               <span
                 style={{
-                  fontSize: '10px',
-                  color: 'var(--color-text-muted, #94a3b8)',
-                  marginTop: '3px',
+                  fontSize: '10.5px',
+                  color: 'var(--color-text-muted, #a7b7d0)',
+                  marginTop: '4px',
+                  padding: '0 4px',
                   alignSelf: isUser ? 'flex-end' : 'flex-start',
                 }}
               >
@@ -538,27 +489,28 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
               alignSelf: 'flex-start',
               padding: '10px 16px',
               borderRadius: '14px 14px 14px 2px',
-              backgroundColor: 'var(--color-surface-hover, #f1f5f9)',
-              border: '1px solid var(--color-border, #e2e8f0)',
+              backgroundColor: 'var(--color-surface-raised, #1c2b44)',
+              border: '1px solid var(--color-border, #2a3b56)',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              fontSize: '12px',
-              color: 'var(--color-primary, #1e40af)',
+              gap: '10px',
+              fontSize: '12.5px',
+              color: 'var(--color-primary, #60a5fa)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
             <span
               style={{
-                width: '12px',
-                height: '12px',
-                border: '2px solid #1e40af',
+                width: '14px',
+                height: '14px',
+                border: '2px solid #60a5fa',
                 borderTopColor: 'transparent',
                 borderRadius: '50%',
                 display: 'inline-block',
-                animation: 'spin 1s linear infinite',
+                animation: 'spin 0.8s linear infinite',
               }}
             />
-            <span>Gemini sedang menganalisis materi naskah...</span>
+            <span>Gemini sedang menganalisis naskah dokumen...</span>
           </div>
         )}
 
@@ -573,49 +525,66 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
         }}
         style={{
           padding: '10px 12px',
-          borderTop: '1px solid var(--color-border, #e2e8f0)',
-          backgroundColor: 'var(--color-surface, #ffffff)',
+          borderTop: '1px solid var(--color-border, #2a3b56)',
+          backgroundColor: 'var(--color-surface, #121d30)',
           display: 'flex',
           gap: '8px',
+          alignItems: 'center',
         }}
       >
         <input
           type="text"
           value={inputPrompt}
           onChange={(e) => setInputPrompt(e.target.value)}
-          placeholder="Tanyakan analisis naskah ini ke Gemini..."
+          placeholder="Ketik pertanyaan terkait materi ini..."
           disabled={isLoading}
           style={{
             flex: 1,
-            padding: '9px 12px',
-            borderRadius: 'var(--radius-sm, 6px)',
-            border: '1px solid var(--color-border, #cbd5e1)',
-            fontSize: '12.5px',
-            backgroundColor: 'var(--color-surface, #ffffff)',
-            color: 'var(--color-text, #0f172a)',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            border: '1px solid var(--color-border, #2a3b56)',
+            fontSize: '13px',
+            backgroundColor: 'var(--color-bg-main, #0b1220)',
+            color: 'var(--color-text-main, #e8f0fc)',
             outline: 'none',
+            transition: 'border-color 0.15s ease',
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-primary, #3b82f6)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-border, #2a3b56)';
           }}
         />
         <button
           type="submit"
           disabled={!inputPrompt.trim() || isLoading}
           style={{
-            padding: '0 14px',
-            borderRadius: 'var(--radius-sm, 6px)',
-            background: 'linear-gradient(135deg, #1d4ed8 0%, #4f46e5 100%)',
+            padding: '10px 18px',
+            borderRadius: '8px',
+            background: !inputPrompt.trim() || isLoading
+              ? 'rgba(59, 130, 246, 0.3)'
+              : 'linear-gradient(135deg, #1d4ed8 0%, #4f46e5 100%)',
             color: '#ffffff',
             border: 'none',
-            fontSize: '12.5px',
+            fontSize: '13px',
             fontWeight: 700,
             cursor: !inputPrompt.trim() || isLoading ? 'not-allowed' : 'pointer',
             opacity: !inputPrompt.trim() || isLoading ? 0.6 : 1,
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
+            gap: '6px',
+            boxShadow: !inputPrompt.trim() || isLoading ? 'none' : '0 2px 6px rgba(79, 70, 229, 0.4)',
+            transition: 'all 0.15s ease',
           }}
           title="Kirim ke Gemini AI"
         >
-          Kirim
+          <span>Kirim</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
         </button>
       </form>
     </div>
