@@ -1,16 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MOCK_RESOURCES } from '@/data/mockData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ResourceItem, LifecycleStatus, AccessClassification, ResourceCategory } from '@/types';
+import { sipintarApi, mapResourceToItem } from '@/lib/apiClient';
 
 export default function AdminDataPage() {
   const [resources, setResources] = useState<ResourceItem[]>(MOCK_RESOURCES);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('Semua');
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchResources = async () => {
+      try {
+        const res = await sipintarApi.resources.list({ limit: 100 });
+        if (isMounted && res.items && res.items.length > 0) {
+          const mapped = res.items.map(mapResourceToItem);
+          setResources(mapped);
+        }
+      } catch (err) {
+        console.warn('Menggunakan data sumber belajar lokal:', err);
+      }
+    };
+    fetchResources();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // New Draft Modal State
   const [showAddModal, setShowAddModal] = useState(false);

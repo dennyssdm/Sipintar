@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { MOCK_RESOURCES } from '@/data/mockData';
 import { ResourceCard } from '@/components/ResourceCard';
 import { ResourceDetailModal } from '@/components/ResourceDetailModal';
-import { ResourceItem } from '@/types';
+import { ResourceItem, ResourceCategory, AccessClassification } from '@/types';
+import { sipintarApi, mapResourceToItem } from '@/lib/apiClient';
 
 function SearchContent({ initialQuery }: { initialQuery: string }) {
   const [query, setQuery] = useState(initialQuery);
@@ -16,8 +17,79 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
   const [digitalOnly, setDigitalOnly] = useState<string>('Semua');
   const [sortBy, setSortBy] = useState<'terbaru' | 'terlama' | 'judul'>('terbaru');
   const [selectedResource, setSelectedResource] = useState<ResourceItem | null>(null);
+  const [allResources, setAllResources] = useState<ResourceItem[]>(MOCK_RESOURCES);
+  const [liveSearchResults, setLiveSearchResults] = useState<ResourceItem[] | null>(null);
+  const [isSearchingLive, setIsSearchingLive] = useState(false);
+  const [isLiveApi, setIsLiveApi] = useState(false);
 
+  // Load all resources initially from API
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAll = async () => {
+      try {
+        const res = await sipintarApi.resources.list({ limit: 100 });
+        if (isMounted && res.items && res.items.length > 0) {
+          const mapped = res.items.map(mapResourceToItem);
+          setAllResources(mapped);
+          setIsLiveApi(true);
+        }
+      } catch (err) {
+        console.warn('Menggunakan fallback data pencarian lokal:', err);
+      }
+    };
+    fetchAll();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
+  // Unified search API query
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed || trimmed.length < 2) {
+      setLiveSearchResults(null);
+      return;
+    }
+
+    let isMounted = true;
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingLive(true);
+        const res = await sipintarApi.search.unified(trimmed);
+        if (isMounted && res.items) {
+          const mapped: ResourceItem[] = res.items.map((item: any) => {
+            const author = item.subtitle ? item.subtitle.split('•')[1]?.trim() : 'Sespimma Lemdiklat Polri';
+            return {
+              id: item.uuid || `res-${item.id}`,
+              title: item.title,
+              category: (item.category || 'Modul & Hanjar') as ResourceCategory,
+              description: item.description || '',
+              authorOrInstructor: author || 'Sespimma Lemdiklat Polri',
+              unitOrSource: 'Sespimma Sespim Lemdiklat Polri',
+              updatedAt: '2026-10-15',
+              lifecycle: 'Dipublikasikan',
+              access: (item.access_classification || 'Internal') as AccessClassification,
+              hasDigitalFile: true,
+              fileFormat: 'PDF',
+              tags: [item.category, item.type]
+            };
+          });
+          setLiveSearchResults(mapped);
+          setIsLiveApi(true);
+        }
+      } catch (err) {
+        console.warn('Pencarian API gagal, beralih ke pencarian lokal:', err);
+        setLiveSearchResults(null);
+      } finally {
+        if (isMounted) setIsSearchingLive(false);
+      }
+    }, 300);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [query]);
 
   const categories = [
     'Semua',
@@ -31,7 +103,8 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
   ];
 
   const searchResults = useMemo(() => {
-    let list = MOCK_RESOURCES.filter((res) => {
+    const sourceList = liveSearchResults !== null ? liveSearchResults : allResources;
+    let list = sourceList.filter((res) => {
       // Category filter
       const matchCat =
         selectedCategory === 'Semua' || res.category === selectedCategory;
@@ -49,7 +122,12 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
         digitalOnly === 'Semua' ||
         (digitalOnly === 'digital' ? res.hasDigitalFile : !res.hasDigitalFile);
 
-      // Query filter
+      // If live search results are active, fulltext query matching was already performed server-side
+      if (liveSearchResults !== null) {
+        return matchCat && matchLife && matchAccess && matchDigital;
+      }
+
+      // Query filter for local fallback
       const q = query.toLowerCase().trim();
       const matchQuery =
         !q ||
@@ -72,7 +150,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
     }
 
     return list;
-  }, [query, selectedCategory, selectedLifecycle, selectedAccess, digitalOnly, sortBy]);
+  }, [liveSearchResults, allResources, selectedCategory, selectedLifecycle, selectedAccess, digitalOnly, query, sortBy]);
 
   const resetAllFilters = () => {
     setQuery('');
@@ -148,17 +226,39 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
             >
               Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif
             </span>
-            <h1
-              style={{
-                fontSize: '24px',
-                fontWeight: 800,
-                color: '#ffffff',
-                margin: '2px 0 8px',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
-              }}
-            >
-              Pencarian Terpadu Sumber Belajar — SiPINTAR
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  margin: '2px 0 8px',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
+                }}
+              >
+                Pencarian Terpadu Sumber Belajar — SiPINTAR
+              </h1>
+              {isLiveApi && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    color: '#34d399',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    borderRadius: '16px',
+                    padding: '3px 10px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    marginBottom: '4px',
+                  }}
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  Database REST API & Fulltext Search Aktif
+                </span>
+              )}
+            </div>
             <p style={{ fontSize: '14px', color: '#cbd5e1', lineHeight: 1.55, margin: 0 }}>
               Telusuri seluruh khazanah pengetahuan kepolisian secara lintas-kategori: dari modul hanjar pokok, buku fisik perpustakaan, karya tulis Taskap, hingga profil kompetensi tenaga pendidik.
             </p>

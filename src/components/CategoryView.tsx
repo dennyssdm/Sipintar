@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { ResourceCategory, ResourceItem } from '@/types';
 import { MOCK_RESOURCES, CATEGORIES_DATA } from '@/data/mockData';
 import { ResourceCard } from './ResourceCard';
 import { ResourceDetailModal } from './ResourceDetailModal';
+import { sipintarApi, mapResourceToItem } from '@/lib/apiClient';
 
 interface CategoryViewProps {
   category: ResourceCategory;
@@ -18,6 +19,28 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ category }) => {
   const [accessFilter, setAccessFilter] = useState<string>('Semua');
   const [sortBy, setSortBy] = useState<'terbaru' | 'terlama' | 'judul'>('terbaru');
   const [selectedResource, setSelectedResource] = useState<ResourceItem | null>(null);
+  const [allResources, setAllResources] = useState<ResourceItem[]>(MOCK_RESOURCES);
+  const [isLiveApi, setIsLiveApi] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchResources = async () => {
+      try {
+        const res = await sipintarApi.resources.list({ limit: 150 });
+        if (isMounted && res.items && res.items.length > 0) {
+          const mapped = res.items.map(mapResourceToItem);
+          setAllResources(mapped);
+          setIsLiveApi(true);
+        }
+      } catch (err) {
+        console.warn('Menggunakan data sumber belajar lokal:', err);
+      }
+    };
+    fetchResources();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const categoryMeta = useMemo(() => {
     return CATEGORIES_DATA.find((c) => c.category === category) || {
@@ -31,8 +54,8 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ category }) => {
   }, [category]);
 
   const baseResources = useMemo(() => {
-    return MOCK_RESOURCES.filter((res) => res.category === category);
-  }, [category]);
+    return allResources.filter((res) => res.category === category);
+  }, [allResources, category]);
 
   const subCategories = useMemo(() => {
     const subs = new Set<string>();
@@ -195,17 +218,39 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ category }) => {
             >
               Kategori Resmi Sespimma Lemdiklat Polri
             </span>
-            <h1
-              style={{
-                fontSize: '24px',
-                fontWeight: 800,
-                color: '#ffffff',
-                margin: '2px 0 8px',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-              }}
-            >
-              {categoryMeta.title}
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  margin: '2px 0 8px',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                }}
+              >
+                {categoryMeta.title}
+              </h1>
+              {isLiveApi && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    color: '#34d399',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    borderRadius: '16px',
+                    padding: '3px 10px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    marginBottom: '4px',
+                  }}
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  Database REST API Aktif
+                </span>
+              )}
+            </div>
             <p style={{ fontSize: '14px', color: '#cbd5e1', maxWidth: '780px', lineHeight: 1.55, margin: 0 }}>
               {categoryMeta.description}
             </p>

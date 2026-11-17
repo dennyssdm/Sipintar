@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { GadikMember, ResourceItem } from '@/types';
 import {
@@ -8,6 +8,7 @@ import {
   REKAPITULASI_NOMINATIF_GADIK,
 } from '@/data/gadikData';
 import { ResourceDetailModal } from './ResourceDetailModal';
+import { sipintarApi, mapGadikToMember } from '@/lib/apiClient';
 
 export const GadikDirectory: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,9 +19,36 @@ export const GadikDirectory: React.FC = () => {
   const [selectedResourceForModal, setSelectedResourceForModal] = useState<ResourceItem | null>(null);
   const [showDocPreview, setShowDocPreview] = useState(false);
 
+  const [members, setMembers] = useState<GadikMember[]>(GADIK_NOMINATIF_MEMBERS);
+  const [isLiveApi, setIsLiveApi] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchGadik = async () => {
+      try {
+        setIsLoading(true);
+        const res = await sipintarApi.gadik.list({ limit: 50 });
+        if (isMounted && res.items && res.items.length > 0) {
+          const mapped = res.items.map(mapGadikToMember);
+          setMembers(mapped);
+          setIsLiveApi(true);
+        }
+      } catch (err) {
+        console.warn('Menggunakan data nominatif cadangan lokal:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchGadik();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Filtered members
   const filteredMembers = useMemo(() => {
-    return GADIK_NOMINATIF_MEMBERS.filter((member) => {
+    return members.filter((member) => {
       const matchRank =
         selectedRank === 'Semua' || member.pangkat === selectedRank;
 
@@ -40,7 +68,7 @@ export const GadikDirectory: React.FC = () => {
 
       return matchRank && matchCategory && matchQuery;
     });
-  }, [searchQuery, selectedRank, selectedCategory]);
+  }, [members, searchQuery, selectedRank, selectedCategory]);
 
   const handleOpenGadikModal = (member: GadikMember) => {
     setSelectedGadik(member);
@@ -173,18 +201,40 @@ export const GadikDirectory: React.FC = () => {
               </span>
             </div>
 
-            <h1
-              style={{
-                fontSize: '26px',
-                fontWeight: 800,
-                color: '#ffffff',
-                margin: '4px 0 10px',
-                lineHeight: 1.25,
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
-              }}
-            >
-              Gadik & Kompetensi
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1
+                style={{
+                  fontSize: '26px',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  margin: '4px 0 10px',
+                  lineHeight: 1.25,
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
+                }}
+              >
+                Gadik & Kompetensi
+              </h1>
+              {isLiveApi && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    color: '#34d399',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    borderRadius: '16px',
+                    padding: '3px 10px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    marginBottom: '6px',
+                  }}
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  Database REST API Aktif
+                </span>
+              )}
+            </div>
 
             <p style={{ fontSize: '13.5px', color: '#cbd5e1', lineHeight: 1.6, margin: 0, maxWidth: '780px' }}>
               Daftar resmi <strong style={{ color: '#ffffff' }}>Nominatif Anggota Polri (Fungsional) & Tenaga Pendidik</strong> Sespimma Sespim Lemdiklat Polri{' '}

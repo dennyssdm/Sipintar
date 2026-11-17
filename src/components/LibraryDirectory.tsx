@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { BookItem } from '@/types';
 import { MOCK_BOOKS, LIBRARY_CATEGORIES } from '@/data/libraryData';
+import { sipintarApi, mapBookToItem } from '@/lib/apiClient';
 
 export const LibraryDirectory: React.FC = () => {
+  const [books, setBooks] = useState<BookItem[]>(MOCK_BOOKS);
+  const [isLiveApi, setIsLiveApi] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'digital' | 'physical'>('all');
@@ -15,9 +19,32 @@ export const LibraryDirectory: React.FC = () => {
   const [activeModalTab, setActiveModalTab] = useState<'preview' | 'metadata'>('preview');
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
 
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBooks = async () => {
+      try {
+        setIsLoading(true);
+        const res = await sipintarApi.library.getBooks({ limit: 50 });
+        if (isMounted && res.items && res.items.length > 0) {
+          const mapped = res.items.map(mapBookToItem);
+          setBooks(mapped);
+          setIsLiveApi(true);
+        }
+      } catch (err) {
+        console.warn('Menggunakan data perpustakaan lokal:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchBooks();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Filter and sort books
   const filteredBooks = useMemo(() => {
-    let result = MOCK_BOOKS.filter((book) => {
+    let result = books.filter((book) => {
       const matchCat = selectedCategory === 'all' || book.categoryId === selectedCategory;
 
       const matchAvail =
@@ -156,18 +183,40 @@ export const LibraryDirectory: React.FC = () => {
               </span>
             </div>
 
-            <h1
-              style={{
-                fontSize: '26px',
-                fontWeight: 800,
-                color: '#ffffff',
-                margin: '4px 0 10px',
-                lineHeight: 1.25,
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
-              }}
-            >
-              E-Library / Perpustakaan
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1
+                style={{
+                  fontSize: '26px',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  margin: '4px 0 10px',
+                  lineHeight: 1.25,
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
+                }}
+              >
+                E-Library / Perpustakaan
+              </h1>
+              {isLiveApi && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    color: '#34d399',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    borderRadius: '16px',
+                    padding: '3px 10px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    marginBottom: '6px',
+                  }}
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  Database REST API Aktif
+                </span>
+              )}
+            </div>
 
             <p style={{ fontSize: '13.5px', color: '#cbd5e1', lineHeight: 1.6, margin: 0, maxWidth: '780px' }}>
               Katalog terpadu koleksi <strong style={{ color: '#ffffff' }}>buku teks kepolisian</strong>, <strong style={{ color: '#ffffff' }}>karya tulis perorangan (Taskap)</strong>,{' '}

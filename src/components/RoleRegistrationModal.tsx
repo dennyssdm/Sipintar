@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { UserRole } from '@/types';
 
 interface RoleRegistrationModalProps {
@@ -28,7 +28,6 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
   const [nrp, setNrp] = useState('');
   const [satuan, setSatuan] = useState('');
   const [email, setEmail] = useState('');
-  const [telepon, setTelepon] = useState('');
   const [persetujuan, setPersetujuan] = useState(false);
 
   // Serdik Specific
@@ -52,10 +51,14 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [regId, setRegId] = useState('');
 
+  const handleClose = useCallback(() => {
+    setIsSubmitted(false);
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      setIsSubmitted(false);
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -67,12 +70,12 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose();
+        handleClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 
@@ -85,7 +88,7 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
 
   const handleActivateRole = () => {
     onSuccessRole(role as UserRole);
-    onClose();
+    handleClose();
   };
 
   const handleToggleLingkup = (item: string) => {
@@ -108,7 +111,7 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
         padding: '16px',
         overflowY: 'auto',
       }}
-      onClick={onClose}
+      onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="reg-modal-title"
@@ -167,7 +170,7 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               style={{
                 background: 'rgba(255, 255, 255, 0.15)',
                 border: '1px solid rgba(255, 255, 255, 0.25)',
@@ -278,7 +281,7 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
 
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="btn btn-secondary"
                   style={{ padding: '10px 20px', fontSize: '13px' }}
                 >
@@ -703,7 +706,7 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="btn btn-secondary"
                   style={{ padding: '8px 16px', fontSize: '13px' }}
                 >

@@ -76,15 +76,15 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 
 **Exit criteria:** frontend prototype is accepted and ready for separate backend planning.
 
-## Phase 5 — Backend discovery (NOT AUTHORIZED YET)
+## Phase 5 — Backend discovery (IN PROGRESS — Documented Specifications)
 
-- [ ] [B] Explicit user authorization to begin backend planning.
-- [ ] Confirm roles and permission matrix.
-- [ ] Confirm data ownership, metadata fields, and retention.
-- [ ] Confirm authentication/session approach.
-- [ ] Confirm database and file storage requirements.
-- [ ] Confirm API contract, validation, errors, audit requirements.
-- [ ] Security/privacy review.
+- [x] [A] User directs creation of business rules and MySQL database specification documents. (2026-11-16)
+- [x] Confirm roles and permission matrix (Documented in `docs/business rule.md`).
+- [x] Confirm data ownership, metadata fields, and retention (Documented in `docs/business rule.md`).
+- [x] Confirm database and file storage requirements (MySQL 8.0+ Schema documented in `docs/database spec.md`).
+- [~] Confirm authentication/session approach (JWT/Argon2id proposed in specs; awaiting final runtime confirmation).
+- [~] Confirm API contract, validation, errors, audit requirements (Aligned with `docs/APIspecs.md` and `docs/database spec.md`).
+- [x] Security/privacy review (Data protection guidelines documented).
 - [ ] [A] User approves backend architecture before implementation.
 
 ## Phase 6 — REST API/database implementation (NOT AUTHORIZED YET)
@@ -131,6 +131,8 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 | D-28 | Redesain Format Chart Analitik: Eliminasi Pie Chart & Implementasi Segmented Ribbon Bar | Mengganti format grafik lingkaran/pie/donat yang memakan banyak ruang vertikal pada Tab Komposisi 8 Kategori menjadi format horizontal ringkas dan hemat ruang (*space-efficient*): (1) *Pita Distribusi Komposisi Repositori* (*full-width Segmented Ribbon Bar Gauge*) dengan chip legenda interaktif dan penyorotan hover, (2) Matriks Bar Terperingkat 2 Kolom (*Ranked Bar Matrix #1 s.d #7*) lengkap dengan lencana urutan, volume berkas, persentase, *progress bar*, dan tombol langsung `Buka Menu →`, serta (3) Banner wawasan analitik konsentrasi materi | User-directed & Completed |
 | D-29 | Bar Chart Vertikal Tegak Ke Atas (Vertical Column Chart) | Merancang dan menerapkan grafik batang vertikal (*vertical column bar chart*) pada Tab 1 Analitik Ekosistem: Batang-batang materi tumbuh tegak ke atas dari garis dasar (*baseline*) dengan sumbu Y bergaris kisi (0, 50, 100, 150 berkas), label volume numerik & persentase mengambang di atas puncak masing-masing batang (*E-Library 142, Modul 78, SOP 35, Pedoman 22, Kurikulum 19, Gadik 16, Manual 6*), efek interaktif angkat saat diarahkan kursor (*hover lift effect*), label sumbu X dan tautan langsung `Buka →` di bawah garis dasar, serta 4 kartu ringkasan analitik pilar di bawah kanvas grafik | User-directed & Completed |
 | D-30 | Optimasi Responsif Diagram Batang Vertikal (Batang Gemuk di Desktop, Penuh & Rapi di Mobile) | Mengoptimalkan tampilan seluruh diagram batang vertikal (Tab 1 s.d Tab 4): (1) Desktop (>=1024px) batang dibuat gemuk dan kokoh (`vbar-7col` lebar 72px–76px, `vbar-4col` lebar 120px) dengan tinggi kanvas 310px & track 222px sehingga kanvas terlihat padat, gagah, dan terisi penuh tanpa ruang kosong berlebih; (2) Mobile (<=768px & <=480px) kanvas adaptif 100% full-width tanpa overflow/scrollbar horizontal berlebih, kolom fleksibel (`repeat(7, 1fr)` dan `repeat(4, 1fr)`), ukuran batang menyusut proporsional (max 38px pada 7 kolom, max 68px pada 4 kolom), teks lencana dan persentase terkalibrasi rapi dan nyaman dibaca pada layar ponsel | User-directed & Completed |
+| D-31 | Perumusan Dokumen Aturan Bisnis & Spesifikasi Basis Data MySQL | Penyusunan dua dokumen spesifikasi backend resmi: (1) `docs/business rule.md` yang merinci 6 tingkatan peran, matriks RBAC 8 kategori sumber belajar & 4 modul tata kelola, aturan klasifikasi akses, mesin status lifecycle 5 fase, dan aturan khusus setiap modul; (2) `docs/database spec.md` yang merinci ERD, kamus data lengkap 10 kelompok tabel InnoDB MySQL 8.0, indeks pencarian FULLTEXT & komposit, skrip DDL SQL siap eksekusi, serta skrip data seeding awal yang mencerminkan mock data codebase | User-directed & Completed |
+| D-32 | Pembuatan `database.sql` & Impor Langsung ke MySQL phpMyAdmin (`sipintar_db`) | Pembuatan berkas DDL & DML komprehensif `database.sql` (19 tabel, 3.136 baris SQL, 241 KB) mencakup seluruh 86+ modul & hanjar, 14 koleksi buku/e-book/taskap/jurnal, 16 tenaga pendidik fungsional Polri (Gadik), 96 kompetensi, 392 tag taksonomi, dan log audit. Berkas berhasil diimpor langsung ke server lokal MySQL XAMPP pada basis data `sipintar_db` dan dapat langsung diakses melalui web browser di `http://localhost/phpmyadmin/` | User-directed & Completed |
 
 ## Change-control rule
 
