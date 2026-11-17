@@ -1,28 +1,87 @@
-import React from 'react';
-import Link from 'next/link';
-import { Metadata } from 'next';
-import { MOCK_RESOURCES } from '@/data/mockData';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Monitoring Tata Kelola — SIPINTAR Sespimma',
-  description: 'Pemantauan masa berlaku dokumen, log akses, dan utilisasi materi ajar Sespimma.',
-};
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { MOCK_RESOURCES } from '@/data/mockData';
+import { sipintarApi } from '@/lib/apiClient';
+
+interface LogItem {
+  time: string;
+  user: string;
+  action: string;
+  satker: string;
+}
 
 export default function AdminMonitoringPage() {
-  const total = MOCK_RESOURCES.length;
-  const published = MOCK_RESOURCES.filter((r) => r.lifecycle === 'Dipublikasikan').length;
-  const verified = MOCK_RESOURCES.filter((r) => r.lifecycle === 'Diverifikasi').length;
-  const draft = MOCK_RESOURCES.filter((r) => r.lifecycle === 'Draft').length;
-  const archived = MOCK_RESOURCES.filter((r) => r.lifecycle === 'Arsip').length;
-  const inactive = MOCK_RESOURCES.filter((r) => r.lifecycle === 'Tidak Aktif').length;
+  const [counts, setCounts] = useState(() => ({
+    total: MOCK_RESOURCES.length,
+    published: MOCK_RESOURCES.filter((r) => r.lifecycle === 'Dipublikasikan').length,
+    verified: MOCK_RESOURCES.filter((r) => r.lifecycle === 'Diverifikasi').length,
+    draft: MOCK_RESOURCES.filter((r) => r.lifecycle === 'Draft').length,
+    archived: MOCK_RESOURCES.filter((r) => r.lifecycle === 'Arsip').length,
+    inactive: MOCK_RESOURCES.filter((r) => r.lifecycle === 'Tidak Aktif').length,
+  }));
 
-  const mockLogs = [
+  const [logs, setLogs] = useState<LogItem[]>([
     { time: '14 Okt 2026, 20:45', user: 'Serdik Arya Ramadhan', action: 'Membaca Hanjar Kepemimpinan Strategis (res-001)', satker: 'Sindikat 3' },
     { time: '14 Okt 2026, 20:12', user: 'Gadik Kombes Hendra Pratama', action: 'Memperbarui Silabus Bahan Ajar (res-007)', satker: 'Bag Jarlat' },
     { time: '14 Okt 2026, 19:30', user: 'Pengelola Pustaka', action: 'Pembaruan Lokasi Rak Buku Hukum Pidana (res-002)', satker: 'Perpustakaan' },
     { time: '14 Okt 2026, 17:05', user: 'Admin Tata Kelola', action: 'Persetujuan Verifikasi Modul Intelijen Taktis (res-008)', satker: 'Subbag Renlat' },
     { time: '14 Okt 2026, 15:40', user: 'Serdik Budi Santoso', action: 'Penelusuran Kertas Karya Taskap Pelayanan Publik', satker: 'Sindikat 1' },
-  ];
+  ]);
+
+  const [isLiveApi, setIsLiveApi] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMonitoringData = async () => {
+      try {
+        const stats = await sipintarApi.admin.getStats();
+        if (isMounted && stats && stats.overview?.lifecycle) {
+          interface LifecycleCount {
+            lifecycle_status: string;
+            count: number;
+          }
+          const lc: LifecycleCount[] = stats.overview.lifecycle;
+          const draft = lc.find((l) => l.lifecycle_status === 'Draft')?.count || 0;
+          const verified = lc.find((l) => l.lifecycle_status === 'Diverifikasi')?.count || 0;
+          const published = lc.find((l) => l.lifecycle_status === 'Dipublikasikan')?.count || 0;
+          const inactive = lc.find((l) => l.lifecycle_status === 'Tidak Aktif')?.count || 0;
+          const archived = lc.find((l) => l.lifecycle_status === 'Arsip')?.count || 0;
+          const total = draft + verified + published + inactive + archived;
+
+          setCounts({ total, published, verified, draft, archived, inactive });
+          setIsLiveApi(true);
+        }
+
+        const logRes = await sipintarApi.admin.getLogs({ type: 'activity', limit: 10 });
+        if (isMounted && logRes && Array.isArray(logRes.items) && logRes.items.length > 0) {
+          interface ApiLog {
+            created_at: string;
+            user_name_snapshot?: string;
+            description: string;
+            satker_sindikat?: string;
+            role_snapshot?: string;
+          }
+          const mappedLogs: LogItem[] = logRes.items.map((item: ApiLog) => ({
+            time: new Date(item.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
+            user: item.user_name_snapshot || 'Pengguna Terdaftar',
+            action: item.description,
+            satker: item.satker_sindikat || item.role_snapshot?.toUpperCase() || 'Sespimma Lemdiklat'
+          }));
+          setLogs(mappedLogs);
+          setIsLiveApi(true);
+        }
+      } catch {
+        // Fallback aman ke mock data lokal
+      }
+    };
+
+    fetchMonitoringData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div>
@@ -64,23 +123,44 @@ export default function AdminMonitoringPage() {
         />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              color: '#fbbf24',
-              backgroundColor: 'rgba(251, 191, 36, 0.15)',
-              border: '1px solid rgba(251, 191, 36, 0.35)',
-              padding: '3px 8px',
-              borderRadius: 'var(--radius-sm)',
-              letterSpacing: '0.6px',
-              display: 'inline-block',
-              marginBottom: '6px',
-            }}
-          >
-            Audit Transparansi & Siklus Materi
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                color: '#fbbf24',
+                backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                border: '1px solid rgba(251, 191, 36, 0.35)',
+                padding: '3px 8px',
+                borderRadius: 'var(--radius-sm)',
+                letterSpacing: '0.6px',
+              }}
+            >
+              Audit Transparansi & Siklus Materi
+            </span>
+
+            {isLiveApi && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                  color: '#34d399',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  borderRadius: '16px',
+                  padding: '3px 10px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                }}
+              >
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                Database REST API & Audit Log Aktif
+              </span>
+            )}
+          </div>
+
           <h1
             style={{
               fontSize: '24px',
@@ -108,32 +188,32 @@ export default function AdminMonitoringPage() {
         }}
       >
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-primary)' }}>{total}</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-primary)' }}>{counts.total}</div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Total Koleksi Terdata</div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-success)' }}>{published}</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-success)' }}>{counts.published}</div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Dipublikasikan</div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-info)' }}>{verified}</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-info)' }}>{counts.verified}</div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Menunggu Rilis</div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-warning)' }}>{draft}</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-warning)' }}>{counts.draft}</div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Draf Dalam Penyusunan</div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#6b7280' }}>{archived + inactive}</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#6b7280' }}>{counts.archived + counts.inactive}</div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Arsip / Tidak Aktif</div>
         </div>
       </div>
 
-      {/* Activity Log Simulation Table */}
+      {/* Activity Log Table */}
       <div
         style={{
           backgroundColor: 'var(--color-surface)',
@@ -143,10 +223,15 @@ export default function AdminMonitoringPage() {
           boxShadow: 'var(--shadow-sm)',
         }}
       >
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)' }}>
-            Log Aktivitas Pengguna Terkini (Simulasi Audit Trail)
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-navy)', margin: 0 }}>
+            {isLiveApi ? 'Jejak Audit Aktivitas Resmi (activity_logs MySQL)' : 'Log Aktivitas Pengguna Terkini (Simulasi Audit Trail)'}
           </h2>
+          {isLiveApi && (
+            <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
+              Menampilkan {logs.length} entri audit terbaru
+            </span>
+          )}
         </div>
 
         <div style={{ overflowX: 'auto' }}>
@@ -156,11 +241,11 @@ export default function AdminMonitoringPage() {
                 <th style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--color-text-muted)' }}>Waktu Akses</th>
                 <th style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--color-text-muted)' }}>Identitas Personel</th>
                 <th style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--color-text-muted)' }}>Aktivitas / Objek Dokumen</th>
-                <th style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--color-text-muted)' }}>Satker / Sindikat</th>
+                <th style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--color-text-muted)' }}>Satker / Peran</th>
               </tr>
             </thead>
             <tbody>
-              {mockLogs.map((log, idx) => (
+              {logs.map((log, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
                   <td style={{ padding: '12px 16px', color: 'var(--color-text-muted)', fontSize: '12px' }}>
                     {log.time}
