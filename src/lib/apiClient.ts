@@ -209,6 +209,16 @@ class SipintarApiClient {
       const res = await this.request<any[]>(`/library/books${query ? `?${query}` : ''}`);
       return { items: res.data, meta: res.meta };
     },
+    listBooks: async (params: {
+      category_id?: string;
+      author?: string;
+      stock_available?: boolean;
+      page?: number;
+      limit?: number;
+      q?: string;
+    } = {}) => {
+      return this.library.getBooks(params);
+    },
     getBookDetail: async (id: string | number) => {
       const res = await this.request<any>(`/library/books/${id}`);
       return res.data;
@@ -243,9 +253,83 @@ class SipintarApiClient {
       });
       return res.data;
     },
+    updateResource: async (id: number | string, data: FormData | Record<string, unknown>) => {
+      const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+      const res = await this.request<any>(`/admin/resources/${id}`, {
+        method: 'PUT',
+        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+        body: isFormData ? data : JSON.stringify(data)
+      });
+      return res.data;
+    },
+    updateResourceStatus: async (id: number | string, status: string) => {
+      const res = await this.request<any>(`/admin/resources/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      return res.data;
+    },
+    deleteResource: async (id: number | string, hard = false) => {
+      const res = await this.request<any>(`/admin/resources/${id}?hard=${hard}`, {
+        method: 'DELETE'
+      });
+      return res.data;
+    },
     archiveResource: async (id: number | string) => {
       const res = await this.request<any>(`/admin/resources/${id}/archive`, {
         method: 'PATCH'
+      });
+      return res.data;
+    },
+    // Books CMS
+    createBook: async (data: FormData | Record<string, unknown>) => {
+      const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+      const res = await this.request<any>('/admin/books', {
+        method: 'POST',
+        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+        body: isFormData ? data : JSON.stringify(data)
+      });
+      return res.data;
+    },
+    updateBook: async (id: number | string, data: FormData | Record<string, unknown>) => {
+      const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+      const res = await this.request<any>(`/admin/books/${id}`, {
+        method: 'PUT',
+        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+        body: isFormData ? data : JSON.stringify(data)
+      });
+      return res.data;
+    },
+    deleteBook: async (id: number | string) => {
+      const res = await this.request<any>(`/admin/books/${id}`, {
+        method: 'DELETE'
+      });
+      return res.data;
+    },
+    // Users CMS
+    listUsers: async (params: { role?: string; search?: string; page?: number; limit?: number } = {}) => {
+      const query = new URLSearchParams(params as any).toString();
+      const res = await this.request<any[]>(`/admin/users${query ? `?${query}` : ''}`);
+      return { items: res.data, meta: res.meta };
+    },
+    createUser: async (data: Record<string, unknown>) => {
+      const res = await this.request<any>('/admin/users', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      return res.data;
+    },
+    updateUserStatus: async (id: number | string, is_active: number) => {
+      const res = await this.request<any>(`/admin/users/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_active })
+      });
+      return res.data;
+    },
+    updateUserRole: async (id: number | string, role: string | number) => {
+      const res = await this.request<any>(`/admin/users/${id}/role`, {
+        method: 'PATCH',
+        body: JSON.stringify({ role })
       });
       return res.data;
     },
