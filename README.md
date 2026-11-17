@@ -93,7 +93,7 @@ npm run dev
 # Atau jalankan langsung (Mode Produksi)
 npm start
 
-# 5. Jalankan suite pengujian integrasi otomatis (22 skenario)
+# 5. Jalankan suite pengujian integrasi otomatis (25 skenario)
 npm test
 
 # 6. Jalankan utilitas pencadangan basis data MySQL otomatis

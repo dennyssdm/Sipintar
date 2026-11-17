@@ -334,6 +334,92 @@ async function runTests() {
     assert(false, '22. Pimpinan Executive Oversight RBAC', err.message);
   }
 
+  // 23. Detail Koleksi Buku Perpustakaan
+  try {
+    const res = await request('/library/books/1');
+    assert(
+      res.status === 200 && res.data?.data?.id === 1 && Boolean(res.data?.data?.title),
+      '23. Detail Koleksi Buku & Eksemplar Perpustakaan (/library/books/:id)'
+    );
+  } catch (err) {
+    assert(false, '23. Detail Koleksi Buku', err.message);
+  }
+
+  // 24. Siklus Tata Kelola Lengkap (Draft -> Review -> Archive)
+  try {
+    // A. Buat Draft
+    const createRes = await request('/admin/resources', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({
+        title: 'Materi Uji Integrasi Tata Kelola Otomatis',
+        category_id: 2,
+        author_or_instructor: 'Tim Otomasi Uji Sespimma',
+        unit_or_source: 'Bag Jarlat Sespimma Lemdiklat Polri',
+        description: 'Materi uji otomatis untuk memverifikasi mesin status siklus hidup',
+        access_classification: 'Internal',
+        tags: ['Uji Integrasi', 'Siklus Hidup']
+      })
+    });
+    const createdId = createRes.data?.data?.id;
+
+    // B. Verifikasi Review oleh Verifikator
+    const loginVerif = await request('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identifier: 'verifikator@sespimma.lemdiklat.polri.go.id',
+        password: 'Password123!'
+      })
+    });
+    const verifToken = loginVerif.data?.data?.token || '';
+
+    const reviewRes = await request(`/admin/verification/${createdId}/review`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${verifToken}`
+      },
+      body: JSON.stringify({
+        decision: 'approve',
+        notes: 'Disetujui secara otomatis melalui skenario uji integrasi.'
+      })
+    });
+
+    // C. Arsipkan oleh Admin
+    const archiveRes = await request(`/admin/resources/${createdId}/archive`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+
+    // D. Bersihkan data uji dari basis data
+    const pool = (await import('../src/config/db.js')).default;
+    await pool.query('DELETE FROM resource_tags WHERE resource_id = ?', [createdId]);
+    await pool.query('DELETE FROM verification_logs WHERE resource_id = ?', [createdId]);
+    await pool.query('DELETE FROM resources WHERE id = ?', [createdId]);
+
+    assert(
+      createRes.status === 201 && reviewRes.status === 200 && archiveRes.status === 200,
+      '24. Siklus Tata Kelola Lengkap: Buat Draf, Verifikasi & Arsip (/admin/resources)'
+    );
+  } catch (err) {
+    assert(false, '24. Siklus Tata Kelola Lengkap', err.message);
+  }
+
+  // 25. Perlindungan Akses Sampel Buku Berklasifikasi "Metadata Saja"
+  try {
+    const res = await request('/library/books/9/preview');
+    assert(
+      res.status === 403 && res.data?.error?.code === 'FORBIDDEN',
+      '25. Perlindungan Sampel Buku "Metadata Saja" (Strict 403 FORBIDDEN)'
+    );
+  } catch (err) {
+    assert(false, '25. Perlindungan Sampel Metadata Saja', err.message);
+  }
+
   console.log(`\n------------------------------------------------------------`);
   console.log(`  Test Summary: \x1b[32m${passed} Passed\x1b[0m, \x1b[31m${failed} Failed\x1b[0m out of ${passed + failed} Tests`);
   console.log(`------------------------------------------------------------\n`);
