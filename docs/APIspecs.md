@@ -4,7 +4,7 @@
 **Base URL:** `http://localhost:5001/api/v1`  
 **Protocol:** HTTP/1.1 / JSON over UTF-8  
 **Authentication:** Bearer JWT (`Authorization: Bearer <token>`)  
-**Postman Collection:** [collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/collection.json) (v2.1.0)
+**Postman Collection:** [collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/collection.json) (v2.1.0 - 32 Request)
 
 ---
 
@@ -85,6 +85,7 @@
 | `GET` | `/api/v1/categories/:id/subcategories` | Daftar subkategori taksonomi | Terbuka |
 | `GET` | `/api/v1/resources` | Katalog materi ajar (`limit`, `page`, `category_id`, `q`) | Publik / Auth |
 | `GET` | `/api/v1/resources/:id` | Rincian lengkap materi ajar beserta kompetensi & tag | Publik / Auth |
+| `GET` | `/api/v1/resources/:id/related` | Rekomendasi materi ajar terkait berbasis kesamaan tag | Publik / Auth |
 | `GET` | `/api/v1/gadik` | Daftar 16 profil Tenaga Pendidik fungsional Polri | Publik / Auth |
 | `GET` | `/api/v1/gadik/:id` | Rincian kompetensi, Sprin penugasan, dan mata ajar Gadik | Publik / Auth |
 | `GET` | `/api/v1/library/categories` | Daftar 4 kategori koleksi perpustakaan Sespimma | Terbuka |
