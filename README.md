@@ -92,9 +92,17 @@ npm run dev
 
 # Atau jalankan langsung (Mode Produksi)
 npm start
+
+# 5. Jalankan suite pengujian integrasi otomatis (22 skenario)
+npm test
+
+# 6. Jalankan utilitas pencadangan basis data MySQL otomatis
+npm run db:backup
 ```
 *Server aktif pada URL:* `http://localhost:5001`  
-*Base API Endpoint:* `http://localhost:5001/api/v1`
+*Base API Endpoint:* `http://localhost:5001/api/v1`  
+*Dokumentasi Interaktif Swagger UI:* `http://localhost:5001/docs`  
+*Spesifikasi OpenAPI 3.0:* `http://localhost:5001/openapi.json`
 
 ---
 
@@ -135,6 +143,7 @@ npm start
 | `GET` | `/api/v1/categories/:id/subcategories` | Publik / Authenticated | Subkategori berdasarkan kategori ID/slug |
 | `GET` | `/api/v1/resources` | Publik / Authenticated | Katalog materi (publik hanya melihat status `Dipublikasikan`) |
 | `GET` | `/api/v1/resources/:id` | Publik / Authenticated | Detail materi, silabus, dan daftar tag |
+| `GET` | `/api/v1/resources/:id/related` | Publik / Authenticated | Rekomendasi materi terkait berbasis kesamaan taksonomi tag |
 | `GET` | `/api/v1/gadik` | Publik / Authenticated | Daftar 16 gadik fungsional urut nominatif |
 | `GET` | `/api/v1/gadik/:id` | Publik / Authenticated | Detail profil gadik, no Sprin, dan kompetensi |
 | `GET` | `/api/v1/library/categories` | Publik / Authenticated | 4 Kategori perpustakaan & total ketersediaan stok |
@@ -243,4 +252,25 @@ Berkas koleksi resmi Postman v2.1.0 tersedia di direktori root proyek:
 
 **Fitur Otomatis Postman:**
 Saat melakukan request pada folder `2. Autentikasi & Profil -> Login - Admin (NRP / Email)`, script pengujian Postman akan secara otomatis menyimpan token ke variabel koleksi `{{authToken}}`, sehingga seluruh request terlindungi berikutnya dapat langsung dieksekusi tanpa menyalin token secara manual.
+
+---
+
+## 9. Penerapan dengan Docker & Kontainerisasi
+
+Aplikasi telah dilengkapi konfigurasi `Dockerfile` dan `docker-compose.yml` siap produksi dengan persistensi berkas `uploads/` dan pencadangan `backups/`:
+
+```bash
+# Membangun dan menjalankan seluruh kontainer (API + MySQL 8.0)
+docker-compose up -d --build
+
+# Memeriksa status kontainer
+docker-compose ps
+
+# Memeriksa log layanan API
+docker-compose logs -f api
+
+# Menghentikan kontainer
+docker-compose down
+```
+
 

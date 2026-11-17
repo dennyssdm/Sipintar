@@ -9,8 +9,8 @@ RUN npm ci --only=production
 # Copy application source code
 COPY . .
 
-# Ensure uploads directory exists
-RUN mkdir -p uploads
+# Ensure uploads and backups directories exist
+RUN mkdir -p uploads backups
 
 # Expose port
 EXPOSE 5001

@@ -300,6 +300,40 @@ async function runTests() {
     assert(false, '20. Self-Registration', err.message);
   }
 
+  // 21. Related Resources Recommendation Algorithm
+  try {
+    const res = await request('/resources/1/related?limit=4');
+    assert(
+      res.status === 200 && Array.isArray(res.data?.data),
+      '21. Related Resources Recommendation Algorithm (/resources/:id/related)'
+    );
+  } catch (err) {
+    assert(false, '21. Related Resources Recommendation', err.message);
+  }
+
+  // 22. Pimpinan Executive Oversight RBAC
+  try {
+    const loginRes = await request('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identifier: '69080001',
+        password: 'Password123!'
+      })
+    });
+    const pimpinanToken = loginRes.data?.data?.token || '';
+    const res = await request('/resources?status=Draft', {
+      headers: { Authorization: `Bearer ${pimpinanToken}` }
+    });
+    const drafts = res.data?.data || [];
+    assert(
+      loginRes.status === 200 && res.status === 200 && drafts.every(d => d.lifecycle_status === 'Draft'),
+      '22. Pimpinan Executive Oversight RBAC (Full Draft Audit Access)'
+    );
+  } catch (err) {
+    assert(false, '22. Pimpinan Executive Oversight RBAC', err.message);
+  }
+
   console.log(`\n------------------------------------------------------------`);
   console.log(`  Test Summary: \x1b[32m${passed} Passed\x1b[0m, \x1b[31m${failed} Failed\x1b[0m out of ${passed + failed} Tests`);
   console.log(`------------------------------------------------------------\n`);

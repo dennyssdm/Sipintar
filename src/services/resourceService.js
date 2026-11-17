@@ -17,17 +17,18 @@ export async function getResources(params = {}, user = null) {
   // Non-admin / non-verifier / non-executive users can only view 'Dipublikasikan',
   // UNLESS filtering for their own created drafts (e.g. my_resources=true)
   const isPrivileged = user && ['admin', 'verifikator', 'pimpinan'].includes(user.role_code);
+  const requestedStatus = params.lifecycle_status || params.status;
 
   if (user && (params.my_resources === 'true' || params.my_resources === true)) {
     conditions.push('r.created_by = ?');
     queryParams.push(user.id);
-    if (params.lifecycle_status) {
+    if (requestedStatus) {
       conditions.push('r.lifecycle_status = ?');
-      queryParams.push(params.lifecycle_status);
+      queryParams.push(requestedStatus);
     }
-  } else if (isPrivileged && params.lifecycle_status) {
+  } else if (isPrivileged && requestedStatus) {
     conditions.push('r.lifecycle_status = ?');
-    queryParams.push(params.lifecycle_status);
+    queryParams.push(requestedStatus);
   } else if (!isPrivileged) {
     conditions.push("r.lifecycle_status = 'Dipublikasikan'");
   }
