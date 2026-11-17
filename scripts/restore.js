@@ -87,3 +87,4 @@ exec(cmd, (error) => {
   console.log(`  Waktu  : ${new Date().toLocaleString('id-ID')}\n`);
   process.exit(0);
 });
+
