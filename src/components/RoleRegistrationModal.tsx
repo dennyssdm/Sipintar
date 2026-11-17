@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { UserRole } from '@/types';
+import { sipintarApi } from '@/lib/apiClient';
 
 interface RoleRegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccessRole: (role: UserRole) => void;
+  onSuccessRole: (role: UserRole, user?: any) => void;
   initialRole?: UserRole;
+  onOpenLogin?: () => void;
 }
 
 export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
@@ -15,6 +17,7 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
   onClose,
   onSuccessRole,
   initialRole = 'Serdik',
+  onOpenLogin,
 }) => {
   type RegistrableRole = 'Serdik' | 'Gadik' | 'Pengelola Perpustakaan';
 
@@ -28,6 +31,8 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
   const [nrp, setNrp] = useState('');
   const [satuan, setSatuan] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [persetujuan, setPersetujuan] = useState(false);
 
   // Serdik Specific
@@ -36,7 +41,7 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
   const [rencanaTaskap, setRencanaTaskap] = useState('');
 
   // Gadik Specific
-  const [jabatanFungsional, setJabatanFungsional] = useState('Gadik Madya');
+  const [jabatanFungsional, setJabatanFungsional] = useState('Gadik Madya Sespimma');
   const [kepakaran, setKepakaran] = useState('Kepemimpinan & Manajemen Operasional Polri');
   const [noSprint, setNoSprint] = useState('');
 
@@ -48,11 +53,15 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
   ]);
 
   // Submission State
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [regId, setRegId] = useState('');
+  const [registeredUser, setRegisteredUser] = useState<any>(null);
 
   const handleClose = useCallback(() => {
     setIsSubmitted(false);
+    setErrorMsg(null);
     onClose();
   }, [onClose]);
 
@@ -79,15 +88,67 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const generatedId = `REG-SESPIMMA-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    setRegId(generatedId);
-    setIsSubmitted(true);
+    setErrorMsg(null);
+
+    if (!nrp.trim() || !nama.trim() || !email.trim() || !password) {
+      setErrorMsg('NRP/NIP, Nama Lengkap, Email Pribadi, dan Kata Sandi wajib diisi.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg('Kata sandi minimal harus 6 karakter.');
+      return;
+    }
+
+    const roleCodeMap: Record<RegistrableRole, string> = {
+      'Serdik': 'serdik',
+      'Gadik': 'gadik',
+      'Pengelola Perpustakaan': 'pengelola',
+    };
+
+    try {
+      setIsLoading(true);
+      const res = await sipintarApi.auth.register({
+        nama_lengkap: nama.trim(),
+        email: email.trim(),
+        password: password,
+        role_code: roleCodeMap[role],
+        nrp_nip: nrp.trim(),
+        pangkat: pangkat,
+        satuan_asal: satuan.trim(),
+        // Serdik fields
+        nosis: nosis.trim() || `2026${nrp.trim().slice(-4)}`,
+        angkatan: angkatan.trim() || 'Sespimma Angkatan 73 TA 2026',
+        rencana_judul_taskap: rencanaTaskap.trim(),
+        // Gadik fields
+        jabatan: jabatanFungsional,
+        kategori_jabatan: kepakaran,
+        no_sprint: noSprint.trim(),
+        // Pengelola fields
+        unit_kerja: unitKerja.trim(),
+        lingkup_akses: lingkupAkses,
+      } as any);
+
+      if (res?.user) {
+        setRegisteredUser(res.user);
+        const generatedId = `REG-SESPIMMA-2026-${res.user.id || Math.floor(1000 + Math.random() * 9000)}`;
+        setRegId(generatedId);
+        setIsSubmitted(true);
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Pendaftaran gagal diajukan. Silakan periksa kembali data Anda.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleActivateRole = () => {
-    onSuccessRole(role as UserRole);
+    if (registeredUser) {
+      localStorage.setItem('sipintar_auth_user', JSON.stringify(registeredUser));
+    }
+    onSuccessRole(role as UserRole, registeredUser);
     handleClose();
   };
 
@@ -230,11 +291,11 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
               </span>
 
               <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-navy)', margin: '14px 0 8px' }}>
-                Pendaftaran Sebagai {role} Berhasil Diajukan!
+                Pendaftaran Sebagai {role} Berhasil!
               </h3>
 
               <p style={{ fontSize: '13.5px', color: 'var(--color-text-muted)', lineHeight: 1.6, maxWidth: '520px', margin: '0 auto 20px' }}>
-                Data pendaftaran untuk <strong>{nama || 'Personel Baru'}</strong> ({pangkat} / NRP: {nrp || '-'}) telah masuk dalam antrean verifikasi Bag Jarlat / Subbag Renmin Sespimma Lemdiklat Polri.
+                Akun untuk <strong>{nama}</strong> ({pangkat} / NRP: {nrp}) dengan email pribadi <strong>{email}</strong> telah berhasil disimpan dalam database SIPINTAR Sespimma Lemdiklat Polri.
               </p>
 
               <div
@@ -250,10 +311,10 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
                 }}
               >
                 <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '4px' }}>
-                  ℹ️ Catatan Prototipe Frontend:
+                  ✅ Akun Siap Digunakan:
                 </div>
                 <div>
-                  Dalam simulasi ini, Anda dapat langsung mengaktifkan peran <strong>{role}</strong> pada sesi lokal peramban Anda untuk menguji antarmuka dan wewenang fitur yang relevan.
+                  Anda dapat langsung masuk ke sistem sekarang menggunakan NRP <strong>{nrp}</strong> atau email <strong>{email}</strong> beserta kata sandi yang telah Anda tentukan.
                 </div>
               </div>
 
@@ -276,7 +337,7 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
                     <circle cx="8.5" cy="7" r="4" />
                     <polyline points="17 11 19 13 23 9" />
                   </svg>
-                  <span>Aktifkan Peran {role} Sekarang</span>
+                  <span>Masuk ke Sesi {role} Sekarang</span>
                 </button>
 
                 <button
@@ -292,6 +353,26 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
           ) : (
             /* FORM STATE */
             <form onSubmit={handleSubmit}>
+              {/* Error Message Box */}
+              {errorMsg && (
+                <div
+                  style={{
+                    backgroundColor: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    color: '#dc2626',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '13px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span>⚠️</span>
+                  <span>{errorMsg}</span>
+                </div>
+              )}
               {/* Step 1: Pilih Peran yang Ingin Didaftarkan */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', display: 'block', marginBottom: '8px' }}>
@@ -462,11 +543,12 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
 
                   <div>
                     <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>
-                      Email Kedinasan (@polri.go.id)
+                      Email Pribadi / Kontak (Aktif) <span style={{ color: 'red' }}>*</span>
                     </label>
                     <input
                       type="email"
-                      placeholder="nama.nrp@polri.go.id"
+                      required
+                      placeholder="contoh: nama.pribadi@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       style={{
@@ -477,6 +559,55 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
                         fontSize: '13px',
                       }}
                     />
+                    <span style={{ fontSize: '11px', color: '#059669', display: 'block', marginTop: '3px' }}>
+                      ✓ Boleh menggunakan Gmail, Yahoo, dll. (tidak harus @polri.go.id)
+                    </span>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>
+                      Kata Sandi (Password Akun) <span style={{ color: 'red' }}>*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        minLength={6}
+                        placeholder="Minimal 6 karakter"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 48px 8px 12px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--color-border)',
+                          fontSize: '13px',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--color-primary)',
+                          cursor: 'pointer',
+                          padding: '2px 4px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                        }}
+                        tabIndex={-1}
+                      >
+                        {showPassword ? 'Sembunyi' : 'Lihat'}
+                      </button>
+                    </div>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block', marginTop: '3px' }}>
+                      Gunakan sandi yang mudah Anda ingat (min 6 karakter)
+                    </span>
                   </div>
                 </div>
               </div>
@@ -703,30 +834,76 @@ export const RoleRegistrationModal: React.FC<RoleRegistrationModalProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 16px', fontSize: '13px' }}
-                >
-                  Batal
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  {onOpenLogin && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleClose();
+                        onOpenLogin();
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-primary)',
+                        fontSize: '12.5px',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        textDecoration: 'underline',
+                        padding: 0,
+                      }}
+                    >
+                      Sudah punya akun? Masuk di sini
+                    </button>
+                  )}
+                </div>
 
-                <button
-                  type="submit"
-                  disabled={!persetujuan}
-                  className="btn btn-primary"
-                  style={{
-                    padding: '8px 20px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    opacity: persetujuan ? 1 : 0.6,
-                    cursor: persetujuan ? 'pointer' : 'not-allowed',
-                  }}
-                >
-                  Kirim Permohonan Pendaftaran
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="btn btn-secondary"
+                    style={{ padding: '8px 16px', fontSize: '13px' }}
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={!persetujuan || isLoading}
+                    className="btn btn-primary"
+                    style={{
+                      padding: '8px 20px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      opacity: persetujuan && !isLoading ? 1 : 0.6,
+                      cursor: persetujuan && !isLoading ? 'pointer' : 'not-allowed',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    {isLoading ? (
+                      <>
+                        <span
+                          style={{
+                            width: '14px',
+                            height: '14px',
+                            border: '2px solid white',
+                            borderTopColor: 'transparent',
+                            borderRadius: '50%',
+                            display: 'inline-block',
+                            animation: 'spin 1s linear infinite',
+                          }}
+                        />
+                        <span>Mendaftarkan...</span>
+                      </>
+                    ) : (
+                      <span>Daftar Akun Sekarang</span>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           )}

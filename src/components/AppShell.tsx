@@ -7,6 +7,8 @@ import { ThemeToggle } from './ThemeToggle';
 import { SearchBar } from './SearchBar';
 import { BrandLogo } from './BrandLogo';
 import { RoleRegistrationModal } from './RoleRegistrationModal';
+import { AuthLoginModal } from './AuthLoginModal';
+import { sipintarApi } from '@/lib/apiClient';
 import { UserRole } from '@/types';
 
 interface AppShellProps {
@@ -18,7 +20,63 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState<UserRole>('Serdik');
   const [notifOpen, setNotifOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Check saved session in localStorage
+    if (typeof window !== 'undefined') {
+      const savedUserStr = localStorage.getItem('sipintar_auth_user');
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          setCurrentUser(user);
+          if (user.role) {
+            if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
+              setCurrentRole('Administrator');
+            } else if (user.role === 'gadik') {
+              setCurrentRole('Gadik');
+            } else if (user.role === 'pengelola') {
+              setCurrentRole('Pengelola Perpustakaan');
+            } else {
+              setCurrentRole('Serdik');
+            }
+          }
+        } catch (e) {
+          console.error('Failed to parse cached user', e);
+        }
+      }
+    }
+  }, []);
+
+  const handleLoginSuccess = (user: any) => {
+    setCurrentUser(user);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sipintar_auth_user', JSON.stringify(user));
+    }
+    if (user.role) {
+      if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
+        setCurrentRole('Administrator');
+      } else if (user.role === 'gadik') {
+        setCurrentRole('Gadik');
+      } else if (user.role === 'pengelola') {
+        setCurrentRole('Pengelola Perpustakaan');
+      } else {
+        setCurrentRole('Serdik');
+      }
+    }
+    setLoginModalOpen(false);
+  };
+
+  const handleLogout = () => {
+    sipintarApi.auth.logout();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('sipintar_auth_user');
+    }
+    setCurrentUser(null);
+    setCurrentRole('Serdik');
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -245,36 +303,92 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
           <div className="sidebar-footer">
             <div className="user-profile-card">
-              <div className="user-avatar" aria-hidden="true">
-                {currentRole.substring(0, 2).toUpperCase()}
+              <div
+                className="user-avatar"
+                aria-hidden="true"
+                style={{
+                  backgroundColor: currentUser ? '#1d4ed8' : '#334155',
+                  color: '#ffffff',
+                }}
+              >
+                {currentUser
+                  ? (currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US')
+                  : currentRole.substring(0, 2).toUpperCase()}
               </div>
-              <div className="user-info">
-                <div className="user-name">Pengguna Simulasi</div>
-                <div className="user-role-badge">Peran: {currentRole}</div>
-                <button
-                  type="button"
-                  onClick={() => setRegisterModalOpen(true)}
+              <div className="user-info" style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  className="user-name"
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--color-primary)',
-                    fontSize: '11px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                     fontWeight: 700,
-                    cursor: 'pointer',
-                    padding: '3px 0 0',
-                    textAlign: 'left',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
                   }}
-                  title="Daftar peran baru sebagai Serdik, Gadik, atau Pengelola Pustaka"
+                  title={currentUser ? currentUser.nama_lengkap : 'Pengguna Tamu'}
                 >
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  <span>Daftar Peran Baru</span>
-                </button>
+                  {currentUser ? currentUser.nama_lengkap : 'Pengguna Tamu'}
+                </div>
+                <div className="user-role-badge">
+                  {currentUser ? (currentUser.role_name || currentRole) : `Pratinjau: ${currentRole}`}
+                </div>
+
+                {currentUser ? (
+                  <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                      NRP: {currentUser.nrp_nip}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ef4444',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                      title="Keluar dari akun Anda"
+                    >
+                      (Keluar)
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: '6px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setLoginModalOpen(true)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-primary)',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      Masuk
+                    </button>
+                    <span style={{ fontSize: '11px', color: 'var(--color-border)' }}>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setRegisterModalOpen(true)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-primary)',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      Daftar Baru
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -361,70 +475,146 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 )}
               </div>
 
-              {/* Demo Role Switcher & Registration Button */}
-              <div className="header-role-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <label htmlFor="role-select" className="header-role-label" style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                  Peran:
-                </label>
-                <select
-                  id="role-select"
-                  className="header-role-select"
-                  value={currentRole}
-                  onChange={(e) => {
-                    if (e.target.value === 'DAFTAR_BARU') {
-                      setRegisterModalOpen(true);
-                    } else {
-                      setCurrentRole(e.target.value as UserRole);
-                    }
-                  }}
-                  style={{
-                    fontSize: '12px',
-                    padding: '5px 8px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-surface)',
-                    color: 'var(--color-text-main)',
-                  }}
-                  title="Simulasi tampilan berdasarkan peran (hanya di frontend)"
-                >
-                  <option value="Serdik">Serdik</option>
-                  <option value="Gadik">Gadik</option>
-                  <option value="Pengelola Perpustakaan">Pengelola Pustaka</option>
-                  <option value="Administrator">Administrator</option>
-                  <option value="DAFTAR_BARU">+ Daftar Baru...</option>
-                </select>
+              {/* User Authentication Status or Login/Register Action */}
+              {currentUser ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '4px 10px',
+                      backgroundColor: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-full)',
+                      boxShadow: 'var(--shadow-sm)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: '#1d4ed8',
+                        color: 'white',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US'}
+                    </div>
+                    <div style={{ fontSize: '12px', lineHeight: 1.2 }}>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          color: 'var(--color-navy)',
+                          maxWidth: '120px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={currentUser.nama_lengkap}
+                      >
+                        {currentUser.nama_lengkap}
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                        {currentUser.role_name || currentRole}
+                      </div>
+                    </div>
+                  </div>
 
-                <button
-                  type="button"
-                  className="header-daftar-btn"
-                  onClick={() => setRegisterModalOpen(true)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '5px 9px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
-                    color: '#ffffff',
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(29, 78, 216, 0.25)',
-                    transition: 'all 0.15s ease',
-                    whiteSpace: 'nowrap',
-                  }}
-                  title="Daftar keanggotaan baru sebagai Serdik, Gadik, atau Pengelola Pustaka"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="8.5" cy="7" r="4" />
-                    <line x1="20" y1="8" x2="20" y2="14" />
-                    <line x1="23" y1="11" x2="17" y2="11" />
-                  </svg>
-                  <span>Daftar</span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                      color: '#dc2626',
+                      border: '1px solid rgba(239, 68, 68, 0.25)',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    title="Keluar dari akun Anda"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    <span>Keluar</span>
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button
+                    type="button"
+                    className="header-login-btn"
+                    onClick={() => setLoginModalOpen(true)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '6px 13px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'linear-gradient(135deg, #0f2c59 0%, #1e40af 100%)',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 4px rgba(15, 44, 89, 0.25)',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Masuk ke Akun SIPINTAR (NRP / Email & Password)"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    <span>Masuk / Login</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="header-daftar-btn"
+                    onClick={() => setRegisterModalOpen(true)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '5px 10px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--color-surface)',
+                      color: 'var(--color-navy)',
+                      border: '1px solid var(--color-border)',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Daftar keanggotaan baru dengan Email Pribadi"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="8.5" cy="7" r="4" />
+                      <line x1="20" y1="8" x2="20" y2="14" />
+                      <line x1="23" y1="11" x2="17" y2="11" />
+                    </svg>
+                    <span>Daftar</span>
+                  </button>
+                </div>
+              )}
 
               {/* Theme Toggle */}
               <ThemeToggle />
@@ -487,15 +677,33 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </footer>
         </div>
 
+      {/* Interactive Login Modal */}
+      <AuthLoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        onSuccess={handleLoginSuccess}
+        onOpenRegister={() => {
+          setLoginModalOpen(false);
+          setRegisterModalOpen(true);
+        }}
+      />
+
       {/* Role Registration Modal for New Members (Serdik, Gadik, Pengelola Pustaka) */}
       <RoleRegistrationModal
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
-        onSuccessRole={(newRole) => {
+        onSuccessRole={(newRole, user) => {
           setCurrentRole(newRole);
+          if (user) {
+            handleLoginSuccess(user);
+          }
           setRegisterModalOpen(false);
         }}
         initialRole={currentRole}
+        onOpenLogin={() => {
+          setRegisterModalOpen(false);
+          setLoginModalOpen(true);
+        }}
       />
     </div>
   );
