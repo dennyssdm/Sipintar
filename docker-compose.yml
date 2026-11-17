@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sipintar_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: sipintar_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+    networks:
+      - sipintar_network
+
+  api:
+    build: .
+    container_name: sipintar_api
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      PORT: 5001
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: root_password
+      DB_NAME: sipintar_db
+      JWT_SECRET: sipintar_sespimma_jwt_secret_key_2026_super_secure_lemdiklat_polri
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - sipintar_network
+
+volumes:
+  mysql_data:
+
+networks:
+  sipintar_network:
+    driver: bridge
+
