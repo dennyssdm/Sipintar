@@ -22,21 +22,29 @@ export async function getResources(params = {}, user = null) {
   if (user && (params.my_resources === 'true' || params.my_resources === true)) {
     conditions.push('r.created_by = ?');
     queryParams.push(user.id);
-    if (requestedStatus) {
+    if (requestedStatus && requestedStatus.toLowerCase() !== 'all') {
       conditions.push('r.lifecycle_status = ?');
       queryParams.push(requestedStatus);
     }
   } else if (isPrivileged && requestedStatus) {
-    conditions.push('r.lifecycle_status = ?');
-    queryParams.push(requestedStatus);
+    if (requestedStatus.toLowerCase() !== 'all') {
+      conditions.push('r.lifecycle_status = ?');
+      queryParams.push(requestedStatus);
+    }
   } else if (!isPrivileged) {
     conditions.push("r.lifecycle_status = 'Dipublikasikan'");
   }
 
-  // Filter by category_id or slug
-  if (params.category_id) {
-    conditions.push('r.category_id = ?');
-    queryParams.push(params.category_id);
+  // Filter by category_id or slug (via category_id, category, or category_slug)
+  const catParam = params.category_id || params.category || params.category_slug;
+  if (catParam) {
+    if (isNaN(catParam)) {
+      conditions.push('c.slug = ?');
+      queryParams.push(catParam);
+    } else {
+      conditions.push('r.category_id = ?');
+      queryParams.push(catParam);
+    }
   }
 
   // Filter by sub_category_id
@@ -72,8 +80,9 @@ export async function getResources(params = {}, user = null) {
 
   // Get total count
   const countQuery = `
-    SELECT COUNT(*) AS total
+    SELECT COUNT(DISTINCT r.id) AS total
     FROM resources r
+    LEFT JOIN categories c ON r.category_id = c.id
     ${whereClause}
   `;
   const [countRows] = await pool.query(countQuery, queryParams);

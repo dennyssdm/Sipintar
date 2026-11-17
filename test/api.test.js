@@ -502,6 +502,24 @@ async function runTests() {
     assert(false, '28. Interactive Swagger UI & OpenAPI 3.0 Specification', err.message);
   }
 
+  // 29. Flexible Category Slug Filtering & Comprehensive Lifecycle Status Handling
+  try {
+    const slugRes = await request('/resources?category=modul');
+    const allStatusRes = await request('/resources?status=all', {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      slugRes.status === 200 &&
+      slugRes.data?.data?.length > 0 &&
+      slugRes.data?.data?.every(r => r.category_slug === 'modul') &&
+      allStatusRes.status === 200 &&
+      allStatusRes.data?.data?.length > 0,
+      '29. Flexible Category Slug Filtering & Comprehensive Lifecycle Status Handling (/resources?category=...&status=all)'
+    );
+  } catch (err) {
+    assert(false, '29. Category Slug & Lifecycle Status Handling', err.message);
+  }
+
   console.log(`\n------------------------------------------------------------`);
   console.log(`  Test Summary: \x1b[32m${passed} Passed\x1b[0m, \x1b[31m${failed} Failed\x1b[0m out of ${passed + failed} Tests`);
   console.log(`------------------------------------------------------------\n`);
