@@ -30,9 +30,10 @@ export async function getBooks(params = {}) {
   const conditions = ["b.lifecycle_status = 'Dipublikasikan'"];
   const queryParams = [];
 
-  if (params.category_id) {
+  const catVal = params.category_id || params.category;
+  if (catVal && catVal.toLowerCase() !== 'all') {
     conditions.push('b.library_category_id = ?');
-    queryParams.push(params.category_id);
+    queryParams.push(catVal);
   }
 
   if (params.sub_category) {
