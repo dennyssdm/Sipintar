@@ -28,7 +28,7 @@ sipintarsespimmaAPI/
 ├── .env.example                      # Contoh template konfigurasi
 ├── package.json                      # Dependensi dan script NPM
 ├── server.js                         # Entry point aplikasi Express
-├── collection.json                   # Koleksi Postman v2.1.0 (Live & Terupdate)
+├── collection.json                   # Koleksi Postman v2.1.0 (32 Request, Live & Terupdate)
 ├── SIPINTAR_Sespimma_API.postman_collection.json
 ├── database.sql                      # Skema DDL dan data awal MySQL
 ├── docs/                             # Dokumentasi institusional Sespimma
@@ -98,6 +98,9 @@ npm test
 
 # 6. Jalankan utilitas pencadangan basis data MySQL otomatis
 npm run db:backup
+
+# 7. Jalankan utilitas pemulihan basis data MySQL otomatis (Disaster Recovery)
+npm run db:restore
 ```
 *Server aktif pada URL:* `http://localhost:5001`  
 *Base API Endpoint:* `http://localhost:5001/api/v1`  
