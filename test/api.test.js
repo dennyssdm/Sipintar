@@ -567,6 +567,23 @@ async function runTests() {
     assert(false, '31. Security Gate on "Terbatas"', err.message);
   }
 
+  // 32. Global 404 Route Handler & Malformed JSON Body Parsing Resilience
+  try {
+    const res404 = await request('/non-existent-endpoint');
+    const res400 = await request('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{"invalid_json": true,'
+    });
+    assert(
+      res404.status === 404 && res404.data?.error?.code === 'NOT_FOUND' &&
+      res400.status === 400 && res400.data?.error?.code === 'VALIDATION_ERROR',
+      '32. Global 404 Route Handler & Malformed JSON Body Parsing Resilience (404 NOT_FOUND & 400 VALIDATION_ERROR)'
+    );
+  } catch (err) {
+    assert(false, '32. Error Handling & Bad JSON Parsing', err.message);
+  }
+
   console.log(`\n------------------------------------------------------------`);
   console.log(`  Test Summary: \x1b[32m${passed} Passed\x1b[0m, \x1b[31m${failed} Failed\x1b[0m out of ${passed + failed} Tests`);
   console.log(`------------------------------------------------------------\n`);

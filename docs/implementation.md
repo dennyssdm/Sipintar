@@ -152,6 +152,7 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 | D-48 | Pengujian Penjagaan Keamanan Dokumen Berklasifikasi 'Terbatas' (31 Skenario Uji) | (1) Penambahan skenario uji ke-31 pada `test/api.test.js` untuk memverifikasi penolakan akses naskah materi intelijen/doktrin tertutup berklasifikasi 'Terbatas' terhadap peran serdik (Strict HTTP 403 FORBIDDEN) sekaligus verifikasi izin akses bagi peran admin (HTTP 200 OK), melengkapi cakupan pengujian seluruh 4 klasifikasi akses (`Terbuka`, `Internal`, `Terbatas`, `Metadata Saja`), serta (2) Kelulusan penuh 31 skenario integrasi (100% Pass) | User-directed & Completed |
 | D-49 | Sinkronisasi Koleksi Postman 33 Request & Perlindungan Naskah 'Terbatas' | (1) Penambahan skenario permintaan Postman untuk memvalidasi proteksi naskah berklasifikasi 'Terbatas' (`GET /resources/12/file` via serdik token) dengan respon 403 Forbidden, (2) Sinkronisasi koleksi Postman `collection.json` v2.1.0 menjadi 33 request teruji pada kedua repositori, serta (3) Pembaruan spesifikasi dan panduan integrasi API | User-directed & Completed |
 | D-50 | Pengamanan Total 'Metadata Saja': Sanitasi Jalur Berkas Langsung & Flag Digital Palsu | (1) Penegakan aturan larangan *fake download button* (`docs/business rule.md` Seksi 8.4): jika dokumen berklasifikasi 'Metadata Saja' (seperti naskah Taskap perorangan dan koleksi buku fisik perpustakaan), server secara eksplisit mengeset `has_digital_file = 0` dan `has_preview = 0` serta menghapus (*sanitize/delete*) atribut `file_path`, `preview_file_path`, dan `file_url` dari seluruh keluaran API katalog dan rincian, mencegah potensi bypass via rute statis uploads | User-directed & Completed |
+| D-51 | Ketahanan Handler Global 404 & Parsing Malformed JSON (32 Skenario Uji) | (1) Penambahan skenario uji ke-32 pada `test/api.test.js` untuk menguji ketahanan server terhadap permintaan endpoint tak terdaftar (HTTP 404 `NOT_FOUND`) dan pengiriman JSON body cacat/malformed (HTTP 400 `VALIDATION_ERROR`), (2) Verifikasi seluruh 32 skenario otomasi uji integrasi end-to-end berjalan 100% lulus, serta (3) Pemutakhiran dokumentasi dan koleksi Postman 33 request | User-directed & Completed |
 
 ## Change-control rule
 
@@ -167,4 +168,5 @@ When a requirement changes:
 **Current status:** Full-Stack SIPINTAR Integration (Backend RESTful API & Next.js Frontend) COMPLETED & VERIFIED.  
 **Backend API running at:** `http://localhost:5001/api/v1` (Health: `http://localhost:5001/api/v1/health`, Swagger Docs: `http://localhost:5001/docs`).  
 **Frontend running at:** `http://localhost:3000` (16 Static Routes active).  
-**Postman Collection:** `collection.json` (v2.1.0, 31 Requests) maintained and validated.
+**Postman Collection:** `collection.json` (v2.1.0, 33 Requests) maintained and validated.  
+**Test Suite:** 32 Integration Scenarios (100% Pass).
