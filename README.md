@@ -28,7 +28,7 @@ sipintarsespimmaAPI/
 ├── .env.example                      # Contoh template konfigurasi
 ├── package.json                      # Dependensi dan script NPM
 ├── server.js                         # Entry point aplikasi Express
-├── collection.json                   # Koleksi Postman v2.1.0 (32 Request, Live & Terupdate)
+├── collection.json                   # Koleksi Postman v2.1.0 (33 Request, Live & Terupdate)
 ├── SIPINTAR_Sespimma_API.postman_collection.json
 ├── database.sql                      # Skema DDL dan data awal MySQL
 ├── docs/                             # Dokumentasi institusional & teknis Sespimma

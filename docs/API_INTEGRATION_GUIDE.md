@@ -12,7 +12,7 @@ Dokumentasi ini dirancang khusus untuk memandu pengembang antarmuka **Frontend N
 - **Base URL API:** `http://localhost:5001/api/v1`
 - **Interactive Swagger UI:** `http://localhost:5001/docs`
 - **Spesifikasi OpenAPI 3.0:** `http://localhost:5001/openapi.json`
-- **Koleksi Postman Resmi:** `collection.json` (v2.1.0, 32 Request)
+- **Koleksi Postman Resmi:** `collection.json` (v2.1.0, 33 Request)
 - **Format Pertukaran Data:** JSON dengan encoding UTF-8 (atau `multipart/form-data` untuk unggahan berkas materi).
 - **Protokol Keamanan:** HTTP Headers via `Helmet`, Rate Limiting adaptif, dan Token JWT Bearer.
 

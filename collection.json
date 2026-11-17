@@ -826,6 +826,44 @@
               "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"FORBIDDEN\",\n    \"message\": \"Berkas digital tidak tersedia untuk publik. Silakan akses fisik di perpustakaan/ruang baca.\",\n    \"details\": []\n  }\n}"
             }
           ]
+        },
+        {
+          "name": "Protective Guard - Tolak Akses 'Terbatas' untuk Serdik",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{serdikToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/resources/12/file",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "resources",
+                "12",
+                "file"
+              ]
+            },
+            "description": "Memastikan perlindungan ketat: Dokumen berklasifikasi 'Terbatas' (materi intelijen/rahasia) ditolak dengan 403 Forbidden bila diakses oleh peran non-wewenang seperti serdik."
+          },
+          "response": [
+            {
+              "name": "403 Forbidden (Terbatas Guard)",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"FORBIDDEN\",\n    \"message\": \"Akses ditolak: Dokumen berklasifikasi Terbatas hanya dapat diakses oleh Pimpinan, Admin, Verifikator, atau Tenaga Pendidik.\",\n    \"details\": []\n  }\n}"
+            }
+          ]
         }
       ]
     },

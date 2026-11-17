@@ -4,7 +4,7 @@
 **Base URL:** `http://localhost:5001/api/v1`  
 **Protocol:** HTTP/1.1 / JSON over UTF-8  
 **Authentication:** Bearer JWT (`Authorization: Bearer <token>`)  
-**Postman Collection:** [collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/collection.json) (v2.1.0 - 32 Request)
+**Postman Collection:** [collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/collection.json) (v2.1.0 - 33 Request)
 
 ---
 
