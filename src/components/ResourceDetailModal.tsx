@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { ResourceItem } from '@/types';
 import { StatusBadge } from './StatusBadge';
 import { sipintarApi, mapResourceToItem, getAuthenticatedFileUrl } from '@/lib/apiClient';
+import { GeminiReadingAssistant } from './GeminiReadingAssistant';
 
 interface ResourceDetailModalProps {
   resource: ResourceItem | null;
@@ -19,6 +20,7 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
   const [prevResourceId, setPrevResourceId] = useState<string | null>(null);
   const [modalMode, setModalMode] = useState<'reader' | 'info'>('reader');
+  const [geminiOpen, setGeminiOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<'kop' | 'skl' | 'bab1' | 'bab2' | 'bab3' | 'bab4' | 'tugas'>('bab1');
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -144,7 +146,7 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
           border: '1px solid var(--color-border)',
           boxShadow: 'var(--shadow-lg)',
           width: '100%',
-          maxWidth: modalMode === 'reader' && hasDigital ? '1140px' : '720px',
+          maxWidth: modalMode === 'reader' && hasDigital ? (geminiOpen ? 'min(96vw, 1540px)' : '1140px') : '720px',
           maxHeight: '94vh',
           overflowY: 'auto',
           display: 'flex',
@@ -201,56 +203,134 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
             </h2>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Tutup jendela"
-            style={{
-              padding: '6px',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--color-text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {hasDigital && (
+              <button
+                type="button"
+                onClick={() => {
+                  setModalMode('reader');
+                  setGeminiOpen(!geminiOpen);
+                }}
+                style={{
+                  background: geminiOpen
+                    ? 'linear-gradient(135deg, #1e40af 0%, #4338ca 100%)'
+                    : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(79, 70, 229, 0.35)',
+                  transition: 'all 0.15s ease',
+                }}
+                title={geminiOpen ? 'Tutup panel Gemini AI' : 'Buka Asisten Cerdas Gemini AI'}
+              >
+                <span>✨</span>
+                <span>{geminiOpen ? 'Tutup Gemini' : 'Tanya Gemini AI'}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Tutup jendela"
+              style={{
+                padding: '6px',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--color-text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* View Switcher: Baca Dokumen vs Rincian Metadata */}
         {hasDigital && (
-          <div className="modal-view-switcher">
-            <button
-              type="button"
-              className={`modal-view-tab-btn ${modalMode === 'reader' ? 'active' : ''}`}
-              onClick={() => setModalMode('reader')}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-              </svg>
-              <span>Pratinjau Membaca Dokumen</span>
-            </button>
+          <div
+            className="modal-view-switcher"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 24px',
+              borderBottom: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface)',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className={`modal-view-tab-btn ${modalMode === 'reader' ? 'active' : ''}`}
+                onClick={() => setModalMode('reader')}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+                <span>Pratinjau Membaca Dokumen</span>
+              </button>
 
-            <button
-              type="button"
-              className={`modal-view-tab-btn ${modalMode === 'info' ? 'active' : ''}`}
-              onClick={() => setModalMode('info')}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-              <span>Rincian Metadata & Status</span>
-            </button>
+              <button
+                type="button"
+                className={`modal-view-tab-btn ${modalMode === 'info' ? 'active' : ''}`}
+                onClick={() => setModalMode('info')}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <span>Rincian Metadata & Status</span>
+              </button>
+            </div>
+
+            {modalMode === 'reader' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <a
+                  href={`https://gemini.google.com/app?prompt=${encodeURIComponent(
+                    `Saya sedang membaca naskah resmi Sespimma Lemdiklat Polri: "${resource.title}" (${resource.category}). Mohon bantu saya menganalisis intisari materi dan implementasinya dalam kepemimpinan operasional Polri.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                    border: '1px solid rgba(59, 130, 246, 0.25)',
+                    color: 'var(--color-primary)',
+                    borderRadius: '6px',
+                    padding: '5px 10px',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    textDecoration: 'none',
+                  }}
+                  title="Buka topik naskah ini langsung di situs web gemini.google.com"
+                >
+                  <span>🌐 Buka Gemini Web</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </a>
+              </div>
+            )}
           </div>
         )}
 
@@ -350,124 +430,211 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
                   </div>
                 ) : (
                   <div
+                    className="sespimma-reader-grid"
                     style={{
-                      borderRadius: 'var(--radius-md)',
-                      overflow: 'hidden',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-surface)',
+                      display: 'grid',
+                      gridTemplateColumns: geminiOpen ? 'minmax(0, 1.45fr) minmax(360px, 1fr)' : '1fr',
+                      gap: '16px',
+                      alignItems: 'stretch',
                     }}
                   >
                     <div
                       style={{
-                        padding: '10px 16px',
-                        backgroundColor: 'var(--color-surface-hover)',
-                        borderBottom: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-md)',
+                        overflow: 'hidden',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
                         display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12.5px',
-                        fontWeight: 600,
-                        flexWrap: 'wrap',
-                        gap: '8px',
+                        flexDirection: 'column',
+                        minWidth: 0,
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-navy)' }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" color="#dc2626">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                        </svg>
-                        <span>Pratinjau Pembaca Dokumen PDF Resmi Sespimma Lemdiklat Polri</span>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <a
-                          href={getAuthenticatedFileUrl(resource.fileUrl, false)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            color: 'var(--color-primary)',
-                            textDecoration: 'none',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>Buka Layar Penuh</span>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" y1="14" x2="21" y2="3" />
+                      <div
+                        style={{
+                          padding: '10px 16px',
+                          backgroundColor: 'var(--color-surface-hover)',
+                          borderBottom: '1px solid var(--color-border)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '12.5px',
+                          fontWeight: 600,
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-navy)' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" color="#dc2626">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
                           </svg>
-                        </a>
-                      </div>
-                    </div>
+                          <span>Pratinjau Pembaca Dokumen PDF Resmi Sespimma Lemdiklat Polri</span>
+                        </div>
 
-                    <object
-                      data={`${getAuthenticatedFileUrl(resource.fileUrl, false)}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`}
-                      type="application/pdf"
-                      style={{
-                        width: '100%',
-                        height: '70vh',
-                        minHeight: '520px',
-                        border: 'none',
-                        display: 'block',
-                        backgroundColor: '#ffffff',
-                      }}
-                    >
-                      <iframe
-                        src={`${getAuthenticatedFileUrl(resource.fileUrl, false)}#toolbar=1&view=FitH`}
-                        title={resource.title}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setGeminiOpen(!geminiOpen)}
+                            style={{
+                              background: geminiOpen
+                                ? 'linear-gradient(135deg, #1e40af 0%, #4338ca 100%)'
+                                : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '5px 12px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 6px rgba(79, 70, 229, 0.35)',
+                              transition: 'all 0.15s ease',
+                            }}
+                            title="Tanya atau minta ringkasan materi ini ke Gemini AI"
+                          >
+                            <span style={{ fontSize: '13px' }}>✨</span>
+                            <span>{geminiOpen ? 'Tutup Gemini' : 'Tanya Gemini AI'}</span>
+                          </button>
+
+                          <a
+                            href={getAuthenticatedFileUrl(resource.fileUrl, false)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: 'var(--color-primary)',
+                              textDecoration: 'none',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span>Buka Layar Penuh</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                              <polyline points="15 3 21 3 21 9" />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+
+                      <object
+                        data={`${getAuthenticatedFileUrl(resource.fileUrl, false)}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`}
+                        type="application/pdf"
                         style={{
                           width: '100%',
-                          height: '70vh',
-                          minHeight: '520px',
+                          height: '75vh',
+                          minHeight: '560px',
                           border: 'none',
                           display: 'block',
                           backgroundColor: '#ffffff',
                         }}
-                      />
-                    </object>
+                      >
+                        <iframe
+                          src={`${getAuthenticatedFileUrl(resource.fileUrl, false)}#toolbar=1&view=FitH`}
+                          title={resource.title}
+                          style={{
+                            width: '100%',
+                            height: '75vh',
+                            minHeight: '560px',
+                            border: 'none',
+                            display: 'block',
+                            backgroundColor: '#ffffff',
+                          }}
+                        />
+                      </object>
+                    </div>
+
+                    {geminiOpen && (
+                      <div
+                        style={{
+                          minWidth: 0,
+                          height: '75vh',
+                          minHeight: '560px',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: 'var(--radius-md)',
+                          overflow: 'hidden',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                        }}
+                      >
+                        <GeminiReadingAssistant resource={resource} onClose={() => setGeminiOpen(false)} />
+                      </div>
+                    )}
                   </div>
                 )
               ) : (
                 /* Split Layout Simulated Digital Reader for other Hanjar / digital documents */
-                <div className="hanjar-reader-container">
-                  <div className="hanjar-reader-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" color="#60a5fa" aria-hidden="true">
-                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                      </svg>
-                      <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 800, letterSpacing: '0.3px' }}>
-                          Pratinjau Naskah Digital Sespimma (Digital Manuscript Reader)
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.75)' }}>
-                          KODIFIKASI: HNJ-SESPIMMA-2026/{resource.id.toUpperCase()} • POKJA KURIKULUM JARLAT
+                <div
+                  className="sespimma-reader-grid"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: geminiOpen ? 'minmax(0, 1.45fr) minmax(360px, 1fr)' : '1fr',
+                    gap: '16px',
+                    alignItems: 'stretch',
+                  }}
+                >
+                  <div className="hanjar-reader-container" style={{ minWidth: 0 }}>
+                    <div className="hanjar-reader-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" color="#60a5fa" aria-hidden="true">
+                          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                        </svg>
+                        <div>
+                          <div style={{ fontSize: '13.5px', fontWeight: 800, letterSpacing: '0.3px' }}>
+                            Pratinjau Naskah Digital Sespimma (Digital Manuscript Reader)
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.75)' }}>
+                            KODIFIKASI: HNJ-SESPIMMA-2026/{resource.id.toUpperCase()} • POKJA KURIKULUM JARLAT
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <button
-                        type="button"
-                        onClick={() => setFontSize(fontSize === 'normal' ? 'large' : 'normal')}
-                        style={{
-                          padding: '4px 10px',
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          borderRadius: '4px',
-                          border: '1px solid rgba(255, 255, 255, 0.25)',
-                          backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                          color: '#ffffff',
-                          cursor: 'pointer',
-                        }}
-                        title="Perbesar / perkecil ukuran teks bacaan"
-                      >
-                        Ukuran Teks: {fontSize === 'normal' ? 'A (Standar)' : 'A+ (Besar)'}
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setGeminiOpen(!geminiOpen)}
+                          style={{
+                            background: geminiOpen
+                              ? 'linear-gradient(135deg, #1e40af 0%, #4338ca 100%)'
+                              : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            padding: '4px 10px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            cursor: 'pointer',
+                          }}
+                          title="Tanya materi ini ke Gemini AI"
+                        >
+                          <span>✨</span>
+                          <span>{geminiOpen ? 'Tutup Gemini' : 'Tanya Gemini AI'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setFontSize(fontSize === 'normal' ? 'large' : 'normal')}
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            borderRadius: '4px',
+                            border: '1px solid rgba(255, 255, 255, 0.25)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                          }}
+                          title="Perbesar / perkecil ukuran teks bacaan"
+                        >
+                          Ukuran Teks: {fontSize === 'normal' ? 'A (Standar)' : 'A+ (Besar)'}
+                        </button>
                       <span
                         style={{
                           fontSize: '11px',
@@ -777,7 +944,24 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
                     </div>
                   </div>
                 </div>
-              )}
+
+                {geminiOpen && (
+                  <div
+                    style={{
+                      minWidth: 0,
+                      height: '100%',
+                      minHeight: '560px',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-md)',
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                    }}
+                  >
+                    <GeminiReadingAssistant resource={resource} onClose={() => setGeminiOpen(false)} />
+                  </div>
+                )}
+              </div>
+            )}
             </div>
           ) : (
             /* MODE 2: INFORMASI & METADATA OVERVIEW */

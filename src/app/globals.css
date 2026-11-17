@@ -2973,6 +2973,17 @@ button {
   background-color: var(--color-surface);
 }
 
+.sespimma-reader-grid {
+  display: grid;
+  transition: all 0.25s ease;
+}
+
+@media (max-width: 1024px) {
+  .sespimma-reader-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ==========================================================================
    BERANDA INFOGRAPHICS & EXECUTIVE PORTAL STYLES
    ========================================================================== */
