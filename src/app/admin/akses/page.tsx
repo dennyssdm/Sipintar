@@ -40,6 +40,16 @@ export default function AdminAksesPage() {
       verifikasi: 'Validasi Format',
     },
     {
+      role: 'Verifikator (Bag Jarlat / Pokja)',
+      desc: 'Pejabat Bag Jarlat / Pokja penelaah kelayakan materi ajar.',
+      terbuka: 'Akses Penuh',
+      internal: 'Akses Penuh',
+      terbatas: 'Otorisasi Pokja',
+      metadata: 'Akses Penuh',
+      unggah: 'Naskah Kurikulum & Telaah',
+      verifikasi: 'Persetujuan / Revisi Naskah',
+    },
+    {
       role: 'Administrator Sistem',
       desc: 'Pengelola teknis ekosistem SIPINTAR Sespimma.',
       terbuka: 'Kelola & Audit',
@@ -48,6 +58,16 @@ export default function AdminAksesPage() {
       metadata: 'Monitoring Arsip',
       unggah: 'Dokumen Regulasi',
       verifikasi: 'Otorisasi Penuh',
+    },
+    {
+      role: 'Pimpinan Sespimma (Executive)',
+      desc: 'Kasespimma / Waka untuk pengawasan mutu pendidikan.',
+      terbuka: 'Akses Penuh',
+      internal: 'Akses Penuh',
+      terbatas: 'Akses Penuh Pengawasan',
+      metadata: 'Akses Penuh',
+      unggah: 'Disposisi & Pengesahan',
+      verifikasi: 'Pengesahan Kebijakan',
     },
   ];
 
