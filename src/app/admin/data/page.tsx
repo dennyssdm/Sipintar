@@ -431,7 +431,7 @@ export default function AdminDataPage() {
   };
 
   // --- EXPORT & IMPORT STATE ---
-  const [showExportDropdown, setShowExportDropdown] = useState(false);
+
   const [isExporting, setIsExporting] = useState(false);
 
   const [showImportModal, setShowImportModal] = useState(false);
@@ -451,7 +451,6 @@ export default function AdminDataPage() {
   };
 
   const handleExport = async (format: 'csv' | 'json') => {
-    setShowExportDropdown(false);
     setIsExporting(true);
     try {
       const res = await sipintarApi.admin.exportData(activeTab);
@@ -1010,7 +1009,7 @@ export default function AdminDataPage() {
           flexWrap: 'wrap',
           boxShadow: '0 8px 24px rgba(7, 22, 45, 0.25)',
           position: 'relative',
-          overflow: 'hidden',
+          overflow: 'visible',
         }}
       >
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -1061,232 +1060,10 @@ export default function AdminDataPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 10, flexWrap: 'wrap' }}>
-          {/* 1. Format Template CSV */}
-          <button
-            type="button"
-            onClick={handleDownloadTemplate}
-            title={`Unduh berkas template CSV resmi untuk ${activeTab}`}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 13px',
-              borderRadius: '6px',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              color: '#f1f5f9',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="12" y1="18" x2="12" y2="12" />
-              <polyline points="9 15 12 18 15 15" />
-            </svg>
-            <span>{activeTab === 'users' ? 'Template Pengguna' : activeTab === 'books' ? 'Template Buku' : 'Template Dokumen'}</span>
-          </button>
-
-          {/* 2. Export Dropdown Menu */}
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              disabled={isExporting}
-              onClick={() => setShowExportDropdown(!showExportDropdown)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 13px',
-                borderRadius: '6px',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                border: '1px solid rgba(59, 130, 246, 0.4)',
-                color: '#60a5fa',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              <span>{isExporting ? 'Mengekspor...' : activeTab === 'users' ? '📥 Export Pengguna' : activeTab === 'books' ? '📥 Export Buku' : '📥 Export Dokumen'}</span>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-
-            {showExportDropdown && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 6px)',
-                  right: 0,
-                  backgroundColor: 'var(--color-surface-raised, #182842)',
-                  border: '1px solid var(--color-border, #223758)',
-                  borderRadius: '8px',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-                  padding: '6px',
-                  minWidth: '200px',
-                  zIndex: 50,
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => handleExport('csv')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    width: '100%',
-                    padding: '8px 10px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: '#e2e8f0',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <span style={{ fontSize: '15px' }}>📊</span>
-                  <div>
-                    <div>Export Excel / CSV</div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8' }}>Format tabel (.csv UTF-8)</div>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleExport('json')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    width: '100%',
-                    padding: '8px 10px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: '#e2e8f0',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <span style={{ fontSize: '15px' }}>🗄️</span>
-                  <div>
-                    <div>Export JSON (Cadangan)</div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8' }}>Struktur data penuh (.json)</div>
-                  </div>
-                </button>
-              </div>
-            )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 1 }}>
+          <div style={{ fontSize: '12px', color: '#cbd5e1', backgroundColor: 'rgba(255,255,255,0.06)', padding: '8px 14px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)' }}>
+            ⚙️ Panel Aksi CRUD, Ekspor & Impor aktif pada masing-masing modul di bawah
           </div>
-
-          {/* 3. Import Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setImportFile(null);
-              setImportParsedRows([]);
-              setImportErrorDetails([]);
-              setShowImportModal(true);
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 13px',
-              borderRadius: '6px',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              backgroundColor: 'rgba(16, 185, 129, 0.15)',
-              border: '1px solid rgba(16, 185, 129, 0.4)',
-              color: '#34d399',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            <span>{activeTab === 'users' ? '📤 Import Pengguna' : activeTab === 'books' ? '📤 Import Buku' : '📤 Import Dokumen'}</span>
-          </button>
-
-          {/* 4. Tab-Specific Add Button */}
-          {activeTab === 'resources' && (
-            <button
-              type="button"
-              onClick={() => setShowAddModal(true)}
-              className="btn-primary"
-              style={{
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                color: '#ffffff',
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span>+ Tambah Naskah Baru</span>
-            </button>
-          )}
-
-          {activeTab === 'books' && (
-            <button
-              type="button"
-              onClick={() => setShowAddBookModal(true)}
-              className="btn-primary"
-              style={{
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: '#ffffff',
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span>+ Tambah Buku / Taskap</span>
-            </button>
-          )}
-
-          {activeTab === 'users' && (
-            <button
-              type="button"
-              onClick={() => setShowAddUserModal(true)}
-              className="btn-primary"
-              style={{
-                background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-                color: '#ffffff',
-                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35)',
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="8.5" cy="7" r="4" />
-                <line x1="20" y1="8" x2="20" y2="14" />
-                <line x1="23" y1="11" x2="17" y2="11" />
-              </svg>
-              <span>+ Tambah Pengguna Baru</span>
-            </button>
-          )}
         </div>
       </header>
 
