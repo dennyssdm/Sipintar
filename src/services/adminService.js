@@ -376,13 +376,29 @@ export async function getVerificationQueue(params = {}) {
 }
 
 /**
+ * Helper to lookup resource by numeric id or string uuid
+ */
+async function findResourceByIdentifier(id, connection = pool) {
+  const numericId = Number(id);
+  if (!isNaN(numericId) && numericId > 0 && String(numericId) === String(id).trim()) {
+    const [rows] = await connection.query(
+      'SELECT * FROM resources WHERE id = ? OR uuid = ?',
+      [numericId, String(id)]
+    );
+    return rows;
+  }
+  const [rows] = await connection.query(
+    'SELECT * FROM resources WHERE uuid = ?',
+    [String(id)]
+  );
+  return rows;
+}
+
+/**
  * 5. Review resource (Approve to Dipublikasikan, Revision to Draft, Reject to Tidak Aktif)
  */
 export async function reviewResource(id, decision, notes = '', verifier, meta = {}) {
-  const [existing] = await pool.query(
-    'SELECT id, title, lifecycle_status FROM resources WHERE id = ?',
-    [id]
-  );
+  const existing = await findResourceByIdentifier(id);
 
   if (existing.length === 0) {
     const error = new Error('Sumber belajar tidak ditemukan');
@@ -392,6 +408,7 @@ export async function reviewResource(id, decision, notes = '', verifier, meta = 
   }
 
   const resource = existing[0];
+  const realId = resource.id;
   const statusBefore = resource.lifecycle_status;
 
   let statusAfter = '';
@@ -429,7 +446,7 @@ export async function reviewResource(id, decision, notes = '', verifier, meta = 
     }
 
     updateResourceSql += ' WHERE id = ?';
-    updateParams.push(id);
+    updateParams.push(realId);
 
     await connection.query(updateResourceSql, updateParams);
 
@@ -440,7 +457,7 @@ export async function reviewResource(id, decision, notes = '', verifier, meta = 
       ) VALUES (?, ?, ?, ?, ?, ?)
     `;
     await connection.query(insertLogSql, [
-      id,
+      realId,
       verifier.id,
       statusBefore,
       statusAfter,
@@ -457,20 +474,20 @@ export async function reviewResource(id, decision, notes = '', verifier, meta = 
       role: verifier.role_code,
       actionType: `VERIFY_${actionResult.toUpperCase()}`,
       entityType: 'resources',
-      entityId: id,
-      description: `Verifikator ${verifier.nama_lengkap} melakukan ${actionResult} terhadap naskah "${resource.title}" (${statusBefore} -> ${statusAfter})`,
+      entityId: realId,
+      description: `Verifikator / Admin ${verifier.nama_lengkap} melakukan ${actionResult} terhadap naskah "${resource.title}" (${statusBefore} -> ${statusAfter})`,
       ipAddress: meta.ipAddress,
       userAgent: meta.userAgent
     });
 
     return {
-      resource_id: Number(id),
+      resource_id: realId,
       title: resource.title,
       status_before: statusBefore,
       status_after: statusAfter,
       action_result: actionResult,
       verifier: verifier.nama_lengkap,
-      notes: notes.trim()
+      notes: notes ? notes.trim() : ''
     };
   } catch (error) {
     await connection.rollback();
@@ -787,7 +804,7 @@ export async function getAuditLogs(params = {}) {
  * Delete resource (Hard or Soft Delete to Arsip) with audit logging
  */
 export async function deleteResource(id, user, hard = false, meta = {}) {
-  const [existing] = await pool.query('SELECT * FROM resources WHERE id = ?', [id]);
+  const existing = await findResourceByIdentifier(id);
   if (existing.length === 0) {
     const error = new Error('Sumber belajar tidak ditemukan');
     error.statusCode = 404;
@@ -795,20 +812,21 @@ export async function deleteResource(id, user, hard = false, meta = {}) {
     throw error;
   }
   const current = existing[0];
+  const realId = current.id;
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
     if (hard) {
-      await connection.query('DELETE FROM resource_tags WHERE resource_id = ?', [id]);
-      await connection.query('DELETE FROM search_history WHERE matched_resource_id = ?', [id]);
-      await connection.query('DELETE FROM verification_logs WHERE resource_id = ?', [id]);
-      await connection.query('DELETE FROM resources WHERE id = ?', [id]);
+      await connection.query('DELETE FROM resource_tags WHERE resource_id = ?', [realId]);
+      await connection.query('DELETE FROM search_history WHERE matched_resource_id = ?', [realId]);
+      await connection.query('DELETE FROM verification_logs WHERE resource_id = ?', [realId]);
+      await connection.query('DELETE FROM resources WHERE id = ?', [realId]);
     } else {
       await connection.query(
         "UPDATE resources SET lifecycle_status = 'Arsip', archived_at = NOW() WHERE id = ?",
-        [id]
+        [realId]
       );
     }
 
@@ -820,14 +838,14 @@ export async function deleteResource(id, user, hard = false, meta = {}) {
       role: user.role_code,
       actionType: hard ? 'HARD_DELETE_RESOURCE' : 'ARCHIVE_RESOURCE',
       entityType: 'resources',
-      entityId: id,
+      entityId: realId,
       description: `Administrator ${user.nama_lengkap} ${hard ? 'menghapus permanen' : 'mengarsipkan'} sumber belajar: ${current.title}`,
       ipAddress: meta.ipAddress,
       userAgent: meta.userAgent
     });
 
     return {
-      id: Number(id),
+      id: Number(realId),
       title: current.title,
       deleted: hard,
       archived: !hard,
@@ -853,7 +871,7 @@ export async function updateResourceStatus(id, newStatus, user, meta = {}) {
     throw error;
   }
 
-  const [existing] = await pool.query('SELECT * FROM resources WHERE id = ?', [id]);
+  const existing = await findResourceByIdentifier(id);
   if (existing.length === 0) {
     const error = new Error('Sumber belajar tidak ditemukan');
     error.statusCode = 404;
@@ -861,6 +879,7 @@ export async function updateResourceStatus(id, newStatus, user, meta = {}) {
     throw error;
   }
   const current = existing[0];
+  const realId = current.id;
 
   let publishedAt = current.published_at;
   let archivedAt = current.archived_at;
@@ -872,7 +891,7 @@ export async function updateResourceStatus(id, newStatus, user, meta = {}) {
 
   await pool.query(
     'UPDATE resources SET lifecycle_status = ?, published_at = ?, archived_at = ? WHERE id = ?',
-    [newStatus, publishedAt, archivedAt, id]
+    [newStatus, publishedAt, archivedAt, realId]
   );
 
   await logActivity({
@@ -881,14 +900,14 @@ export async function updateResourceStatus(id, newStatus, user, meta = {}) {
     role: user.role_code,
     actionType: 'CHANGE_STATUS_RESOURCE',
     entityType: 'resources',
-    entityId: id,
+    entityId: realId,
     description: `Administrator ${user.nama_lengkap} mengubah status "${current.title}" dari ${current.lifecycle_status} menjadi ${newStatus}`,
     ipAddress: meta.ipAddress,
     userAgent: meta.userAgent
   });
 
   return {
-    id: Number(id),
+    id: Number(realId),
     title: current.title,
     previous_status: current.lifecycle_status,
     lifecycle_status: newStatus
