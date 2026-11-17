@@ -1,0 +1,353 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SIPINTAR Sespimma REST API",
+    "version": "1.0.0",
+    "description": "Dokumentasi RESTful API resmi untuk **SiPINTAR** (*Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif*) Sespimma Sespim Lemdiklat Polri.\n\nProyek Perubahan PKN Tingkat II Angkatan XXIX Nawasena TA 2026 — AKBP Dewi Susilo Pangestuti, S.Ak.",
+    "contact": {
+      "name": "Sespimma Sespim Lemdiklat Polri",
+      "url": "https://sespimma.lemdiklat.polri.go.id"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5001/api/v1",
+      "description": "Local API Server"
+    }
+  ],
+  "tags": [
+    { "name": "1. Sistem & Health", "description": "Pemeriksaan kesehatan sistem dan konektivitas basis data MySQL" },
+    { "name": "2. Autentikasi & Akun", "description": "Login JWT, profil pengguna, dan pendaftaran mandiri kedinasan" },
+    { "name": "3. Kategori & Taksonomi", "description": "Struktur 8 kategori sumber belajar resmi Sespimma" },
+    { "name": "4. Sumber Belajar (Resources)", "description": "Katalog modul, hanjar, SOP, kurikulum, dan streaming dokumen" },
+    { "name": "5. Tenaga Pendidik (Gadik)", "description": "Profil fungsional Polri, nominatif resmi, kepakaran, dan mata ajar" },
+    { "name": "6. Perpustakaan & E-Library", "description": "Koleksi buku fisik, e-book, karya ilmiah Taskap, dan pratinjau sampel" },
+    { "name": "7. Pencarian Terpadu", "description": "Pencarian MySQL Fulltext lintas tabel dengan skor relevansi" },
+    { "name": "8. Tata Kelola & Verifikasi", "description": "Alur pengusulan naskah draf, verifikasi Bag Jarlat, dan pengarsipan" },
+    { "name": "9. Monitoring & Audit Trail", "description": "Statistik agregasi sistem real-time dan log aktivitas kedinasan" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["1. Sistem & Health"],
+        "summary": "Health Check Layanan API & MySQL",
+        "description": "Mengembalikan status koneksi basis data `sipintar_db` dan timestamp server.",
+        "responses": {
+          "200": { "description": "Layanan sehat dan terhubung ke MySQL" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["2. Autentikasi & Akun"],
+        "summary": "Otentikasi Pengguna & Penerbitan JWT",
+        "description": "Menerima identifier berupa email atau NRP/NIP kedinasan beserta kata sandi.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["identifier", "password"],
+                "properties": {
+                  "identifier": { "type": "string", "example": "dewi.susilo@sespimma.lemdiklat.polri.go.id" },
+                  "password": { "type": "string", "example": "Password123!" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Otentikasi berhasil, mengembalikan token JWT dan profil pengguna" },
+          "401": { "description": "Kredensial tidak valid" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["2. Autentikasi & Akun"],
+        "summary": "Ambil Profil Pengguna Terotentikasi",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Data identitas, hak akses, dan profil pengguna saat ini" },
+          "401": { "description": "Token tidak valid atau kedaluwarsa" }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["2. Autentikasi & Akun"],
+        "summary": "Pendaftaran Mandiri Anggota (Serdik / Gadik)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nama_lengkap", "email", "password", "nrp_nip", "role_code"],
+                "properties": {
+                  "nama_lengkap": { "type": "string", "example": "AKBP Bambang Wijaya, S.I.K." },
+                  "email": { "type": "string", "example": "bambang.wijaya@serdik.polri.go.id" },
+                  "password": { "type": "string", "example": "Password123!" },
+                  "nrp_nip": { "type": "string", "example": "82010456" },
+                  "role_code": { "type": "string", "enum": ["serdik", "gadik", "pengelola"], "example": "serdik" },
+                  "pangkat": { "type": "string", "example": "AKBP" },
+                  "jabatan": { "type": "string", "example": "Peserta Didik Sespimma Angkatan 73" },
+                  "phone_number": { "type": "string", "example": "081234567899" },
+                  "nosis": { "type": "string", "example": "2026-73-045" },
+                  "angkatan": { "type": "string", "example": "Sespimma Angkatan 73 TA 2026" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Pendaftaran akun berhasil dibuat" },
+          "400": { "description": "Validasi input gagal" }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "tags": ["3. Kategori & Taksonomi"],
+        "summary": "Daftar 8 Kategori Sumber Belajar Resmi",
+        "responses": {
+          "200": { "description": "Daftar kategori beserta jumlah publikasi terkini" }
+        }
+      }
+    },
+    "/categories/{id}/subcategories": {
+      "get": {
+        "tags": ["3. Kategori & Taksonomi"],
+        "summary": "Daftar Subkategori Taksonomi",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "2" }
+        ],
+        "responses": {
+          "200": { "description": "Daftar subkategori dari kategori terkait" }
+        }
+      }
+    },
+    "/resources": {
+      "get": {
+        "tags": ["4. Sumber Belajar (Resources)"],
+        "summary": "Katalog Sumber Belajar Berpaginasi",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "category_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "access_classification", "in": "query", "schema": { "type": "string", "enum": ["Terbuka", "Internal", "Terbatas", "Metadata Saja"] } },
+          { "name": "lifecycle_status", "in": "query", "schema": { "type": "string", "enum": ["Draft", "Diverifikasi", "Dipublikasikan", "Tidak Aktif", "Arsip"] } },
+          { "name": "tag", "in": "query", "schema": { "type": "string" } },
+          { "name": "q", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Katalog materi naskah belajar beserta tag agregasi" }
+        }
+      }
+    },
+    "/resources/{id}": {
+      "get": {
+        "tags": ["4. Sumber Belajar (Resources)"],
+        "summary": "Rincian Lengkap Sumber Belajar",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "1" }
+        ],
+        "responses": {
+          "200": { "description": "Metadata rincian naskah, tenaga pendidik, dan tag" },
+          "404": { "description": "Materi tidak ditemukan" }
+        }
+      }
+    },
+    "/resources/{id}/file": {
+      "get": {
+        "tags": ["4. Sumber Belajar (Resources)"],
+        "summary": "Streaming / Unduhan Berkas Digital Naskah",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "1" },
+          { "name": "download", "in": "query", "schema": { "type": "boolean" }, "description": "Set true untuk memaksa unduhan attachment" }
+        ],
+        "responses": {
+          "200": { "description": "Streaming PDF stream berkas naskah", "content": { "application/pdf": {} } },
+          "403": { "description": "Akses ditolak (Metadata Saja atau di luar wewenang)" }
+        }
+      }
+    },
+    "/gadik": {
+      "get": {
+        "tags": ["5. Tenaga Pendidik (Gadik)"],
+        "summary": "Daftar 16 Tenaga Pendidik Fungsional Polri",
+        "parameters": [
+          { "name": "fungsional", "in": "query", "schema": { "type": "boolean", "default": true } },
+          { "name": "pangkat", "in": "query", "schema": { "type": "string" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Daftar profil tenaga pendidik beserta kompetensi kepakaran" }
+        }
+      }
+    },
+    "/gadik/{id}": {
+      "get": {
+        "tags": ["5. Tenaga Pendidik (Gadik)"],
+        "summary": "Rincian Profil Kompetensi & Sprin Tenaga Pendidik",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "72010235" }
+        ],
+        "responses": {
+          "200": { "description": "Profil lengkap, nomor Sprin, jabatan fungsional, dan mata ajar" }
+        }
+      }
+    },
+    "/library/categories": {
+      "get": {
+        "tags": ["6. Perpustakaan & E-Library"],
+        "summary": "Kategori Koleksi Perpustakaan Sespimma",
+        "responses": {
+          "200": { "description": "Kategori buku fisik, ebook, taskap, dan jurnal ilmiah" }
+        }
+      }
+    },
+    "/library/books": {
+      "get": {
+        "tags": ["6. Perpustakaan & E-Library"],
+        "summary": "Katalog Koleksi Pustaka & Taskap",
+        "parameters": [
+          { "name": "category_id", "in": "query", "schema": { "type": "string", "enum": ["buku-fisik", "ebook", "taskap", "jurnal"] } },
+          { "name": "stock_available", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Katalog buku perpustakaan dan informasi ketersediaan fisik/digital" }
+        }
+      }
+    },
+    "/library/books/{id}/preview": {
+      "get": {
+        "tags": ["6. Perpustakaan & E-Library"],
+        "summary": "Pratinjau Sampel Sampul & Bab Awal Buku (Sample Preview)",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "1" }
+        ],
+        "responses": {
+          "200": { "description": "Streaming PDF 10-25 halaman sampel buku", "content": { "application/pdf": {} } },
+          "403": { "description": "Buku bertipe Metadata Saja, pratinjau dilarang" }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": ["7. Pencarian Terpadu"],
+        "summary": "Pencarian MySQL Fulltext Lintas Modul",
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string" }, "example": "kepemimpinan" },
+          { "name": "category", "in": "query", "schema": { "type": "string", "default": "all" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "Hasil pencarian terpadu berperingkat relevansi" }
+        }
+      }
+    },
+    "/admin/resources": {
+      "post": {
+        "tags": ["8. Tata Kelola & Verifikasi"],
+        "summary": "Buat Usulan Draf Sumber Belajar Baru",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Draf materi berhasil dibuat dan tercatat di antrean" }
+        }
+      }
+    },
+    "/admin/verification/queue": {
+      "get": {
+        "tags": ["8. Tata Kelola & Verifikasi"],
+        "summary": "Antrean Verifikasi Berkas (Bag Jarlat)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Daftar naskah berstatus Draft atau Diverifikasi yang menunggu telaah" }
+        }
+      }
+    },
+    "/admin/verification/{id}/review": {
+      "post": {
+        "tags": ["8. Tata Kelola & Verifikasi"],
+        "summary": "Keputusan Verifikasi Naskah (Setujui / Revisi)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["decision"],
+                "properties": {
+                  "decision": { "type": "string", "enum": ["approve", "revision", "reject"], "example": "approve" },
+                  "notes": { "type": "string", "example": "Naskah sesuai standar silabus Sespimma 2026." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Keputusan verifikasi berhasil dieksekusi dan dicatat di log" }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "tags": ["8. Tata Kelola & Verifikasi"],
+        "summary": "Daftar Akun Pengguna & Manajemen Peran",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "role_code", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "Daftar akun pengguna Sespimma terdaftar" }
+        }
+      }
+    },
+    "/admin/monitoring/stats": {
+      "get": {
+        "tags": ["9. Monitoring & Audit Trail"],
+        "summary": "Dasbor Agregasi Statistik Sistem Real-Time",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Metrik agregat siklus hidup, kategori, dan hak akses" }
+        }
+      }
+    },
+    "/admin/monitoring/logs": {
+      "get": {
+        "tags": ["9. Monitoring & Audit Trail"],
+        "summary": "Jejak Rekam Log Aktivitas & Pencarian",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "type", "in": "query", "schema": { "type": "string", "enum": ["activity", "search", "verification"], "default": "activity" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": { "description": "Daftar jejak rekam audit log kedinasan" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Masukkan token JWT yang diperoleh dari endpoint `POST /api/v1/auth/login`."
+      }
+    }
+  }
+}

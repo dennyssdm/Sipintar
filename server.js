@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -16,6 +19,10 @@ import adminRoutes from './src/routes/adminRoutes.js';
 import { notFoundHandler, globalErrorHandler } from './src/middleware/errorHandler.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const openApiSpec = JSON.parse(fs.readFileSync(path.join(__dirname, 'src/docs/openapi.json'), 'utf8'));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -65,13 +72,69 @@ app.use('/api/v1/library', libraryRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
+// OpenAPI Specification Endpoint
+app.get(['/openapi.json', '/api/v1/openapi.json'], (req, res) => {
+  res.json(openApiSpec);
+});
+
+// Interactive Swagger UI API Explorer
+app.get(['/docs', '/api/docs'], (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SiPINTAR Sespimma — Interactive API Documentation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css" />
+  <style>
+    body { margin: 0; background-color: #0b1528; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .brand-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: linear-gradient(135deg, #071731 0%, #0d2854 50%, #174f9c 100%); border-bottom: 3px solid #f59e0b; }
+    .brand-title { font-size: 19px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
+    .brand-sub { font-size: 12px; color: #fbbf24; font-weight: 600; margin-top: 3px; }
+    .swagger-ui { max-width: 1280px; margin: 0 auto; padding: 24px 20px; background: #ffffff; border-radius: 8px; margin-top: 20px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .swagger-ui .topbar { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="brand-bar">
+    <div>
+      <div class="brand-title">SiPINTAR Sespimma — Interactive RESTful API Explorer</div>
+      <div class="brand-sub">SESPIMMA SESPIM LEMDIKLAT POLRI • PKN TINGKAT II ANGKATAN XXIX NAWASENA TA 2026</div>
+    </div>
+    <div>
+      <a href="/openapi.json" target="_blank" style="color: #ffffff; text-decoration: none; font-size: 12px; font-weight: 700; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 8px 14px; border-radius: 6px;">Unduh OpenAPI 3.0 JSON</a>
+    </div>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js"></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: '/openapi.json',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout"
+      });
+    };
+  </script>
+</body>
+</html>`);
+});
+
 // Root informational endpoint
 app.get('/', (req, res) => {
   res.json({
     name: 'SIPINTAR Sespimma REST API',
     version: '1.0.0',
     institution: 'Sespimma Sespim Lemdiklat Polri',
-    documentation: '/api/v1/health',
+    documentation: '/docs',
+    openapi: '/openapi.json',
+    health: '/api/v1/health',
     status: 'online'
   });
 });
