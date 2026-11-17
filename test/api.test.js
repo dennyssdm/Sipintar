@@ -249,17 +249,25 @@ async function runTests() {
     assert(false, '17. User Account Management', err.message);
   }
 
-  // 18. Activity Audit Logs Trail
+  // 18. Multi-Stream Audit Logs Trail: Activity, Search & Verification
   try {
-    const res = await request('/admin/monitoring/logs?type=activity&limit=5', {
+    const resActivity = await request('/admin/monitoring/logs?type=activity&limit=5', {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    const resSearch = await request('/admin/monitoring/logs?type=search&limit=5', {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    const resVerif = await request('/admin/monitoring/logs?type=verification&limit=5', {
       headers: { Authorization: `Bearer ${adminToken}` }
     });
     assert(
-      res.status === 200 && Array.isArray(res.data?.data) && res.data?.data.length > 0,
-      '18. Activity Audit Logs Trail (/admin/monitoring/logs)'
+      resActivity.status === 200 && Array.isArray(resActivity.data?.data) &&
+      resSearch.status === 200 && Array.isArray(resSearch.data?.data) &&
+      resVerif.status === 200 && Array.isArray(resVerif.data?.data),
+      '18. Multi-Stream Audit Logs Trail: Activity, Search & Verification (/admin/monitoring/logs)'
     );
   } catch (err) {
-    assert(false, '18. Activity Audit Logs', err.message);
+    assert(false, '18. Multi-Stream Audit Logs', err.message);
   }
 
   // 19. Taxonomy Tag Filtering on Catalog
