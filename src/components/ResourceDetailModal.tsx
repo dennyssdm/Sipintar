@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { ResourceItem } from '@/types';
 import { StatusBadge } from './StatusBadge';
+import { sipintarApi, mapResourceToItem } from '@/lib/apiClient';
 
 interface ResourceDetailModalProps {
   resource: ResourceItem | null;
@@ -10,14 +11,20 @@ interface ResourceDetailModalProps {
 }
 
 export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
-  resource,
+  resource: initialResource,
   onClose,
 }) => {
+  const [resource, setResource] = useState<ResourceItem | null>(initialResource);
+  const [relatedItems, setRelatedItems] = useState<ResourceItem[]>([]);
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
   const [prevResourceId, setPrevResourceId] = useState<string | null>(null);
   const [modalMode, setModalMode] = useState<'reader' | 'info'>('reader');
   const [activeSection, setActiveSection] = useState<'kop' | 'skl' | 'bab1' | 'bab2' | 'bab3' | 'bab4' | 'tugas'>('bab1');
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
+
+  useEffect(() => {
+    setResource(initialResource);
+  }, [initialResource]);
 
   if (resource && resource.id !== prevResourceId) {
     setPrevResourceId(resource.id);
@@ -25,6 +32,31 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
     setModalMode(hasDigitalFile ? 'reader' : 'info');
     setActiveSection('bab1');
   }
+
+  useEffect(() => {
+    if (!resource) {
+      setRelatedItems([]);
+      return;
+    }
+    let isMounted = true;
+    const fetchRelated = async () => {
+      try {
+        const cleanId = String(resource.id).replace(/^res-0*/, '') || resource.id;
+        const res = await sipintarApi.resources.getRelated(cleanId, 3);
+        if (isMounted && Array.isArray(res) && res.length > 0) {
+          setRelatedItems(res.map(mapResourceToItem));
+        } else {
+          setRelatedItems([]);
+        }
+      } catch (err) {
+        setRelatedItems([]);
+      }
+    };
+    fetchRelated();
+    return () => {
+      isMounted = false;
+    };
+  }, [resource?.id]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -849,6 +881,65 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
                       >
                         #{tag}
                       </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Seksi Materi & Bahan Ajar Terkait */}
+              {relatedItems.length > 0 && (
+                <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px solid var(--color-border-subtle)' }}>
+                  <h4
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: 'var(--color-primary)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      margin: '0 0 12px 0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                    </svg>
+                    Naskah & Bahan Ajar Terkait
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                    {relatedItems.map((rel) => (
+                      <div
+                        key={rel.id}
+                        onClick={() => setResource(rel)}
+                        style={{
+                          padding: '12px',
+                          borderRadius: 'var(--radius-md)',
+                          backgroundColor: 'var(--color-surface-hover)',
+                          border: '1px solid var(--color-border-subtle)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--color-primary)';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
+                          e.currentTarget.style.transform = 'none';
+                        }}
+                      >
+                        <div style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 600, marginBottom: '4px' }}>
+                          {rel.subCategory || rel.category}
+                        </div>
+                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.4, marginBottom: '6px' }}>
+                          {rel.title}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                          {rel.authorOrInstructor}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
