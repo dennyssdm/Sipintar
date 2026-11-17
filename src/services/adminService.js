@@ -782,3 +782,340 @@ export async function getAuditLogs(params = {}) {
     pagination: { page, limit, total, totalPages }
   };
 }
+
+/**
+ * Delete resource (Hard or Soft Delete to Arsip) with audit logging
+ */
+export async function deleteResource(id, user, hard = false, meta = {}) {
+  const [existing] = await pool.query('SELECT * FROM resources WHERE id = ?', [id]);
+  if (existing.length === 0) {
+    const error = new Error('Sumber belajar tidak ditemukan');
+    error.statusCode = 404;
+    error.code = 'NOT_FOUND';
+    throw error;
+  }
+  const current = existing[0];
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    if (hard) {
+      await connection.query('DELETE FROM resource_tags WHERE resource_id = ?', [id]);
+      await connection.query('DELETE FROM search_history WHERE matched_resource_id = ?', [id]);
+      await connection.query('DELETE FROM verification_logs WHERE resource_id = ?', [id]);
+      await connection.query('DELETE FROM resources WHERE id = ?', [id]);
+    } else {
+      await connection.query(
+        "UPDATE resources SET lifecycle_status = 'Arsip', archived_at = NOW() WHERE id = ?",
+        [id]
+      );
+    }
+
+    await connection.commit();
+
+    await logActivity({
+      userId: user.id,
+      userName: user.nama_lengkap,
+      role: user.role_code,
+      actionType: hard ? 'HARD_DELETE_RESOURCE' : 'ARCHIVE_RESOURCE',
+      entityType: 'resources',
+      entityId: id,
+      description: `Administrator ${user.nama_lengkap} ${hard ? 'menghapus permanen' : 'mengarsipkan'} sumber belajar: ${current.title}`,
+      ipAddress: meta.ipAddress,
+      userAgent: meta.userAgent
+    });
+
+    return {
+      id: Number(id),
+      title: current.title,
+      deleted: hard,
+      archived: !hard,
+      lifecycle_status: hard ? 'Deleted' : 'Arsip'
+    };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * Change resource lifecycle status directly
+ */
+export async function updateResourceStatus(id, newStatus, user, meta = {}) {
+  const validStatuses = ['Draft', 'Diverifikasi', 'Dipublikasikan', 'Tidak Aktif', 'Arsip'];
+  if (!validStatuses.includes(newStatus)) {
+    const error = new Error(`Status tidak valid. Harus salah satu dari: ${validStatuses.join(', ')}`);
+    error.statusCode = 400;
+    error.code = 'VALIDATION_ERROR';
+    throw error;
+  }
+
+  const [existing] = await pool.query('SELECT * FROM resources WHERE id = ?', [id]);
+  if (existing.length === 0) {
+    const error = new Error('Sumber belajar tidak ditemukan');
+    error.statusCode = 404;
+    error.code = 'NOT_FOUND';
+    throw error;
+  }
+  const current = existing[0];
+
+  let publishedAt = current.published_at;
+  let archivedAt = current.archived_at;
+  if (newStatus === 'Dipublikasikan' && !publishedAt) {
+    publishedAt = new Date();
+  } else if (newStatus === 'Arsip') {
+    archivedAt = new Date();
+  }
+
+  await pool.query(
+    'UPDATE resources SET lifecycle_status = ?, published_at = ?, archived_at = ? WHERE id = ?',
+    [newStatus, publishedAt, archivedAt, id]
+  );
+
+  await logActivity({
+    userId: user.id,
+    userName: user.nama_lengkap,
+    role: user.role_code,
+    actionType: 'CHANGE_STATUS_RESOURCE',
+    entityType: 'resources',
+    entityId: id,
+    description: `Administrator ${user.nama_lengkap} mengubah status "${current.title}" dari ${current.lifecycle_status} menjadi ${newStatus}`,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent
+  });
+
+  return {
+    id: Number(id),
+    title: current.title,
+    previous_status: current.lifecycle_status,
+    lifecycle_status: newStatus
+  };
+}
+
+/**
+ * Book CMS: Create Book
+ */
+export async function createBook(data, file, user, meta = {}) {
+  const {
+    title,
+    isbn = null,
+    author = 'Tim Sespimma Lemdiklat Polri',
+    publisher = 'Sespimma Lemdiklat Polri',
+    published_year = new Date().getFullYear(),
+    synopsis = '',
+    library_category_id = 1,
+    sub_category = null,
+    language = 'Indonesia',
+    call_number = null,
+    physical_location = 'Perpustakaan Sespimma Lemdiklat Polri',
+    stock_total = 10,
+    stock_available = 10,
+    access_classification = 'Terbuka',
+    lifecycle_status = 'Dipublikasikan'
+  } = data;
+
+  if (!title) {
+    const error = new Error('Judul buku wajib diisi');
+    error.statusCode = 400;
+    error.code = 'VALIDATION_ERROR';
+    throw error;
+  }
+
+  const bookUuid = crypto.randomUUID();
+  const [insert] = await pool.query(
+    `INSERT INTO books (
+      uuid, isbn, title, author, publisher, published_year,
+      synopsis, library_category_id, sub_category, language,
+      call_number, physical_location, stock_total, stock_available,
+      access_classification, lifecycle_status, created_by
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      bookUuid, isbn, title.trim(), author.trim(), publisher.trim(), published_year,
+      synopsis.trim(), library_category_id, sub_category, language,
+      call_number, physical_location, stock_total, stock_available,
+      access_classification, lifecycle_status, user.id
+    ]
+  );
+
+  const bookId = insert.insertId;
+
+  if (file) {
+    const ext = path.extname(file.originalname).toUpperCase().replace('.', '');
+    const fileFormat = ['PDF', 'EPUB', 'DOCX'].includes(ext) ? ext : 'PDF';
+    const filePath = `library/${file.filename}`;
+    await pool.query(
+      `INSERT INTO book_files (book_id, file_format, file_size_bytes, file_path, preview_file_path)
+       VALUES (?, ?, ?, ?, ?)`,
+      [bookId, fileFormat, file.size, filePath, filePath]
+    );
+  }
+
+  await logActivity({
+    userId: user.id,
+    userName: user.nama_lengkap,
+    role: user.role_code,
+    actionType: 'CREATE_BOOK',
+    entityType: 'books',
+    entityId: bookId,
+    description: `Administrator ${user.nama_lengkap} menambahkan buku katalog: ${title}`,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent
+  });
+
+  return { id: bookId, uuid: bookUuid, title, author, library_category_id };
+}
+
+/**
+ * Book CMS: Update Book
+ */
+export async function updateBook(id, data, file, user, meta = {}) {
+  const [existing] = await pool.query('SELECT * FROM books WHERE id = ?', [id]);
+  if (existing.length === 0) {
+    const error = new Error('Buku tidak ditemukan');
+    error.statusCode = 404;
+    error.code = 'NOT_FOUND';
+    throw error;
+  }
+  const current = existing[0];
+
+  const {
+    title = current.title,
+    author = current.author,
+    publisher = current.publisher,
+    published_year = current.published_year,
+    synopsis = current.synopsis,
+    library_category_id = current.library_category_id,
+    sub_category = current.sub_category,
+    call_number = current.call_number,
+    physical_location = current.physical_location,
+    stock_total = current.stock_total,
+    stock_available = current.stock_available,
+    access_classification = current.access_classification,
+    lifecycle_status = current.lifecycle_status
+  } = data;
+
+  await pool.query(
+    `UPDATE books SET
+      title = ?, author = ?, publisher = ?, published_year = ?,
+      synopsis = ?, library_category_id = ?, sub_category = ?,
+      call_number = ?, physical_location = ?, stock_total = ?, stock_available = ?,
+      access_classification = ?, lifecycle_status = ?
+     WHERE id = ?`,
+    [
+      title.trim(), author.trim(), publisher.trim(), published_year,
+      synopsis.trim(), library_category_id, sub_category,
+      call_number, physical_location, stock_total, stock_available,
+      access_classification, lifecycle_status, id
+    ]
+  );
+
+  if (file) {
+    const ext = path.extname(file.originalname).toUpperCase().replace('.', '');
+    const fileFormat = ['PDF', 'EPUB', 'DOCX'].includes(ext) ? ext : 'PDF';
+    const filePath = `library/${file.filename}`;
+    const [existingFile] = await pool.query('SELECT id FROM book_files WHERE book_id = ?', [id]);
+    if (existingFile.length > 0) {
+      await pool.query(
+        'UPDATE book_files SET file_format = ?, file_size_bytes = ?, file_path = ?, preview_file_path = ? WHERE id = ?',
+        [fileFormat, file.size, filePath, filePath, existingFile[0].id]
+      );
+    } else {
+      await pool.query(
+        'INSERT INTO book_files (book_id, file_format, file_size_bytes, file_path, preview_file_path) VALUES (?, ?, ?, ?, ?)',
+        [id, fileFormat, file.size, filePath, filePath]
+      );
+    }
+  }
+
+  await logActivity({
+    userId: user.id,
+    userName: user.nama_lengkap,
+    role: user.role_code,
+    actionType: 'UPDATE_BOOK',
+    entityType: 'books',
+    entityId: id,
+    description: `Administrator ${user.nama_lengkap} memperbarui buku: ${title}`,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent
+  });
+
+  return { id: Number(id), title, author, library_category_id };
+}
+
+/**
+ * Book CMS: Delete Book
+ */
+export async function deleteBook(id, user, meta = {}) {
+  const [existing] = await pool.query('SELECT * FROM books WHERE id = ?', [id]);
+  if (existing.length === 0) {
+    const error = new Error('Buku tidak ditemukan');
+    error.statusCode = 404;
+    error.code = 'NOT_FOUND';
+    throw error;
+  }
+  const current = existing[0];
+
+  await pool.query('DELETE FROM book_files WHERE book_id = ?', [id]);
+  await pool.query('DELETE FROM books WHERE id = ?', [id]);
+
+  await logActivity({
+    userId: user.id,
+    userName: user.nama_lengkap,
+    role: user.role_code,
+    actionType: 'DELETE_BOOK',
+    entityType: 'books',
+    entityId: id,
+    description: `Administrator ${user.nama_lengkap} menghapus buku: ${current.title}`,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent
+  });
+
+  return { id: Number(id), title: current.title, deleted: true };
+}
+
+/**
+ * User CMS: Create User
+ */
+export async function createUser(data, user, meta = {}) {
+  const { nrp_nip, nama_lengkap, email, password, role_id = 1, phone_number = null } = data;
+  if (!nrp_nip || !nama_lengkap || !email || !password) {
+    const error = new Error('NRP/NIP, Nama Lengkap, Email, dan Password wajib diisi');
+    error.statusCode = 400;
+    error.code = 'VALIDATION_ERROR';
+    throw error;
+  }
+
+  const [existing] = await pool.query('SELECT id FROM users WHERE nrp_nip = ? OR email = ?', [nrp_nip, email]);
+  if (existing.length > 0) {
+    const error = new Error('NRP/NIP atau Email sudah terdaftar');
+    error.statusCode = 409;
+    error.code = 'DUPLICATE_ENTRY';
+    throw error;
+  }
+
+  const bcrypt = await import('bcryptjs');
+  const passwordHash = bcrypt.default.hashSync(password, 10);
+  const userUuid = crypto.randomUUID();
+
+  const [insert] = await pool.query(
+    'INSERT INTO users (uuid, nrp_nip, nama_lengkap, email, password_hash, role_id, phone_number, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
+    [userUuid, nrp_nip.trim(), nama_lengkap.trim(), email.trim(), passwordHash, role_id, phone_number]
+  );
+
+  await logActivity({
+    userId: user.id,
+    userName: user.nama_lengkap,
+    role: user.role_code,
+    actionType: 'CREATE_USER',
+    entityType: 'users',
+    entityId: insert.insertId,
+    description: `Administrator ${user.nama_lengkap} mendaftarkan pengguna baru: ${nama_lengkap} (${nrp_nip})`,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent
+  });
+
+  return { id: insert.insertId, uuid: userUuid, nrp_nip, nama_lengkap, email, role_id };
+}

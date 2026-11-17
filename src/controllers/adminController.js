@@ -152,3 +152,88 @@ export async function getAuditLogs(req, res, next) {
   }
 }
 
+/**
+ * DELETE /api/v1/admin/resources/:id
+ */
+export async function deleteResource(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { hard } = req.query;
+    const meta = getRequestMeta(req);
+    const result = await adminService.deleteResource(id, req.user, hard === 'true', meta);
+    return sendSuccess(res, 'Sumber belajar berhasil dihapus', result, null, 200);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /api/v1/admin/resources/:id/status
+ */
+export async function updateResourceStatus(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { status, lifecycle_status } = req.body;
+    const newStatus = status || lifecycle_status;
+    const meta = getRequestMeta(req);
+    const result = await adminService.updateResourceStatus(id, newStatus, req.user, meta);
+    return sendSuccess(res, `Status naskah berhasil diubah menjadi ${newStatus}`, result, null, 200);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/v1/admin/books
+ */
+export async function createBook(req, res, next) {
+  try {
+    const meta = getRequestMeta(req);
+    const result = await adminService.createBook(req.body, req.file, req.user, meta);
+    return sendSuccess(res, 'Buku perpustakaan berhasil ditambahkan', result, null, 201);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PUT /api/v1/admin/books/:id
+ */
+export async function updateBook(req, res, next) {
+  try {
+    const { id } = req.params;
+    const meta = getRequestMeta(req);
+    const result = await adminService.updateBook(id, req.body, req.file, req.user, meta);
+    return sendSuccess(res, 'Buku perpustakaan berhasil diperbarui', result, null, 200);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * DELETE /api/v1/admin/books/:id
+ */
+export async function deleteBook(req, res, next) {
+  try {
+    const { id } = req.params;
+    const meta = getRequestMeta(req);
+    const result = await adminService.deleteBook(id, req.user, meta);
+    return sendSuccess(res, 'Buku perpustakaan berhasil dihapus', result, null, 200);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/v1/admin/users
+ */
+export async function createUser(req, res, next) {
+  try {
+    const meta = getRequestMeta(req);
+    const result = await adminService.createUser(req.body, req.user, meta);
+    return sendSuccess(res, 'Pengguna baru berhasil didaftarkan', result, null, 201);
+  } catch (error) {
+    next(error);
+  }
+}
+

@@ -30,6 +30,39 @@ router.patch(
   adminController.archiveResource
 );
 
+router.patch(
+  '/resources/:id/status',
+  authorizeRoles('admin', 'verifikator'),
+  adminController.updateResourceStatus
+);
+
+router.delete(
+  '/resources/:id',
+  authorizeRoles('admin'),
+  adminController.deleteResource
+);
+
+// 1.1 Book Management (CMS Perpustakaan / E-Library)
+router.post(
+  '/books',
+  authorizeRoles('admin', 'pengelola'),
+  uploadSingleFile,
+  adminController.createBook
+);
+
+router.put(
+  '/books/:id',
+  authorizeRoles('admin', 'pengelola'),
+  uploadSingleFile,
+  adminController.updateBook
+);
+
+router.delete(
+  '/books/:id',
+  authorizeRoles('admin', 'pengelola'),
+  adminController.deleteBook
+);
+
 // 2. Verification Module (Bag Jarlat & Pokja)
 router.get(
   '/verification/queue',
@@ -48,6 +81,12 @@ router.get(
   '/users',
   authorizeRoles('admin'),
   adminController.listUsers
+);
+
+router.post(
+  '/users',
+  authorizeRoles('admin'),
+  adminController.createUser
 );
 
 router.patch(
