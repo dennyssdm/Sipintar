@@ -1648,11 +1648,11 @@ export default function AdminDataPage() {
               gap: '12px',
               marginBottom: '16px',
               flexWrap: 'wrap',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: 'space-between',
             }}
           >
-            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '280px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '280px', flexWrap: 'wrap', alignItems: 'center' }}>
               <input
                 type="text"
                 placeholder="Cari judul naskah, penyusun, atau unit kerja..."
@@ -1661,13 +1661,15 @@ export default function AdminDataPage() {
                 style={{
                   flex: 1,
                   minWidth: '220px',
-                  padding: '9px 14px',
-                  borderRadius: 'var(--radius-sm)',
+                  height: '38px',
+                  padding: '0 14px',
+                  borderRadius: 'var(--radius-sm, 6px)',
                   border: '1px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-main)',
                   fontSize: '13px',
                   outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               />
 
@@ -1675,13 +1677,15 @@ export default function AdminDataPage() {
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 style={{
-                  padding: '9px 12px',
-                  borderRadius: 'var(--radius-sm)',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-sm, 6px)',
                   border: '1px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-main)',
                   fontSize: '12.5px',
                   outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               >
                 <option value="Semua">Semua Kategori</option>
@@ -1694,13 +1698,15 @@ export default function AdminDataPage() {
                 value={filterLifecycle}
                 onChange={(e) => setFilterLifecycle(e.target.value)}
                 style={{
-                  padding: '9px 12px',
-                  borderRadius: 'var(--radius-sm)',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-sm, 6px)',
                   border: '1px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-main)',
                   fontSize: '12.5px',
                   outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               >
                 <option value="Semua">Semua Status</option>
@@ -1714,13 +1720,15 @@ export default function AdminDataPage() {
                 value={filterAccess}
                 onChange={(e) => setFilterAccess(e.target.value)}
                 style={{
-                  padding: '9px 12px',
-                  borderRadius: 'var(--radius-sm)',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-sm, 6px)',
                   border: '1px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-main)',
                   fontSize: '12.5px',
                   outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               >
                 <option value="Semua">Semua Klasifikasi</option>
@@ -1741,17 +1749,19 @@ export default function AdminDataPage() {
                   }}
                   title="Bersihkan Filter Pencarian"
                   style={{
-                    padding: '8px 12px',
+                    height: '38px',
+                    padding: '0 12px',
                     fontSize: '12px',
                     fontWeight: 600,
                     color: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     border: '1px solid rgba(239, 68, 68, 0.25)',
-                    borderRadius: 'var(--radius-sm)',
+                    borderRadius: 'var(--radius-sm, 6px)',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
+                    boxSizing: 'border-box',
                   }}
                 >
                   ✕ Reset Filter
@@ -1766,25 +1776,27 @@ export default function AdminDataPage() {
                 onClick={() => setShowAddModal(true)}
                 className="btn-primary"
                 style={{
+                  height: '38px',
                   background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                   color: '#ffffff',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 16px',
+                  padding: '0 16px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 700,
                   boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
                   cursor: 'pointer',
                   border: 'none',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                <span>+ Tambah Naskah Baru</span>
+                <span>Tambah Naskah Baru</span>
               </button>
 
               <button
@@ -1796,10 +1808,11 @@ export default function AdminDataPage() {
                   setShowImportModal(true);
                 }}
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 14px',
+                  padding: '0 14px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -1807,6 +1820,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(16, 185, 129, 0.4)',
                   color: '#34d399',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1822,10 +1836,11 @@ export default function AdminDataPage() {
                 disabled={isExporting}
                 onClick={() => handleExport('csv')}
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 14px',
+                  padding: '0 14px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -1833,6 +1848,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(59, 130, 246, 0.4)',
                   color: '#60a5fa',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1848,10 +1864,11 @@ export default function AdminDataPage() {
                 onClick={handleDownloadTemplate}
                 title="Unduh format template CSV dokumen bahan ajar"
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 12px',
+                  padding: '0 12px',
                   borderRadius: '6px',
                   fontSize: '12.5px',
                   fontWeight: 600,
@@ -1859,6 +1876,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   color: '#f1f5f9',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2037,8 +2055,17 @@ export default function AdminDataPage() {
       {/* ========================================================================= */}
       {activeTab === 'books' && (
         <div>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '280px' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '12px',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '280px', flexWrap: 'wrap', alignItems: 'center' }}>
               <input
                 type="text"
                 placeholder="Cari judul buku, penulis, atau kata kunci..."
@@ -2046,24 +2073,31 @@ export default function AdminDataPage() {
                 onChange={(e) => setBookSearch(e.target.value)}
                 style={{
                   flex: 1,
-                  padding: '9px 14px',
-                  borderRadius: 'var(--radius-sm)',
+                  minWidth: '220px',
+                  height: '38px',
+                  padding: '0 14px',
+                  borderRadius: 'var(--radius-sm, 6px)',
                   border: '1px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-main)',
                   fontSize: '13px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               />
               <select
                 value={bookFilterCat}
                 onChange={(e) => setBookFilterCat(e.target.value)}
                 style={{
-                  padding: '9px 12px',
-                  borderRadius: 'var(--radius-sm)',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-sm, 6px)',
                   border: '1px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-main)',
                   fontSize: '12.5px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               >
                 <option value="Semua">Semua Kategori Library</option>
@@ -2082,17 +2116,19 @@ export default function AdminDataPage() {
                   }}
                   title="Bersihkan Filter Perpustakaan"
                   style={{
-                    padding: '8px 12px',
+                    height: '38px',
+                    padding: '0 12px',
                     fontSize: '12px',
                     fontWeight: 600,
                     color: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     border: '1px solid rgba(239, 68, 68, 0.25)',
-                    borderRadius: 'var(--radius-sm)',
+                    borderRadius: 'var(--radius-sm, 6px)',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
+                    boxSizing: 'border-box',
                   }}
                 >
                   ✕ Reset Filter
@@ -2107,25 +2143,27 @@ export default function AdminDataPage() {
                 onClick={() => setShowAddBookModal(true)}
                 className="btn-primary"
                 style={{
+                  height: '38px',
                   background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                   color: '#ffffff',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 16px',
+                  padding: '0 16px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 700,
                   boxShadow: '0 4px 12px rgba(5, 150, 105, 0.35)',
                   cursor: 'pointer',
                   border: 'none',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                <span>+ Tambah Buku / Taskap</span>
+                <span>Tambah Buku / Taskap</span>
               </button>
 
               <button
@@ -2137,10 +2175,11 @@ export default function AdminDataPage() {
                   setShowImportModal(true);
                 }}
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 14px',
+                  padding: '0 14px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -2148,6 +2187,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(16, 185, 129, 0.4)',
                   color: '#34d399',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2163,10 +2203,11 @@ export default function AdminDataPage() {
                 disabled={isExporting}
                 onClick={() => handleExport('csv')}
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 14px',
+                  padding: '0 14px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -2174,6 +2215,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(59, 130, 246, 0.4)',
                   color: '#60a5fa',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2189,10 +2231,11 @@ export default function AdminDataPage() {
                 onClick={handleDownloadTemplate}
                 title="Unduh format template CSV koleksi perpustakaan"
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 12px',
+                  padding: '0 12px',
                   borderRadius: '6px',
                   fontSize: '12.5px',
                   fontWeight: 600,
@@ -2200,6 +2243,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   color: '#f1f5f9',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2320,34 +2364,49 @@ export default function AdminDataPage() {
       {/* ========================================================================= */}
       {activeTab === 'users' && (
         <div>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '14px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '280px', flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '12px',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '280px', flexWrap: 'wrap', alignItems: 'center' }}>
               <input
                 type="text"
                 placeholder="Cari nama pengguna, NRP/NIP, atau email..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
                 style={{
-                  minWidth: '240px',
+                  minWidth: '220px',
                   flex: 1,
-                  padding: '9px 14px',
-                  borderRadius: 'var(--radius-sm)',
+                  height: '38px',
+                  padding: '0 14px',
+                  borderRadius: 'var(--radius-sm, 6px)',
                   border: '1px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-main)',
                   fontSize: '13px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               />
               <select
                 value={userFilterRole}
                 onChange={(e) => setUserFilterRole(e.target.value)}
                 style={{
-                  padding: '9px 12px',
-                  borderRadius: 'var(--radius-sm)',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-sm, 6px)',
                   border: '1px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-main)',
                   fontSize: '12.5px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               >
                 <option value="Semua">Semua Peran (Role)</option>
@@ -2368,17 +2427,19 @@ export default function AdminDataPage() {
                   }}
                   title="Bersihkan Filter Pengguna"
                   style={{
-                    padding: '8px 12px',
+                    height: '38px',
+                    padding: '0 12px',
                     fontSize: '12px',
                     fontWeight: 600,
                     color: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     border: '1px solid rgba(239, 68, 68, 0.25)',
-                    borderRadius: 'var(--radius-sm)',
+                    borderRadius: 'var(--radius-sm, 6px)',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
+                    boxSizing: 'border-box',
                   }}
                 >
                   ✕ Reset Filter
@@ -2393,18 +2454,20 @@ export default function AdminDataPage() {
                 onClick={() => setShowAddUserModal(true)}
                 className="btn-primary"
                 style={{
+                  height: '38px',
                   background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
                   color: '#ffffff',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 16px',
+                  padding: '0 16px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 700,
                   boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35)',
                   cursor: 'pointer',
                   border: 'none',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -2413,7 +2476,7 @@ export default function AdminDataPage() {
                   <line x1="20" y1="8" x2="20" y2="14" />
                   <line x1="23" y1="11" x2="17" y2="11" />
                 </svg>
-                <span>+ Tambah Pengguna Baru</span>
+                <span>Tambah Pengguna Baru</span>
               </button>
 
               <button
@@ -2425,10 +2488,11 @@ export default function AdminDataPage() {
                   setShowImportModal(true);
                 }}
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 14px',
+                  padding: '0 14px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -2436,6 +2500,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(16, 185, 129, 0.4)',
                   color: '#34d399',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2451,10 +2516,11 @@ export default function AdminDataPage() {
                 disabled={isExporting}
                 onClick={() => handleExport('csv')}
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 14px',
+                  padding: '0 14px',
                   borderRadius: '6px',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -2462,6 +2528,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(59, 130, 246, 0.4)',
                   color: '#60a5fa',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2477,10 +2544,11 @@ export default function AdminDataPage() {
                 onClick={handleDownloadTemplate}
                 title="Unduh format template CSV akun pengguna"
                 style={{
+                  height: '38px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '9px 12px',
+                  padding: '0 12px',
                   borderRadius: '6px',
                   fontSize: '12.5px',
                   fontWeight: 600,
@@ -2488,6 +2556,7 @@ export default function AdminDataPage() {
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   color: '#f1f5f9',
                   cursor: 'pointer',
+                  boxSizing: 'border-box',
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
