@@ -129,11 +129,11 @@ export const HomeInfographics: React.FC = () => {
             </div>
             <h3 className="cycle-card-title">Bahan Ajar & Pendidik</h3>
             <p className="cycle-card-desc">
-              Penyampaian 78 Modul & Naskah Hanjar Resmi oleh 28 Tenaga Pendidik (Gadik) fungsional Polri dan praktisi ahli.
+              Penyampaian 150 Modul & Naskah Hanjar Resmi oleh 16 Tenaga Pendidik (Gadik) fungsional Polri dan praktisi ahli.
             </p>
             <div className="cycle-pill-group">
-              <span className="cycle-tag">78 Modul/Hanjar</span>
-              <span className="cycle-tag">28 Tenaga Pendidik</span>
+              <span className="cycle-tag">150 Modul/Hanjar</span>
+              <span className="cycle-tag">16 Gadik Fungsional</span>
             </div>
             <Link href="/modul" className="cycle-card-link">
               <span>Buka Modul & Hanjar</span>
@@ -155,10 +155,10 @@ export const HomeInfographics: React.FC = () => {
             </div>
             <h3 className="cycle-card-title">Pustaka & Karya Ilmiah</h3>
             <p className="cycle-card-desc">
-              Eksplorasi 142 referensi pustaka: buku fisik, e-book, naskah karya tulis kepolisian (Taskap Serdik), dan jurnal ilmiah kepolisian.
+              Eksplorasi 2.863 referensi pustaka: buku fisik 50 bidang, e-book, naskah karya tulis kepolisian (Taskap Serdik), dan jurnal ilmiah kepolisian.
             </p>
             <div className="cycle-pill-group">
-              <span className="cycle-tag">142 Buku & Taskap</span>
+              <span className="cycle-tag">2.863 Buku & Taskap</span>
               <span className="cycle-tag">Repositori Digital</span>
             </div>
             <Link href="/library" className="cycle-card-link">
@@ -227,10 +227,10 @@ export const HomeInfographics: React.FC = () => {
               </div>
               <span className="stat-info-badge">100% Digital</span>
             </div>
-            <div className="stat-info-number">78</div>
+            <div className="stat-info-number">150</div>
             <div className="stat-info-label">Modul & Bahan Ajar</div>
             <p className="stat-info-subtext">
-              14 naskah hanjar inti Sespimma TA 2025 + 64 materi pengayaan kepemimpinan, hukum, dan manajemen taktis.
+              50 Modul Core Sespimma (Core 1–10) + Bahan Ajar Hanjar, naskah taktis kepolisian, dan kepemimpinan.
             </p>
             <div className="stat-info-progress-wrap">
               <div className="stat-info-progress-bar" style={{ width: '100%', backgroundColor: '#3b82f6' }} />
@@ -254,10 +254,10 @@ export const HomeInfographics: React.FC = () => {
               </div>
               <span className="stat-info-badge">4 Kategori</span>
             </div>
-            <div className="stat-info-number">142</div>
+            <div className="stat-info-number">2.863</div>
             <div className="stat-info-label">Koleksi Pustaka Digital & Fisik</div>
             <p className="stat-info-subtext">
-              Buku cetak perpustakaan, e-book digital, karya tulis akhir perorangan (Taskap), dan jurnal ilmiah kepolisian.
+              1.637 buku perpustakaan 50 bidang ilmu, 1.219 karya tulis Taskap Serdik (Angkatan 65–76), e-book, dan jurnal.
             </p>
             <div className="stat-info-progress-wrap">
               <div className="stat-info-progress-bar" style={{ width: '85%', backgroundColor: '#a855f7' }} />

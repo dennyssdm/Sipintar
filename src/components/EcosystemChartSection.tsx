@@ -7,23 +7,23 @@ export const EcosystemChartSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'kategori' | 'pustaka' | 'gadik' | 'kurikulum'>('kategori');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  // Data 1: 8 Kategori Sumber Belajar (316 Berkas)
+  // Data 1: 8 Kategori Sumber Belajar (3.050 Berkas Terverifikasi)
   const categoryData = [
-    { name: 'E-Library / Perpustakaan', count: 142, pct: 44.9, color: '#8b5cf6', href: '/library', shortName: 'E-Library' },
-    { name: 'Modul & Hanjar', count: 78, pct: 24.7, color: '#3b82f6', href: '/modul', shortName: 'Modul/Hanjar' },
-    { name: 'SOP Kedinasan', count: 35, pct: 11.1, color: '#f59e0b', href: '/sop', shortName: 'SOP' },
-    { name: 'Pedoman & Juknis', count: 22, pct: 7.0, color: '#06b6d4', href: '/pedoman', shortName: 'Pedoman' },
-    { name: 'Kurikulum & Layanan', count: 19, pct: 6.0, color: '#10b981', href: '/kurikulum', shortName: 'Kurikulum' },
-    { name: 'Gadik & Kompetensi', count: 16, pct: 5.1, color: '#6366f1', href: '/gadik', shortName: 'Gadik' },
-    { name: 'Manual Book Sistem', count: 6, pct: 1.9, color: '#ec4899', href: '/manual', shortName: 'Manual Book' },
+    { name: 'E-Library / Perpustakaan', count: 2863, pct: 93.9, color: '#8b5cf6', href: '/library', shortName: 'E-Library' },
+    { name: 'Modul & Hanjar', count: 150, pct: 4.9, color: '#3b82f6', href: '/modul', shortName: 'Modul/Hanjar' },
+    { name: 'Gadik & Kompetensi', count: 16, pct: 0.5, color: '#6366f1', href: '/gadik', shortName: 'Gadik' },
+    { name: 'SOP Kedinasan', count: 7, pct: 0.2, color: '#f59e0b', href: '/sop', shortName: 'SOP' },
+    { name: 'Kurikulum & Layanan', count: 6, pct: 0.2, color: '#10b981', href: '/kurikulum', shortName: 'Kurikulum' },
+    { name: 'Pedoman & Juknis', count: 4, pct: 0.1, color: '#06b6d4', href: '/pedoman', shortName: 'Pedoman' },
+    { name: 'Manual Book Sistem', count: 4, pct: 0.1, color: '#ec4899', href: '/manual', shortName: 'Manual Book' },
   ];
 
-  // Data 2: Koleksi Perpustakaan (142 Judul)
+  // Data 2: Koleksi Perpustakaan (2.863 Judul)
   const libraryData = [
-    { type: 'Koleksi Buku Fisik', count: 52, pct: 36.6, color: '#10b981', href: '/library', desc: 'Buku teks cetak tersedia di ruang perpustakaan dengan kode rak & barcode.' },
-    { type: 'E-Book Digital', count: 48, pct: 33.8, color: '#3b82f6', href: '/library', desc: 'Naskah buku elektronik lengkap dapat dibaca langsung pada digital viewer.' },
-    { type: 'Karya Tulis (Taskap)', count: 28, pct: 19.7, color: '#8b5cf6', href: '/library', desc: 'Karya ilmiah akhir perorangan Serdik Sespimma dari berbagai angkatan.' },
-    { type: 'Jurnal Ilmiah Terbitan', count: 14, pct: 9.9, color: '#f59e0b', href: '/library', desc: 'Publikasi riset kepolisian terakreditasi dan artikel telaah taktis.' },
+    { type: 'Koleksi Buku Fisik', count: 1637, pct: 57.2, color: '#10b981', href: '/library', desc: 'Buku teks cetak 50 bidang ilmu di perbendaharaan perpustakaan Sespimma.' },
+    { type: 'Karya Tulis (Taskap)', count: 1219, pct: 42.6, color: '#8b5cf6', href: '/library', desc: 'Kertas Karya Perorangan Serdik Angkatan 65 s.d 76 (dilindungi Metadata Saja).' },
+    { type: 'E-Book Digital', count: 4, pct: 0.1, color: '#3b82f6', href: '/library', desc: 'Naskah buku elektronik digital dengan sampel pratinjau interaktif.' },
+    { type: 'Jurnal Ilmiah Terbitan', count: 3, pct: 0.1, color: '#f59e0b', href: '/library', desc: 'Publikasi riset empiris kepolisian dan artikel berkala terakreditasi.' },
   ];
 
   // Data 3: Kepangkatan Gadik Polri Fungsional (16 Personel)
@@ -62,7 +62,7 @@ export const EcosystemChartSection: React.FC = () => {
         {/* Global Metric Indicators */}
         <div className="chart-kpi-ribbon">
           <div className="chart-kpi-item">
-            <span className="chart-kpi-val">316</span>
+            <span className="chart-kpi-val">3.050</span>
             <span className="chart-kpi-lbl">Total Berkas</span>
           </div>
           <div className="chart-kpi-item">
@@ -148,7 +148,7 @@ export const EcosystemChartSection: React.FC = () => {
             {/* Header with Active Info Pill */}
             <div className="vbar-chart-header">
               <div>
-                <span className="vbar-chart-title">Diagram Batang Vertikal Repositori (316 Berkas)</span>
+                <span className="vbar-chart-title">Diagram Batang Vertikal Repositori (3.050 Berkas)</span>
                 <span className="vbar-chart-sub">Perbandingan volume materi 7 taksonomi dengan visualisasi batang tegak ke atas</span>
               </div>
               <div className="vbar-active-pill">
@@ -234,26 +234,26 @@ export const EcosystemChartSection: React.FC = () => {
             <div className="vbar-summary-tiles">
               <div className="vbar-tile">
                 <span className="vbar-tile-badge badge-purple">Paling Dominan</span>
-                <div className="vbar-tile-val">142 Berkas</div>
-                <div className="vbar-tile-name">E-Library & Taskap (44.9%)</div>
+                <div className="vbar-tile-val">2.863 Berkas</div>
+                <div className="vbar-tile-name">E-Library & Taskap (93.9%)</div>
               </div>
 
               <div className="vbar-tile">
                 <span className="vbar-tile-badge badge-blue">Bahan Ajar Inti</span>
-                <div className="vbar-tile-val">78 Berkas</div>
-                <div className="vbar-tile-name">Modul & Hanjar (24.7%)</div>
+                <div className="vbar-tile-val">150 Berkas</div>
+                <div className="vbar-tile-name">Modul & Hanjar (4.9%)</div>
               </div>
 
               <div className="vbar-tile">
                 <span className="vbar-tile-badge badge-amber">Tata Kelola & Mutu</span>
-                <div className="vbar-tile-val">57 Berkas</div>
-                <div className="vbar-tile-name">SOP & Pedoman (18.1%)</div>
+                <div className="vbar-tile-val">17 Berkas</div>
+                <div className="vbar-tile-name">SOP, Kurikulum, Pedoman (0.6%)</div>
               </div>
 
               <div className="vbar-tile">
                 <span className="vbar-tile-badge badge-green">Pendidik & Sistem</span>
-                <div className="vbar-tile-val">41 Berkas</div>
-                <div className="vbar-tile-name">Kurikulum, Gadik, Manual (13.0%)</div>
+                <div className="vbar-tile-val">20 Berkas</div>
+                <div className="vbar-tile-name">Gadik Fungsional & Manual Book (0.6%)</div>
               </div>
             </div>
           </div>
@@ -261,14 +261,14 @@ export const EcosystemChartSection: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: VERTICAL BAR CHART - KLASIFIKASI PUSTAKA & TASKAP (142 JUDUL)      */}
+      {/* TAB 2: VERTICAL BAR CHART - KLASIFIKASI PUSTAKA & TASKAP (2.863 JUDUL)    */}
       {/* ========================================================================= */}
       {activeTab === 'pustaka' && (
         <div className="chart-view-panel">
           <div className="vbar-chart-card">
             <div className="vbar-chart-header">
               <div>
-                <span className="vbar-chart-title">Diagram Batang Vertikal Koleksi Perpustakaan (142 Judul)</span>
+                <span className="vbar-chart-title">Diagram Batang Vertikal Koleksi Perpustakaan (2.863 Judul)</span>
                 <span className="vbar-chart-sub">Perbandingan volume buku fisik, e-book, karya tulis ilmiah (Taskap), dan jurnal ilmiah kepolisian</span>
               </div>
               <div className="vbar-active-pill">
@@ -355,7 +355,7 @@ export const EcosystemChartSection: React.FC = () => {
                 </svg>
               </div>
               <div className="highlight-content">
-                <strong>Ketersediaan Digital & Pratinjau Sampel Naskah:</strong> Seluruh 142 koleksi perpustakaan telah terdata dengan nomor klasifikasi bibliografi resmi (Dewey/ISBN). Naskah digital (e-book & naskah Taskap) dilengkapi sampel pratinjau 10–25 halaman yang dapat dibaca langsung oleh Serdik secara interaktif.
+                <strong>Ketersediaan Digital & Pratinjau Sampel Naskah:</strong> Seluruh 2.863 koleksi perpustakaan telah terdata dengan nomor klasifikasi bibliografi resmi (Dewey/Call Number/ISBN). Naskah digital dan inventarisasi dilengkapi sampel pratinjau yang dapat dibaca langsung oleh Serdik secara interaktif.
               </div>
             </div>
           </div>
