@@ -20,6 +20,9 @@ export async function serveResourceFile(req, res, next) {
     // Clean filename for HTTP header
     const safeHeaderFilename = encodeURIComponent(fileResult.filename);
 
+    res.removeHeader('X-Frame-Options');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Content-Security-Policy', "frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000 *");
     res.setHeader('Content-Type', fileResult.mimeType);
     res.setHeader('Content-Disposition', `${dispositionType}; filename="${safeHeaderFilename}"`);
 
@@ -40,6 +43,9 @@ export async function serveBookPreview(req, res, next) {
 
     const safeHeaderFilename = encodeURIComponent(fileResult.filename);
 
+    res.removeHeader('X-Frame-Options');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Content-Security-Policy', "frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000 *");
     res.setHeader('Content-Type', fileResult.mimeType);
     res.setHeader('Content-Disposition', `inline; filename="${safeHeaderFilename}"`);
 

@@ -30,6 +30,8 @@ const PORT = process.env.PORT || 5000;
 // Security headers (Helmet)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: false,
+  frameguard: false,
   contentSecurityPolicy: false
 }));
 
