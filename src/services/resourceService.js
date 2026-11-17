@@ -189,6 +189,12 @@ export async function getResourceById(identifier, user = null) {
 
   const tagList = tags ? tags.map(t => t.tag_name) : [];
 
+  // Sanitize direct file_url for 'Metadata Saja' resources
+  if (resource.access_classification === 'Metadata Saja') {
+    delete resource.file_url;
+    resource.has_digital_file = 0;
+  }
+
   return {
     ...resource,
     tags: tagList,

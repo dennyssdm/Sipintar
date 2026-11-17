@@ -75,8 +75,8 @@ export async function getBooks(params = {}) {
            b.sub_category, b.language, b.call_number, b.physical_location,
            b.stock_total, b.stock_available, b.cover_image_url, b.cover_color, b.cover_gradient,
            b.access_classification,
-           (bf.id IS NOT NULL) AS has_digital_file,
-           bf.preview_file_path IS NOT NULL AS has_preview,
+           (CASE WHEN b.access_classification = 'Metadata Saja' THEN 0 WHEN bf.id IS NOT NULL THEN 1 ELSE 0 END) AS has_digital_file,
+           (CASE WHEN b.access_classification = 'Metadata Saja' THEN 0 WHEN bf.preview_file_path IS NOT NULL THEN 1 ELSE 0 END) AS has_preview,
            bf.file_format, bf.file_size_label, bf.total_pages, bf.preview_pages
     FROM books b
     LEFT JOIN library_categories lc ON b.library_category_id = lc.id
@@ -132,9 +132,12 @@ export async function getBookDetail(identifier) {
 
   const book = rows[0];
 
-  // If access is Metadata Saja, sanitize out file_path so direct link is never exposed
+  // If access is Metadata Saja, sanitize out file_path and preview_file_path so direct link is never exposed
   if (book.access_classification === 'Metadata Saja') {
     delete book.file_path;
+    delete book.preview_file_path;
+    book.has_digital_file = 0;
+    book.has_preview = 0;
   }
 
   return book;
