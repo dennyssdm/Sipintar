@@ -236,6 +236,19 @@
         }
       }
     },
+    "/library/books/{id}": {
+      "get": {
+        "tags": ["6. Perpustakaan & E-Library"],
+        "summary": "Detail Buku & Informasi Eksemplar Perpustakaan",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "1" }
+        ],
+        "responses": {
+          "200": { "description": "Informasi detail bibliografi, nomor panggil, nomor rak, dan ketersediaan stok fisik/digital" },
+          "404": { "description": "Buku tidak ditemukan" }
+        }
+      }
+    },
     "/library/books/{id}/preview": {
       "get": {
         "tags": ["6. Perpustakaan & E-Library"],
@@ -271,6 +284,33 @@
         "security": [{ "BearerAuth": [] }],
         "responses": {
           "201": { "description": "Draf materi berhasil dibuat dan tercatat di antrean" }
+        }
+      }
+    },
+    "/admin/resources/{id}": {
+      "put": {
+        "tags": ["8. Tata Kelola & Verifikasi"],
+        "summary": "Perbarui Metadata & Berkas Naskah Sumber Belajar",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "1" }
+        ],
+        "responses": {
+          "200": { "description": "Metadata sumber belajar berhasil diperbarui" },
+          "403": { "description": "Bukan pemilik atau tidak memiliki wewenang" }
+        }
+      }
+    },
+    "/admin/resources/{id}/archive": {
+      "patch": {
+        "tags": ["8. Tata Kelola & Verifikasi"],
+        "summary": "Arsipkan Naskah Sumber Belajar (Soft-Delete Akademik)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "1" }
+        ],
+        "responses": {
+          "200": { "description": "Naskah berhasil dialihkan ke siklus Arsip" }
         }
       }
     },
@@ -324,6 +364,60 @@
         ],
         "responses": {
           "200": { "description": "Daftar akun pengguna Sespimma terdaftar" }
+        }
+      }
+    },
+    "/admin/users/{id}/role": {
+      "patch": {
+        "tags": ["8. Tata Kelola & Verifikasi"],
+        "summary": "Perbarui Peran Akun Pengguna (RBAC)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "23" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["role_code"],
+                "properties": {
+                  "role_code": { "type": "string", "enum": ["serdik", "gadik", "pengelola", "verifikator", "admin", "pimpinan"], "example": "gadik" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Peran akun berhasil diubah" }
+        }
+      }
+    },
+    "/admin/users/{id}/status": {
+      "patch": {
+        "tags": ["8. Tata Kelola & Verifikasi"],
+        "summary": "Aktivasi / Deaktivasi Akun Pengguna",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "23" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["is_active"],
+                "properties": {
+                  "is_active": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status keaktifan akun berhasil diubah" }
         }
       }
     },
