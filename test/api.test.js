@@ -542,6 +542,25 @@ async function runTests() {
     assert(false, '30. Detail Profil Tenaga Pendidik', err.message);
   }
 
+  // 31. Security Gate on "Terbatas" Classified Documents (Serdik 403 vs Admin 200)
+  try {
+    const serdikRes = await request('/resources/12/file', {
+      headers: { Authorization: `Bearer ${serdikToken}` }
+    });
+    const adminRes = await request('/resources/12/file', {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      serdikRes.status === 403 &&
+      serdikRes.data?.error?.code === 'FORBIDDEN' &&
+      adminRes.status === 200 &&
+      (adminRes.headers.get('content-type') || '').includes('application/pdf'),
+      '31. Security Gate on "Terbatas" Classified Documents (Serdik 403 vs Admin 200)'
+    );
+  } catch (err) {
+    assert(false, '31. Security Gate on "Terbatas"', err.message);
+  }
+
   console.log(`\n------------------------------------------------------------`);
   console.log(`  Test Summary: \x1b[32m${passed} Passed\x1b[0m, \x1b[31m${failed} Failed\x1b[0m out of ${passed + failed} Tests`);
   console.log(`------------------------------------------------------------\n`);
