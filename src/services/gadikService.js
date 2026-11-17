@@ -143,9 +143,30 @@ export async function getGadikDetail(identifier) {
     [gadik.id]
   );
 
+  // Fetch associated resources taught or authored by this Gadik
+  const nameParts = (gadik.nama_lengkap || '')
+    .replace(/(KOMBES POL|AKBP|KOMPOL|IPTU|Dr\.|Prof\.|S\.I\.K\.|S\.H\.|M\.H\.|M\.Si\.|S\.Ak\.|S\.P\.|M\.Sc\.|M\.M\.|,|;)/gi, '')
+    .trim()
+    .split(/\s+/);
+  const mainName = nameParts.length > 1 ? nameParts.slice(-2).join(' ') : nameParts[0];
+
+  const [resources] = await pool.query(
+    `SELECT r.id, r.uuid, r.title, r.category_id, c.name AS category_name, c.slug AS category_slug,
+            r.sub_category_text, r.author_or_instructor, r.lifecycle_status, r.access_classification,
+            r.file_format, r.file_size_label, r.published_at
+     FROM resources r
+     LEFT JOIN categories c ON r.category_id = c.id
+     WHERE r.lifecycle_status = 'Dipublikasikan'
+       AND (r.created_by = ? OR (r.author_or_instructor LIKE ? AND ? != ''))
+     ORDER BY r.created_at DESC
+     LIMIT 10`,
+    [gadik.id, `%${mainName}%`, mainName]
+  );
+
   return {
     ...gadik,
-    competencies: competencies || []
+    competencies: competencies || [],
+    associated_resources: resources || []
   };
 }
 

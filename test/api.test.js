@@ -520,6 +520,20 @@ async function runTests() {
     assert(false, '29. Category Slug & Lifecycle Status Handling', err.message);
   }
 
+  // 30. Detail Profil Tenaga Pendidik & Materi Ajar Binaan (/gadik/:id)
+  try {
+    const res = await request('/gadik/14');
+    assert(
+      res.status === 200 &&
+      Boolean(res.data?.data?.nama_lengkap) &&
+      res.data?.data?.competencies?.length > 0 &&
+      Array.isArray(res.data?.data?.associated_resources),
+      '30. Detail Profil Tenaga Pendidik & Materi Ajar Binaan (/gadik/:id)'
+    );
+  } catch (err) {
+    assert(false, '30. Detail Profil Tenaga Pendidik', err.message);
+  }
+
   console.log(`\n------------------------------------------------------------`);
   console.log(`  Test Summary: \x1b[32m${passed} Passed\x1b[0m, \x1b[31m${failed} Failed\x1b[0m out of ${passed + failed} Tests`);
   console.log(`------------------------------------------------------------\n`);
