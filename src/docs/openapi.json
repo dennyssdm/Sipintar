@@ -159,6 +159,19 @@
         }
       }
     },
+    "/resources/{id}/related": {
+      "get": {
+        "tags": ["4. Sumber Belajar (Resources)"],
+        "summary": "Rekomendasi Materi Terkait (Related Learning Resources)",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "1" },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 4 }, "description": "Jumlah rekomendasi naskah" }
+        ],
+        "responses": {
+          "200": { "description": "Daftar materi terkait berdasarkan kesamaan kategori dan irisan tag" }
+        }
+      }
+    },
     "/resources/{id}/file": {
       "get": {
         "tags": ["4. Sumber Belajar (Resources)"],
@@ -351,3 +364,4 @@
     }
   }
 }
+

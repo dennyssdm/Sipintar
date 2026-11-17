@@ -33,8 +33,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/health",
-              "host": ["{{baseUrl}}"],
-              "path": ["health"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
             },
             "description": "Memeriksa kesiapan service API dan koneksi pool MySQL sipintar_db."
           },
@@ -46,8 +50,12 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/health",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["health"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "health"
+                  ]
                 }
               },
               "status": "OK",
@@ -71,8 +79,12 @@
             "header": [],
             "url": {
               "raw": "{{rootUrl}}/",
-              "host": ["{{rootUrl}}"],
-              "path": [""]
+              "host": [
+                "{{rootUrl}}"
+              ],
+              "path": [
+                ""
+              ]
             },
             "description": "Mendapatkan informasi dasar aplikasi SIPINTAR."
           },
@@ -116,8 +128,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
             "description": "Autentikasi menggunakan Email atau NRP/NIP (contoh NRP: 80010001). Menyimpan authToken JWT secara otomatis ke collection variables."
           },
@@ -147,8 +164,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
             "description": "Login akun peserta didik (Serdik) menggunakan NRP 85071234."
           },
@@ -171,8 +193,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
             },
             "description": "Mengambil data profil lengkap pengguna aktif sesuai peran (Admin, Gadik dengan kompetensi, Serdik dengan nosis/sindikat, atau Pengelola)."
           },
@@ -202,8 +229,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             },
             "description": "Pendaftaran mandiri peserta didik (Serdik). Otomatis membuat relasi ke user_profiles_serdik."
           },
@@ -234,8 +266,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/admin-check",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "admin-check"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "admin-check"
+              ]
             },
             "description": "Pengujian Role-Based Access Control (RBAC). Hanya mengizinkan pengguna dengan peran 'admin'. Menghasilkan 403 Forbidden untuk peran selain admin."
           },
@@ -268,8 +305,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories"
+              ]
             },
             "description": "Mengambil 8 kategori utama modul, hanjar, dan dokumen instruksional Sespimma beserta jumlah materi yang telah dipublikasikan."
           },
@@ -290,8 +331,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/categories/2/subcategories",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", "2", "subcategories"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "2",
+                "subcategories"
+              ]
             },
             "description": "Mengambil daftar subkategori untuk kategori tertentu (misal kategori ID 2: Modul & Hanjar)."
           },
@@ -312,8 +359,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/resources?category_id=2&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["resources"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "resources"
+              ],
               "query": [
                 {
                   "key": "category_id",
@@ -348,8 +399,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/resources/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["resources", "1"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "resources",
+                "1"
+              ]
             },
             "description": "Mengambil informasi detail dokumen, silabus, dan daftar tag terkait."
           },
@@ -364,14 +420,52 @@
           ]
         },
         {
+          "name": "Rekomendasi Materi Terkait (Related Resources)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text",
+                "description": "Optional: User authorization token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/resources/1/related?limit=4",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "resources",
+                "1",
+                "related"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "4",
+                  "description": "Jumlah rekomendasi materi terkait"
+                }
+              ]
+            },
+            "description": "Mengambil rekomendasi naskah/modul pembelajaran terkait berdasarkan kesamaan kategori taksonomi dan irisan tag terbanyak."
+          },
+          "response": []
+        },
+        {
           "name": "Daftar Gadik & Kompetensi",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/gadik?fungsional=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["gadik"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "gadik"
+              ],
               "query": [
                 {
                   "key": "fungsional",
@@ -398,8 +492,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/gadik/7",
-              "host": ["{{baseUrl}}"],
-              "path": ["gadik", "7"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "gadik",
+                "7"
+              ]
             },
             "description": "Mengambil profil detail widyaiswara/gadik beserta mata ajar, nomor Sprin, dan bio lengkap."
           },
@@ -420,8 +519,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/library/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["library", "categories"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library",
+                "categories"
+              ]
             },
             "description": "Mengambil 4 kategori perpustakaan (buku-fisik, ebook, jurnal, taskap) beserta jumlah stok buku."
           },
@@ -442,8 +546,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/library/books?category_id=buku-fisik&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["library", "books"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library",
+                "books"
+              ],
               "query": [
                 {
                   "key": "category_id",
@@ -478,8 +587,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/library/books/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["library", "books", "1"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library",
+                "books",
+                "1"
+              ]
             },
             "description": "Mengambil detail informasi buku, nomor panggil (call number), lokasi fisik rak, atau ketersediaan file preview."
           },
@@ -500,8 +615,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/search?q=kepemimpinan&category=all&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search"
+              ],
               "query": [
                 {
                   "key": "q",
@@ -555,8 +674,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/resources/1/file",
-              "host": ["{{baseUrl}}"],
-              "path": ["resources", "1", "file"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "resources",
+                "1",
+                "file"
+              ]
             },
             "description": "Streaming berkas materi untuk pembaca digital (in-app reader) dengan Content-Disposition: inline. Memeriksa validitas klasifikasi akses (Terbuka/Internal/Terbatas)."
           },
@@ -597,8 +722,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/resources/1/file?download=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["resources", "1", "file"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "resources",
+                "1",
+                "file"
+              ],
               "query": [
                 {
                   "key": "download",
@@ -635,8 +766,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/library/books/1/preview",
-              "host": ["{{baseUrl}}"],
-              "path": ["library", "books", "1", "preview"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library",
+                "books",
+                "1",
+                "preview"
+              ]
             },
             "description": "Menampilkan sampel pratinjau buku secara aman tanpa unduhan utuh."
           },
@@ -667,8 +805,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/library/books/9/preview",
-              "host": ["{{baseUrl}}"],
-              "path": ["library", "books", "9", "preview"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library",
+                "books",
+                "9",
+                "preview"
+              ]
             },
             "description": "Memastikan perlindungan ketat: Dokumen berstatus 'Metadata Saja' (Taskap / Buku Fisik terlarang diunduh/dipratinjau) ditolak dengan 403 Forbidden."
           },
@@ -713,8 +858,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/admin/resources",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "resources"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "resources"
+              ]
             },
             "description": "Membuat draft sumber belajar baru dengan status awal Draft (bisa menggunakan json atau multipart/form-data jika mengunggah file)."
           },
@@ -754,8 +904,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/admin/resources/117",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "resources", "117"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "resources",
+                "117"
+              ]
             },
             "description": "Memperbarui data metadata naskah atau mengganti berkas."
           },
@@ -778,8 +934,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/resources/117/archive",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "resources", "117", "archive"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "resources",
+                "117",
+                "archive"
+              ]
             },
             "description": "Mengarsipkan materi ajar lama (siklus hidup 'Arsip') untuk menjaga rekam jejak akademik tanpa penghapusan fisik."
           },
@@ -810,8 +973,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/verification/queue",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "verification", "queue"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "verification",
+                "queue"
+              ]
             },
             "description": "Melihat naskah ajar yang berstatus Draft atau Diverifikasi dan memerlukan pengesahan Bag Jarlat."
           },
@@ -851,8 +1020,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/admin/verification/117/review",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "verification", "117", "review"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "verification",
+                "117",
+                "review"
+              ]
             },
             "description": "Menyetujui naskah menjadi 'Dipublikasikan' (approve), mengembalikan untuk perbaikan (revision), atau menolak naskah (reject) disertai catatan ke verification_logs."
           },
@@ -883,8 +1059,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/users?role_code=serdik&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "users"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ],
               "query": [
                 {
                   "key": "role_code",
@@ -938,8 +1119,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/admin/users/23/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "users", "23", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "23",
+                "status"
+              ]
             },
             "description": "Mengaktifkan atau menonaktifkan akun pengguna SIPINTAR."
           },
@@ -970,8 +1158,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/monitoring/stats",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "monitoring", "stats"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "monitoring",
+                "stats"
+              ]
             },
             "description": "Agregat statistik materi menurut kategori, siklus hidup, klasifikasi akses, dan pencarian terkini."
           },
@@ -1002,8 +1196,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/monitoring/logs?type=activity&limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "monitoring", "logs"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "monitoring",
+                "logs"
+              ],
               "query": [
                 {
                   "key": "type",
@@ -1031,4 +1231,3 @@
     }
   ]
 }
-

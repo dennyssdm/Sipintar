@@ -20,3 +20,14 @@ export async function getResourceDetail(req, res, next) {
   }
 }
 
+export async function getRelatedResources(req, res, next) {
+  try {
+    const { id } = req.params;
+    const limit = Math.min(20, Math.max(1, parseInt(req.query.limit, 10) || 4));
+    const items = await resourceService.getRelatedResources(id, limit);
+    return sendSuccess(res, 'Materi terkait berhasil diambil', items);
+  } catch (error) {
+    next(error);
+  }
+}
+

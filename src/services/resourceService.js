@@ -168,8 +168,72 @@ export async function getResourceById(identifier, user = null) {
     [resource.id]
   );
 
+  const tagList = tags ? tags.map(t => t.tag_name) : [];
+
   return {
     ...resource,
-    tags: tags || []
+    tags: tagList,
+    tag_details: tags || []
   };
+}
+
+/**
+ * Get related resources based on shared category and tags
+ * @param {string|number} identifier - Resource ID or UUID
+ * @param {number} limit
+ */
+export async function getRelatedResources(identifier, limit = 4) {
+  let condition = 'r.id = ?';
+  let param = identifier;
+
+  if (isNaN(identifier)) {
+    condition = 'r.uuid = ?';
+  }
+
+  // Get current resource category_id and id
+  const [current] = await pool.query(
+    `SELECT r.id, r.category_id FROM resources r WHERE ${condition}`,
+    [param]
+  );
+
+  if (current.length === 0) {
+    return [];
+  }
+
+  const currentId = current[0].id;
+  const categoryId = current[0].category_id;
+
+  // Query resources in same category, prioritized by shared tags count
+  const query = `
+    SELECT r.id, r.uuid, r.title, r.category_id, c.name AS category_name,
+           r.sub_category_text, r.author_or_instructor, r.unit_or_source,
+           r.lifecycle_status, r.access_classification,
+           r.has_digital_file, r.file_format, r.file_size_label,
+           r.published_at,
+           COUNT(DISTINCT rt2.tag_id) AS shared_tags_count,
+           GROUP_CONCAT(DISTINCT t.tag_name) AS tags_csv
+    FROM resources r
+    LEFT JOIN categories c ON r.category_id = c.id
+    LEFT JOIN resource_tags rt ON r.id = rt.resource_id
+    LEFT JOIN tags t ON rt.tag_id = t.id
+    LEFT JOIN resource_tags rt2 ON r.id = rt2.resource_id 
+         AND rt2.tag_id IN (SELECT tag_id FROM resource_tags WHERE resource_id = ?)
+    WHERE r.id != ?
+      AND r.category_id = ?
+      AND r.lifecycle_status = 'Dipublikasikan'
+    GROUP BY r.id
+    ORDER BY shared_tags_count DESC, r.created_at DESC
+    LIMIT ?
+  `;
+
+  const [rows] = await pool.query(query, [currentId, currentId, categoryId, limit]);
+
+  return rows.map(item => {
+    const tags = item.tags_csv ? item.tags_csv.split(',').map(t => t.trim()) : [];
+    const { tags_csv, shared_tags_count, ...rest } = item;
+    return {
+      ...rest,
+      tags
+    };
+  });
 }

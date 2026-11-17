@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/', optionalAuthenticateToken, resourceController.listResources);
 router.get('/:id', optionalAuthenticateToken, resourceController.getResourceDetail);
+router.get('/:id/related', optionalAuthenticateToken, resourceController.getRelatedResources);
 router.get('/:id/file', optionalAuthenticateToken, fileController.serveResourceFile);
 
 export default router;

@@ -132,6 +132,10 @@ class SipintarApiClient {
       const res = await this.request<any>(`/resources/${idOrUuid}`);
       return res.data;
     },
+    getRelated: async (idOrUuid: string | number, limit = 4) => {
+      const res = await this.request<any[]>(`/resources/${idOrUuid}/related?limit=${limit}`);
+      return res.data;
+    },
     getFileUrl: (id: string | number, isDownload = false) => {
       return `${this.baseUrl}/resources/${id}/file${isDownload ? '?download=true' : ''}`;
     }
