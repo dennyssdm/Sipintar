@@ -465,13 +465,61 @@ export default function AdminDataPage() {
       const filename = `SIPINTAR_${activeTab.toUpperCase()}_EXPORT_${timestamp}`;
 
       if (format === 'csv') {
-        const csvContent = convertToCsv(items);
+        let exportDataRows = items;
+        if (activeTab === 'users') {
+          exportDataRows = items.map((u: any, i: number) => ({
+            'No': i + 1,
+            'NRP / NIP': u.nrp_nip || '',
+            'Nama Lengkap': u.nama_lengkap || '',
+            'Email': u.email || '',
+            'Nomor Telepon': u.no_telepon || '',
+            'Kode Peran': u.kode_peran || '',
+            'Nama Peran': u.nama_peran || '',
+            'Status Akun': u.status_akun || '',
+            'Login Terakhir': u.login_terakhir || '-',
+            'Tanggal Registrasi': u.dibuat_pada || '-'
+          }));
+        } else if (activeTab === 'books') {
+          exportDataRows = items.map((b: any, i: number) => ({
+            'No': i + 1,
+            'Judul Buku': b.judul || '',
+            'Penulis': b.penulis || '',
+            'Penerbit': b.penerbit || '',
+            'Tahun Terbit': b.tahun_terbit || '',
+            'ISBN': b.isbn || '',
+            'Kategori': b.kategori || '',
+            'Subkategori': b.sub_kategori || '',
+            'Nomor Panggil': b.nomor_panggil || '',
+            'Lokasi Rak': b.lokasi_rak || '',
+            'Stok Total': b.stok_total || 1,
+            'Stok Tersedia': b.stok_tersedia || 1,
+            'Klasifikasi Akses': b.klasifikasi_akses || '',
+            'Status': b.status || '',
+            'Sinopsis': b.sinopsis || ''
+          }));
+        } else if (activeTab === 'resources') {
+          exportDataRows = items.map((r: any, i: number) => ({
+            'No': i + 1,
+            'Judul Dokumen': r.judul || '',
+            'Kategori': r.kategori || '',
+            'Subkategori': r.sub_kategori || '',
+            'Deskripsi': r.deskripsi || '',
+            'Penulis / Penyusun': r.penulis_penyusun || '',
+            'Satuan / Sumber': r.unit_sumber || '',
+            'Klasifikasi Akses': r.klasifikasi_akses || '',
+            'Status': r.status || '',
+            'Format Berkas': r.format_berkas || '',
+            'Lokasi Fisik': r.lokasi_fisik || ''
+          }));
+        }
+
+        const csvContent = convertToCsv(exportDataRows);
         triggerDownload(`${filename}.csv`, csvContent, 'text/csv;charset=utf-8;', true);
-        showNotification(`Berhasil mengekspor ${items.length} baris data ${activeTab} ke Excel/CSV!`);
+        showNotification(`Berhasil mengekspor ${items.length} baris data ${activeTab.toUpperCase()} ke Excel/CSV!`);
       } else {
         const jsonContent = JSON.stringify(items, null, 2);
         triggerDownload(`${filename}.json`, jsonContent, 'application/json;charset=utf-8;', false);
-        showNotification(`Berhasil mengekspor ${items.length} data ${activeTab} ke JSON!`);
+        showNotification(`Berhasil mengekspor ${items.length} data ${activeTab.toUpperCase()} ke JSON!`);
       }
     } catch (err: any) {
       showNotification(`Gagal mengekspor data: ${err.message || 'Kesalahan server'}`, 'error');
@@ -1040,7 +1088,7 @@ export default function AdminDataPage() {
               <line x1="12" y1="18" x2="12" y2="12" />
               <polyline points="9 15 12 18 15 15" />
             </svg>
-            <span>Format Template</span>
+            <span>{activeTab === 'users' ? 'Template Pengguna' : activeTab === 'books' ? 'Template Buku' : 'Template Dokumen'}</span>
           </button>
 
           {/* 2. Export Dropdown Menu */}
@@ -1069,7 +1117,7 @@ export default function AdminDataPage() {
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              <span>{isExporting ? 'Mengekspor...' : '📥 Export Data'}</span>
+              <span>{isExporting ? 'Mengekspor...' : activeTab === 'users' ? '📥 Export Pengguna' : activeTab === 'books' ? '📥 Export Buku' : '📥 Export Dokumen'}</span>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -1086,7 +1134,7 @@ export default function AdminDataPage() {
                   borderRadius: '8px',
                   boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
                   padding: '6px',
-                  minWidth: '190px',
+                  minWidth: '200px',
                   zIndex: 50,
                 }}
               >
@@ -1178,7 +1226,7 @@ export default function AdminDataPage() {
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            <span>📤 Import Data</span>
+            <span>{activeTab === 'users' ? '📤 Import Pengguna' : activeTab === 'books' ? '📤 Import Buku' : '📤 Import Dokumen'}</span>
           </button>
 
           {/* 4. Tab-Specific Add Button */}
@@ -1197,7 +1245,7 @@ export default function AdminDataPage() {
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              <span>+ Tambah Naskah</span>
+              <span>+ Tambah Naskah Baru</span>
             </button>
           )}
 
@@ -1215,7 +1263,7 @@ export default function AdminDataPage() {
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              <span>+ Tambah Buku</span>
+              <span>+ Tambah Buku / Taskap</span>
             </button>
           )}
 
@@ -1227,6 +1275,7 @@ export default function AdminDataPage() {
               style={{
                 background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
                 color: '#ffffff',
+                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35)',
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1235,7 +1284,7 @@ export default function AdminDataPage() {
                 <line x1="20" y1="8" x2="20" y2="14" />
                 <line x1="23" y1="11" x2="17" y2="11" />
               </svg>
-              <span>+ Tambah Pengguna</span>
+              <span>+ Tambah Pengguna Baru</span>
             </button>
           )}
         </div>
@@ -1466,9 +1515,121 @@ export default function AdminDataPage() {
               </select>
             </div>
 
-            <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
-              Menampilkan <strong>{filteredResources.length}</strong> dari {resources.length} naskah
+            {/* ACTION BUTTONS FOR RESOURCES TAB */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                className="btn-primary"
+                style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  color: '#ffffff',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 16px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
+                  cursor: 'pointer',
+                  border: 'none',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>+ Tambah Naskah Baru</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setImportFile(null);
+                  setImportParsedRows([]);
+                  setImportErrorDetails([]);
+                  setShowImportModal(true);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 14px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: '#34d399',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span>📤 Import Dokumen</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isExporting}
+                onClick={() => handleExport('csv')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 14px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                  border: '1px solid rgba(59, 130, 246, 0.4)',
+                  color: '#60a5fa',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>{isExporting ? 'Mengekspor...' : '📥 Export Dokumen (Excel)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                title="Unduh format template CSV dokumen bahan ajar"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#f1f5f9',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <polyline points="9 15 12 18 15 15" />
+                </svg>
+                <span>Format Template</span>
+              </button>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+            Menampilkan <strong>{filteredResources.length}</strong> dari {resources.length} naskah
           </div>
 
           {/* Table Container */}
@@ -1667,9 +1828,122 @@ export default function AdminDataPage() {
                 <option value="jurnal">Jurnal Kepolisian</option>
               </select>
             </div>
-            <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
-              Menampilkan <strong>{filteredBooks.length}</strong> buku
+
+            {/* ACTION BUTTONS FOR BOOKS TAB */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setShowAddBookModal(true)}
+                className="btn-primary"
+                style={{
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#ffffff',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 16px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.35)',
+                  cursor: 'pointer',
+                  border: 'none',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>+ Tambah Buku / Taskap</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setImportFile(null);
+                  setImportParsedRows([]);
+                  setImportErrorDetails([]);
+                  setShowImportModal(true);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 14px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: '#34d399',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span>📤 Import Koleksi</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isExporting}
+                onClick={() => handleExport('csv')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 14px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                  border: '1px solid rgba(59, 130, 246, 0.4)',
+                  color: '#60a5fa',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>{isExporting ? 'Mengekspor...' : '📥 Export Buku (Excel)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                title="Unduh format template CSV koleksi perpustakaan"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#f1f5f9',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <polyline points="9 15 12 18 15 15" />
+                </svg>
+                <span>Format Template</span>
+              </button>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+            Menampilkan <strong>{filteredBooks.length}</strong> buku terdaftar
           </div>
 
           <div
@@ -1774,14 +2048,15 @@ export default function AdminDataPage() {
       {/* ========================================================================= */}
       {activeTab === 'users' && (
         <div>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '280px' }}>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '14px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '280px', flexWrap: 'wrap' }}>
               <input
                 type="text"
                 placeholder="Cari nama pengguna, NRP/NIP, atau email..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
                 style={{
+                  minWidth: '240px',
                   flex: 1,
                   padding: '9px 14px',
                   borderRadius: 'var(--radius-sm)',
@@ -1812,9 +2087,124 @@ export default function AdminDataPage() {
                 <option value="pimpinan">Pimpinan Sespimma</option>
               </select>
             </div>
-            <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
-              Menampilkan <strong>{filteredUsers.length}</strong> pengguna
+
+            {/* ACTION BUTTONS FOR USERS TAB */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setShowAddUserModal(true)}
+                className="btn-primary"
+                style={{
+                  background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                  color: '#ffffff',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 16px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35)',
+                  cursor: 'pointer',
+                  border: 'none',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <line x1="20" y1="8" x2="20" y2="14" />
+                  <line x1="23" y1="11" x2="17" y2="11" />
+                </svg>
+                <span>+ Tambah Pengguna Baru</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setImportFile(null);
+                  setImportParsedRows([]);
+                  setImportErrorDetails([]);
+                  setShowImportModal(true);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 14px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: '#34d399',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span>📤 Import Pengguna</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isExporting}
+                onClick={() => handleExport('csv')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 14px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                  border: '1px solid rgba(59, 130, 246, 0.4)',
+                  color: '#60a5fa',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>{isExporting ? 'Mengekspor...' : '📥 Export Pengguna (Excel)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                title="Unduh format template CSV akun pengguna"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#f1f5f9',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <polyline points="9 15 12 18 15 15" />
+                </svg>
+                <span>Format Template</span>
+              </button>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+            Menampilkan <strong>{filteredUsers.length}</strong> pengguna terdaftar
           </div>
 
           <div
