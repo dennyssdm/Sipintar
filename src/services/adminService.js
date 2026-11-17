@@ -170,6 +170,14 @@ export async function updateResource(id, data, file, user, meta = {}) {
   }
   const current = existing[0];
 
+  // RBAC ownership check: Non-admins can only modify resources they created
+  if (user.role_code !== 'admin' && current.created_by && Number(current.created_by) !== Number(user.id)) {
+    const error = new Error('Anda tidak memiliki wewenang untuk mengubah materi ajar milik pengusul lain.');
+    error.statusCode = 403;
+    error.code = 'FORBIDDEN';
+    throw error;
+  }
+
   const {
     title = current.title,
     category_id = current.category_id,

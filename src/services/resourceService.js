@@ -14,10 +14,18 @@ export async function getResources(params = {}, user = null) {
   const queryParams = [];
 
   // Lifecycle status rule:
-  // Non-admin / non-verifier users can only view 'Dipublikasikan'
+  // Non-admin / non-verifier users can only view 'Dipublikasikan',
+  // UNLESS filtering for their own created drafts (e.g. my_resources=true)
   const isPrivileged = user && ['admin', 'verifikator'].includes(user.role_code);
 
-  if (isPrivileged && params.lifecycle_status) {
+  if (user && (params.my_resources === 'true' || params.my_resources === true)) {
+    conditions.push('r.created_by = ?');
+    queryParams.push(user.id);
+    if (params.lifecycle_status) {
+      conditions.push('r.lifecycle_status = ?');
+      queryParams.push(params.lifecycle_status);
+    }
+  } else if (isPrivileged && params.lifecycle_status) {
     conditions.push('r.lifecycle_status = ?');
     queryParams.push(params.lifecycle_status);
   } else if (!isPrivileged) {
@@ -150,8 +158,9 @@ export async function getResourceById(identifier, user = null) {
 
   const resource = rows[0];
 
-  // Lifecycle security check
-  const isPrivileged = user && ['admin', 'verifikator'].includes(user.role_code);
+  // Lifecycle security check: author of the draft, admin, or verifikator can view
+  const isCreator = user && resource.created_by && Number(resource.created_by) === Number(user.id);
+  const isPrivileged = user && (['admin', 'verifikator'].includes(user.role_code) || isCreator);
   if (!isPrivileged && resource.lifecycle_status !== 'Dipublikasikan') {
     const error = new Error('Sumber belajar belum dipublikasikan atau berada dalam status non-aktif');
     error.statusCode = 404;
