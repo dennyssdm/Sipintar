@@ -1119,3 +1119,443 @@ export async function createUser(data, user, meta = {}) {
 
   return { id: insert.insertId, uuid: userUuid, nrp_nip, nama_lengkap, email, role_id };
 }
+
+/**
+ * -------------------------------------------------------------
+ * 4. DATA EXPORT & BATCH IMPORT SERVICES (CMS MANAJEMEN DATA)
+ * -------------------------------------------------------------
+ */
+
+/**
+ * Export data for a given entity: 'resources', 'books', or 'users'
+ */
+export async function exportData(entity, user) {
+  if (entity === 'resources') {
+    const [rows] = await pool.query(`
+      SELECT 
+        r.id,
+        r.title AS judul,
+        c.name AS kategori,
+        COALESCE(r.sub_category_text, sc.name, '') AS sub_kategori,
+        r.description AS deskripsi,
+        r.author_or_instructor AS penulis_penyusun,
+        r.unit_or_source AS unit_sumber,
+        r.access_classification AS klasifikasi_akses,
+        r.lifecycle_status AS status,
+        COALESCE(r.file_format, 'PDF') AS format_berkas,
+        COALESCE(r.physical_location, '') AS lokasi_fisik,
+        r.created_at AS dibuat_pada
+      FROM resources r
+      LEFT JOIN categories c ON r.category_id = c.id
+      LEFT JOIN sub_categories sc ON r.sub_category_id = sc.id
+      ORDER BY r.id DESC
+    `);
+    return { entity, count: rows.length, data: rows };
+  }
+
+  if (entity === 'books') {
+    const [rows] = await pool.query(`
+      SELECT 
+        b.id,
+        b.title AS judul,
+        b.author AS penulis,
+        b.publisher AS penerbit,
+        b.published_year AS tahun_terbit,
+        COALESCE(b.isbn, '') AS isbn,
+        b.library_category_id AS kategori,
+        COALESCE(b.sub_category, '') AS sub_kategori,
+        b.call_number AS nomor_panggil,
+        b.physical_location AS lokasi_rak,
+        b.stock_total AS stok_total,
+        b.stock_available AS stok_tersedia,
+        b.access_classification AS klasifikasi_akses,
+        b.lifecycle_status AS status,
+        b.synopsis AS sinopsis,
+        b.created_at AS dibuat_pada
+      FROM books b
+      ORDER BY b.id DESC
+    `);
+    return { entity, count: rows.length, data: rows };
+  }
+
+  if (entity === 'users') {
+    const [rows] = await pool.query(`
+      SELECT 
+        u.id,
+        u.nrp_nip,
+        u.nama_lengkap,
+        u.email,
+        COALESCE(u.phone_number, '') AS no_telepon,
+        r.role_code AS kode_peran,
+        r.role_name AS nama_peran,
+        CASE WHEN u.is_active = 1 THEN 'Aktif' ELSE 'Nonaktif' END AS status_akun,
+        u.last_login_at AS login_terakhir,
+        u.created_at AS dibuat_pada
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      ORDER BY u.id ASC
+    `);
+    return { entity, count: rows.length, data: rows };
+  }
+
+  const error = new Error(`Entity '${entity}' tidak valid. Pilihan: resources, books, users`);
+  error.statusCode = 400;
+  throw error;
+}
+
+/**
+ * Batch import resources (Dokumen & Bahan Ajar)
+ */
+export async function importResources(items, user, meta = {}) {
+  if (!Array.isArray(items) || items.length === 0) {
+    const error = new Error('Data import tidak boleh kosong dan harus berupa array');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const [categories] = await pool.query('SELECT id, name, slug FROM categories');
+  const catMap = new Map();
+  for (const c of categories) {
+    catMap.set(String(c.id), c.id);
+    catMap.set(c.name.toLowerCase().trim(), c.id);
+    catMap.set(c.slug.toLowerCase().trim(), c.id);
+  }
+
+  const validStatuses = ['Draft', 'Diverifikasi', 'Dipublikasikan', 'Tidak Aktif', 'Arsip'];
+  const validAccess = ['Terbuka', 'Internal', 'Terbatas', 'Metadata Saja'];
+  const validFormats = ['PDF', 'DOCX', 'PPTX', 'MP4', 'EPUB'];
+
+  let importedCount = 0;
+  const errors = [];
+
+  const conn = await pool.getConnection();
+  await conn.beginTransaction();
+
+  try {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const title = item.judul || item.title;
+      if (!title || !title.trim()) {
+        errors.push({ row: i + 1, error: 'Judul dokumen wajib diisi' });
+        continue;
+      }
+
+      // Resolve category
+      let categoryId = 2; // Default to Modul & Hanjar
+      const rawCat = String(item.kategori || item.category || item.category_id || '').toLowerCase().trim();
+      if (rawCat && catMap.has(rawCat)) {
+        categoryId = catMap.get(rawCat);
+      } else if (rawCat.includes('modul') || rawCat.includes('hanjar')) {
+        categoryId = 2;
+      } else if (rawCat.includes('kurikulum') || rawCat.includes('standar')) {
+        categoryId = 4;
+      } else if (rawCat.includes('sop') || rawCat.includes('prosedur')) {
+        categoryId = 5;
+      } else if (rawCat.includes('pedoman') || rawCat.includes('juklak')) {
+        categoryId = 6;
+      } else if (rawCat.includes('manual') || rawCat.includes('panduan')) {
+        categoryId = 7;
+      } else if (rawCat.includes('gadik') || rawCat.includes('kompetensi')) {
+        categoryId = 1;
+      } else if (rawCat.includes('pustaka') || rawCat.includes('library')) {
+        categoryId = 3;
+      }
+
+      const subCatText = item.sub_kategori || item.sub_category || item.sub_category_text || null;
+      const desc = item.deskripsi || item.description || '';
+      const author = item.penulis_penyusun || item.author || item.author_or_instructor || 'Tim Pokja Sespimma Lemdiklat Polri';
+      const unit = item.unit_sumber || item.unit || item.unit_or_source || 'Sespimma Lemdiklat Polri';
+      
+      let status = item.status || item.lifecycle_status || 'Dipublikasikan';
+      if (!validStatuses.includes(status)) status = 'Dipublikasikan';
+
+      let access = item.klasifikasi_akses || item.access_classification || 'Internal';
+      if (!validAccess.includes(access)) access = 'Internal';
+
+      let format = String(item.format_berkas || item.file_format || 'PDF').toUpperCase().trim();
+      if (!validFormats.includes(format)) format = 'PDF';
+
+      const physicalLoc = item.lokasi_fisik || item.physical_location || null;
+      const resUuid = crypto.randomUUID();
+
+      await conn.query(`
+        INSERT INTO resources (
+          uuid, title, category_id, sub_category_text, description,
+          author_or_instructor, unit_or_source, lifecycle_status,
+          access_classification, file_format, physical_location, created_by,
+          published_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        resUuid,
+        title.trim(),
+        categoryId,
+        subCatText ? subCatText.trim() : null,
+        desc.trim(),
+        author.trim(),
+        unit.trim(),
+        status,
+        access,
+        format,
+        physicalLoc ? physicalLoc.trim() : null,
+        user.id,
+        status === 'Dipublikasikan' ? new Date() : null
+      ]);
+
+      importedCount++;
+    }
+
+    await conn.commit();
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+
+  await logActivity({
+    userId: user.id,
+    userName: user.nama_lengkap,
+    role: user.role_code,
+    actionType: 'IMPORT_RESOURCES',
+    entityType: 'resources',
+    entityId: null,
+    description: `Administrator ${user.nama_lengkap} melakukan import massal: ${importedCount} naskah berhasil`,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent
+  });
+
+  return { imported_count: importedCount, total_received: items.length, errors };
+}
+
+/**
+ * Batch import books (Perpustakaan & Taskap)
+ */
+export async function importBooks(items, user, meta = {}) {
+  if (!Array.isArray(items) || items.length === 0) {
+    const error = new Error('Data import buku tidak boleh kosong');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const validCategories = ['buku-fisik', 'ebook', 'taskap', 'jurnal'];
+  const validAccess = ['Terbuka', 'Internal', 'Terbatas', 'Metadata Saja'];
+  const validStatuses = ['Draft', 'Diverifikasi', 'Dipublikasikan', 'Tidak Aktif', 'Arsip'];
+
+  let importedCount = 0;
+  const errors = [];
+
+  const conn = await pool.getConnection();
+  await conn.beginTransaction();
+
+  try {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const title = item.judul || item.title;
+      const author = item.penulis || item.author;
+
+      if (!title || !title.trim()) {
+        errors.push({ row: i + 1, error: 'Judul buku wajib diisi' });
+        continue;
+      }
+
+      let category = String(item.kategori || item.library_category_id || 'buku-fisik').toLowerCase().trim();
+      if (category.includes('fisik') || category.includes('cetak')) category = 'buku-fisik';
+      else if (category.includes('ebook') || category.includes('e-book')) category = 'ebook';
+      else if (category.includes('taskap') || category.includes('skripsi') || category.includes('tesis')) category = 'taskap';
+      else if (category.includes('jurnal') || category.includes('artikel')) category = 'jurnal';
+      else if (!validCategories.includes(category)) category = 'buku-fisik';
+
+      const publisher = item.penerbit || item.publisher || 'Sespimma Lemdiklat Polri';
+      const year = parseInt(item.tahun_terbit || item.publication_year || '2026', 10) || 2026;
+      const isbn = item.isbn ? String(item.isbn).trim() : null;
+      const subCat = item.sub_kategori || item.sub_category || null;
+      const callNum = item.nomor_panggil || item.call_number || `SES-${Math.floor(100 + Math.random() * 900)}`;
+      const loc = item.lokasi_rak || item.physical_location || 'Gedung Perpustakaan Sespimma';
+      const stockTotal = parseInt(item.stok_total || item.stock_total || '1', 10) || 1;
+      const stockAvail = parseInt(item.stok_tersedia || item.stock_available || stockTotal, 10) || stockTotal;
+
+      let access = item.klasifikasi_akses || item.access_classification || 'Internal';
+      if (!validAccess.includes(access)) access = 'Internal';
+
+      let status = item.status || item.lifecycle_status || 'Dipublikasikan';
+      if (!validStatuses.includes(status)) status = 'Dipublikasikan';
+
+      const synopsis = item.sinopsis || item.synopsis || '';
+      const bookUuid = crypto.randomUUID();
+
+      await conn.query(`
+        INSERT INTO books (
+          uuid, title, author, publisher, published_year, isbn,
+          library_category_id, sub_category, call_number, physical_location,
+          stock_total, stock_available, access_classification,
+          lifecycle_status, synopsis, created_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        bookUuid,
+        title.trim(),
+        (author || 'Tim Penulis Sespimma').trim(),
+        publisher.trim(),
+        year,
+        isbn,
+        category,
+        subCat ? subCat.trim() : null,
+        callNum.trim(),
+        loc.trim(),
+        stockTotal,
+        stockAvail,
+        access,
+        status,
+        synopsis.trim(),
+        user.id
+      ]);
+
+      importedCount++;
+    }
+
+    await conn.commit();
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+
+  await logActivity({
+    userId: user.id,
+    userName: user.nama_lengkap,
+    role: user.role_code,
+    actionType: 'IMPORT_BOOKS',
+    entityType: 'books',
+    entityId: null,
+    description: `Administrator ${user.nama_lengkap} melakukan import massal: ${importedCount} buku/taskap berhasil`,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent
+  });
+
+  return { imported_count: importedCount, total_received: items.length, errors };
+}
+
+/**
+ * Batch import users (Manajemen Pengguna)
+ */
+export async function importUsers(items, user, meta = {}) {
+  if (!Array.isArray(items) || items.length === 0) {
+    const error = new Error('Data import pengguna tidak boleh kosong');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const [roles] = await pool.query('SELECT id, role_code, role_name FROM roles');
+  const roleMap = new Map();
+  for (const r of roles) {
+    roleMap.set(String(r.id), r.id);
+    roleMap.set(r.role_code.toLowerCase().trim(), r.id);
+    roleMap.set(r.role_name.toLowerCase().trim(), r.id);
+  }
+
+  const bcrypt = await import('bcryptjs');
+  const defaultHash = bcrypt.default.hashSync('Sespimma@2026!', 10);
+
+  let importedCount = 0;
+  let skippedCount = 0;
+  const errors = [];
+
+  const conn = await pool.getConnection();
+  await conn.beginTransaction();
+
+  try {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const nrpNip = item.nrp_nip || item.nrp || item.nip;
+      const nama = item.nama_lengkap || item.nama || item.name;
+      const email = item.email;
+
+      if (!nrpNip || !nama || !email) {
+        errors.push({ row: i + 1, error: 'NRP/NIP, Nama Lengkap, dan Email wajib diisi' });
+        continue;
+      }
+
+      // Check if NRP or Email exists
+      const [existing] = await conn.query(
+        'SELECT id FROM users WHERE nrp_nip = ? OR email = ? LIMIT 1',
+        [String(nrpNip).trim(), String(email).trim()]
+      );
+
+      if (existing.length > 0) {
+        skippedCount++;
+        errors.push({ row: i + 1, warning: `NRP/NIP ${nrpNip} atau email ${email} sudah terdaftar (dilewati)` });
+        continue;
+      }
+
+      // Resolve role
+      let roleId = 1; // Default to Serdik
+      const rawRole = String(item.peran || item.role || item.role_code || item.role_id || '').toLowerCase().trim();
+      if (rawRole && roleMap.has(rawRole)) {
+        roleId = roleMap.get(rawRole);
+      } else if (rawRole.includes('gadik') || rawRole.includes('pendidik') || rawRole.includes('dosen')) {
+        roleId = 2;
+      } else if (rawRole.includes('kelola') || rawRole.includes('pustaka')) {
+        roleId = 3;
+      } else if (rawRole.includes('verif')) {
+        roleId = 4;
+      } else if (rawRole.includes('admin')) {
+        roleId = 5;
+      } else if (rawRole.includes('pimpin')) {
+        roleId = 6;
+      }
+
+      const phone = item.no_telepon || item.phone_number || item.telepon || null;
+      let isActive = 1;
+      const rawActive = String(item.status_akun || item.is_active || '').toLowerCase().trim();
+      if (rawActive === '0' || rawActive === 'nonaktif' || rawActive === 'false') {
+        isActive = 0;
+      }
+
+      let passwordHash = defaultHash;
+      if (item.kata_sandi || item.password) {
+        passwordHash = bcrypt.default.hashSync(String(item.kata_sandi || item.password).trim(), 10);
+      }
+
+      const userUuid = crypto.randomUUID();
+
+      await conn.query(`
+        INSERT INTO users (
+          uuid, nrp_nip, nama_lengkap, email, password_hash,
+          role_id, phone_number, is_active
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        userUuid,
+        String(nrpNip).trim(),
+        String(nama).trim(),
+        String(email).trim(),
+        passwordHash,
+        roleId,
+        phone ? String(phone).trim() : null,
+        isActive
+      ]);
+
+      importedCount++;
+    }
+
+    await conn.commit();
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+
+  await logActivity({
+    userId: user.id,
+    userName: user.nama_lengkap,
+    role: user.role_code,
+    actionType: 'IMPORT_USERS',
+    entityType: 'users',
+    entityId: null,
+    description: `Administrator ${user.nama_lengkap} melakukan import massal: ${importedCount} pengguna berhasil, ${skippedCount} dilewati`,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent
+  });
+
+  return { imported_count: importedCount, skipped_count: skippedCount, total_received: items.length, errors };
+}

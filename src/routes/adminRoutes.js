@@ -114,5 +114,18 @@ router.get(
   adminController.getAuditLogs
 );
 
+// 5. Data Export & Batch Import (CMS Manajemen Data)
+router.get(
+  '/export/:entity',
+  authorizeRoles('admin', 'pengelola'),
+  adminController.exportData
+);
+
+router.post(
+  '/import/:entity',
+  authorizeRoles('admin', 'pengelola'),
+  adminController.importData
+);
+
 export default router;
 

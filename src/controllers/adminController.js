@@ -237,3 +237,44 @@ export async function createUser(req, res, next) {
   }
 }
 
+/**
+ * GET /api/v1/admin/export/:entity
+ */
+export async function exportData(req, res, next) {
+  try {
+    const { entity } = req.params;
+    const result = await adminService.exportData(entity, req.user);
+    return sendSuccess(res, `Data ${entity} berhasil diekspor`, result.data, { total: result.count }, 200);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/v1/admin/import/:entity
+ */
+export async function importData(req, res, next) {
+  try {
+    const { entity } = req.params;
+    const meta = getRequestMeta(req);
+    const items = req.body.items || req.body;
+    
+    let result;
+    if (entity === 'resources') {
+      result = await adminService.importResources(items, req.user, meta);
+    } else if (entity === 'books') {
+      result = await adminService.importBooks(items, req.user, meta);
+    } else if (entity === 'users') {
+      result = await adminService.importUsers(items, req.user, meta);
+    } else {
+      const error = new Error(`Entity '${entity}' tidak valid untuk import`);
+      error.statusCode = 400;
+      throw error;
+    }
+
+    return sendSuccess(res, `Import data ${entity} selesai diproses`, result, null, 200);
+  } catch (error) {
+    next(error);
+  }
+}
+
