@@ -366,6 +366,21 @@ async function runTests() {
     });
     const createdId = createRes.data?.data?.id;
 
+    // A2. Ubah Metadata Sumber Belajar (PUT)
+    const updateRes = await request(`/admin/resources/${createdId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({
+        title: 'Materi Uji Integrasi Tata Kelola Otomatis (Revisi)',
+        category_id: 2,
+        author_or_instructor: 'Tim Otomasi Uji Sespimma',
+        description: 'Materi uji otomatis yang telah diperbarui metadatanya'
+      })
+    });
+
     // B. Verifikasi Review oleh Verifikator
     const loginVerif = await request('/auth/login', {
       method: 'POST',
@@ -402,8 +417,8 @@ async function runTests() {
     await pool.query('DELETE FROM resources WHERE id = ?', [createdId]);
 
     assert(
-      createRes.status === 201 && reviewRes.status === 200 && archiveRes.status === 200,
-      '24. Siklus Tata Kelola Lengkap: Buat Draf, Verifikasi & Arsip (/admin/resources)'
+      createRes.status === 201 && updateRes.status === 200 && reviewRes.status === 200 && archiveRes.status === 200,
+      '24. Siklus Tata Kelola Lengkap: Buat Draf, Ubah Metadata, Verifikasi & Arsip (/admin/resources)'
     );
   } catch (err) {
     assert(false, '24. Siklus Tata Kelola Lengkap', err.message);
@@ -471,6 +486,20 @@ async function runTests() {
     );
   } catch (err) {
     assert(false, '27. User Role Updating', err.message);
+  }
+
+  // 28. Interactive Swagger UI & OpenAPI 3.0 Documentation Specification
+  try {
+    const openapiRes = await fetch('http://localhost:5001/openapi.json').then(r => r.json());
+    const docsRes = await fetch('http://localhost:5001/docs').then(r => r.text());
+    assert(
+      openapiRes.openapi?.startsWith('3.0') &&
+      Object.keys(openapiRes.paths || {}).length >= 27 &&
+      docsRes.includes('SwaggerUIBundle'),
+      '28. Interactive Swagger UI & OpenAPI 3.0 Documentation Specification (/docs & /openapi.json)'
+    );
+  } catch (err) {
+    assert(false, '28. Interactive Swagger UI & OpenAPI 3.0 Specification', err.message);
   }
 
   console.log(`\n------------------------------------------------------------`);
