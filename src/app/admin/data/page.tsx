@@ -50,9 +50,47 @@ export default function AdminDataPage() {
     return matchCat && matchSearch;
   });
 
-  const handleCreateDraft = (e: React.FormEvent) => {
+  const CATEGORY_MAP: Record<string, number> = {
+    'Gadik & Kompetensi': 1,
+    'Modul & Hanjar': 2,
+    'E-Library/Perpustakaan': 3,
+    'Kurikulum & Standar Layanan': 4,
+    'SOP': 5,
+    'Pedoman': 6,
+    'Manual Book': 7,
+    'Pencarian Terpadu': 8,
+  };
+
+  const handleCreateDraft = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
+
+    try {
+      const categoryId = CATEGORY_MAP[newCategory] || 2;
+      const payload = {
+        title: newTitle.trim(),
+        category_id: categoryId,
+        description: newDescription.trim() || 'Deskripsi naskah usulan baru.',
+        author_or_instructor: newAuthor.trim() || 'Pengusul Terdaftar',
+        unit_or_source: newUnit,
+        access_classification: newAccess,
+        tags: [newCategory, 'Usulan Baru']
+      };
+
+      const result = await sipintarApi.admin.createResource(payload);
+      if (result) {
+        const mapped = mapResourceToItem(result);
+        setResources([mapped, ...resources]);
+        setShowAddModal(false);
+        setNewTitle('');
+        setNewDescription('');
+        setFeedback(`[MySQL Live] Dokumen draf baru "${mapped.title}" berhasil dibuat dengan ID ${result.id}.`);
+        setTimeout(() => setFeedback(null), 5000);
+        return;
+      }
+    } catch {
+      // Fallback ke simulasi lokal jika offline / token belum disetel
+    }
 
     const newItem: ResourceItem = {
       id: `res-${Date.now().toString().slice(-4)}`,
@@ -78,7 +116,24 @@ export default function AdminDataPage() {
     setTimeout(() => setFeedback(null), 5000);
   };
 
-  const handleArchiveItem = (id: string, title: string) => {
+  const handleArchiveItem = async (id: string, title: string) => {
+    try {
+      const cleanId = id.replace(/^res-0*/, '') || id;
+      if (!isNaN(Number(cleanId))) {
+        await sipintarApi.admin.archiveResource(Number(cleanId));
+        setResources((prev) =>
+          prev.map((item) =>
+            item.id === id ? { ...item, lifecycle: 'Arsip' as LifecycleStatus } : item
+          )
+        );
+        setFeedback(`[MySQL Live] Dokumen "${title}" berhasil dialihkan ke siklus Arsip.`);
+        setTimeout(() => setFeedback(null), 5000);
+        return;
+      }
+    } catch {
+      // Fallback ke simulasi lokal jika offline / token belum disetel
+    }
+
     setResources((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, lifecycle: 'Arsip' as LifecycleStatus } : item

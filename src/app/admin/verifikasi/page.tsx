@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MOCK_RESOURCES } from '@/data/mockData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ResourceItem } from '@/types';
+import { sipintarApi, mapResourceToItem } from '@/lib/apiClient';
 
 export default function AdminVerifikasiPage() {
   const [items, setItems] = useState<ResourceItem[]>(() =>
@@ -13,14 +14,58 @@ export default function AdminVerifikasiPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [reviewItem, setReviewItem] = useState<ResourceItem | null>(null);
 
-  const handleApprove = (id: string, title: string) => {
+  useEffect(() => {
+    let isMounted = true;
+    const fetchQueue = async () => {
+      try {
+        const res = await sipintarApi.admin.getVerificationQueue();
+        if (isMounted && res.items && res.items.length > 0) {
+          const mapped = res.items.map(mapResourceToItem);
+          setItems(mapped);
+        }
+      } catch {
+        // Gunakan mock data lokal jika offline / unauthenticated
+      }
+    };
+    fetchQueue();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleApprove = async (id: string, title: string) => {
+    try {
+      const cleanId = id.replace(/^res-0*/, '') || id;
+      if (!isNaN(Number(cleanId))) {
+        await sipintarApi.admin.reviewResource(Number(cleanId), 'approve', 'Disetujui oleh Tim Verifikator Bag Jarlat.');
+        setItems((prev) => prev.filter((item) => item.id !== id));
+        setFeedback(`[MySQL Live] Dokumen "${title}" berhasil diverifikasi dan dipublikasikan.`);
+        setReviewItem(null);
+        setTimeout(() => setFeedback(null), 5000);
+        return;
+      }
+    } catch {
+      // Fallback ke simulasi lokal
+    }
     setItems((prev) => prev.filter((item) => item.id !== id));
     setFeedback(`[Simulasi Prototipe] Dokumen "${title}" berhasil diverifikasi dan dipublikasikan.`);
     setReviewItem(null);
     setTimeout(() => setFeedback(null), 5000);
   };
 
-  const handleReject = (id: string, title: string) => {
+  const handleReject = async (id: string, title: string) => {
+    try {
+      const cleanId = id.replace(/^res-0*/, '') || id;
+      if (!isNaN(Number(cleanId))) {
+        await sipintarApi.admin.reviewResource(Number(cleanId), 'revision', 'Memerlukan perbaikan substansi materi.');
+        setFeedback(`[MySQL Live] Catatan revisi dikirimkan kepada pengusul untuk dokumen "${title}".`);
+        setReviewItem(null);
+        setTimeout(() => setFeedback(null), 5000);
+        return;
+      }
+    } catch {
+      // Fallback ke simulasi lokal
+    }
     setFeedback(`[Simulasi Prototipe] Catatan revisi dikirimkan kepada pengusul untuk dokumen "${title}".`);
     setReviewItem(null);
     setTimeout(() => setFeedback(null), 5000);

@@ -232,10 +232,12 @@ class SipintarApiClient {
 
   // --- 7. Administrasi & Tata Kelola ---
   public admin = {
-    createResource: async (formData: FormData) => {
+    createResource: async (data: FormData | Record<string, unknown>) => {
+      const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
       const res = await this.request<any>('/admin/resources', {
         method: 'POST',
-        body: formData
+        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+        body: isFormData ? data : JSON.stringify(data)
       });
       return res.data;
     },
