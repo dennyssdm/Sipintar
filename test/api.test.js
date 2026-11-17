@@ -236,6 +236,70 @@ async function runTests() {
     assert(false, '16. Monitoring Stats', err.message);
   }
 
+  // 17. User Account Management & Role Filtering
+  try {
+    const res = await request('/admin/users?role_code=serdik&limit=5', {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      res.status === 200 && Array.isArray(res.data?.data) && res.data?.meta?.total > 0,
+      '17. User Account Management & Role Filtering (/admin/users)'
+    );
+  } catch (err) {
+    assert(false, '17. User Account Management', err.message);
+  }
+
+  // 18. Activity Audit Logs Trail
+  try {
+    const res = await request('/admin/monitoring/logs?type=activity&limit=5', {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      res.status === 200 && Array.isArray(res.data?.data) && res.data?.data.length > 0,
+      '18. Activity Audit Logs Trail (/admin/monitoring/logs)'
+    );
+  } catch (err) {
+    assert(false, '18. Activity Audit Logs', err.message);
+  }
+
+  // 19. Taxonomy Tag Filtering on Catalog
+  try {
+    const res = await request('/resources?tag=Ketahanan%20Pangan');
+    assert(
+      res.status === 200 && res.data?.data?.length > 0 && res.data?.data[0]?.tags?.includes('Ketahanan Pangan'),
+      '19. Dynamic Taxonomy Tag Filtering on Resources (/resources?tag=...)'
+    );
+  } catch (err) {
+    assert(false, '19. Tag Filtering', err.message);
+  }
+
+  // 20. Self-Registration of Serdik Account
+  try {
+    const testNrp = `TEST${Date.now().toString().slice(-6)}`;
+    const res = await request('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nama_lengkap: 'Serdik Uji Integrasi',
+        email: `serdik.${testNrp}@serdik.polri.go.id`,
+        password: 'Password123!',
+        nrp_nip: testNrp,
+        role_code: 'serdik',
+        pangkat: 'KOMPOL',
+        jabatan: 'Peserta Didik Sespimma 73',
+        phone_number: '081299998888',
+        nosis: `2026-73-${testNrp.slice(-3)}`,
+        angkatan: 'Sespimma Angkatan 73 TA 2026'
+      })
+    });
+    assert(
+      res.status === 201 && res.data?.data?.user?.nrp_nip === testNrp,
+      '20. Self-Registration of New Serdik Account (/auth/register)'
+    );
+  } catch (err) {
+    assert(false, '20. Self-Registration', err.message);
+  }
+
   console.log(`\n------------------------------------------------------------`);
   console.log(`  Test Summary: \x1b[32m${passed} Passed\x1b[0m, \x1b[31m${failed} Failed\x1b[0m out of ${passed + failed} Tests`);
   console.log(`------------------------------------------------------------\n`);
