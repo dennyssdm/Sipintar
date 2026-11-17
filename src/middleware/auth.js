@@ -3,22 +3,37 @@ import { sendError } from '../utils/responseFormatter.js';
 import pool from '../config/db.js';
 
 /**
- * Authentication middleware to verify JWT in Authorization header
+ * Helper to extract JWT token from Authorization header or URL query parameter (for direct file streams/iframes)
+ */
+export function extractToken(req) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.split(' ')[1];
+  }
+  if (req.query && req.query.token) {
+    return req.query.token;
+  }
+  if (req.query && req.query.auth_token) {
+    return req.query.auth_token;
+  }
+  return null;
+}
+
+/**
+ * Authentication middleware to verify JWT in Authorization header or query parameter
  */
 export async function authenticateToken(req, res, next) {
-  const authHeader = req.headers.authorization;
+  const token = extractToken(req);
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     return sendError(
       res,
       'UNAUTHORIZED',
-      'Akses ditolak: Token autentikasi tidak ditemukan atau format tidak sesuai (gunakan: Bearer <token>)',
+      'Akses ditolak: Token autentikasi tidak ditemukan atau format tidak sesuai (gunakan: Bearer <token> atau ?token=<token>)',
       [],
       401
     );
   }
-
-  const token = authHeader.split(' ')[1];
 
   try {
     const decoded = verifyToken(token);
@@ -84,17 +99,15 @@ export async function authenticateToken(req, res, next) {
 
 /**
  * Optional authentication middleware:
- * Populates req.user if a valid Bearer token is provided, otherwise leaves req.user = null without throwing error.
+ * Populates req.user if a valid token is provided in header or query, otherwise leaves req.user = null without throwing error.
  */
 export async function optionalAuthenticateToken(req, res, next) {
-  const authHeader = req.headers.authorization;
+  const token = extractToken(req);
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     req.user = null;
     return next();
   }
-
-  const token = authHeader.split(' ')[1];
 
   try {
     const decoded = verifyToken(token);
