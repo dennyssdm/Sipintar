@@ -31,7 +31,12 @@ sipintarsespimmaAPI/
 ├── collection.json                   # Koleksi Postman v2.1.0 (32 Request, Live & Terupdate)
 ├── SIPINTAR_Sespimma_API.postman_collection.json
 ├── database.sql                      # Skema DDL dan data awal MySQL
-├── docs/                             # Dokumentasi institusional Sespimma
+├── docs/                             # Dokumentasi institusional & teknis Sespimma
+│   ├── API_INTEGRATION_GUIDE.md      # Panduan integrasi lengkap frontend-backend (12 Modul)
+│   ├── APIspecs.md                   # Spesifikasi baseline API
+│   ├── business rule.md              # Aturan bisnis & matriks RBAC 6 peran
+│   ├── database spec.md              # Spesifikasi skema basis data MySQL 8.0
+│   └── implementation.md             # Log keputusan arsitektur (D-01 s.d D-46)
 ├── uploads/                          # Direktori fisik berkas digital & sampel PDF
 └── src/
     ├── config/
