@@ -9,11 +9,10 @@ import {
   LifecycleStatus,
   AccessClassification,
   GadikMember,
-  BookItem,
-  CategorySummary
+  BookItem
 } from '@/types';
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data: T;
@@ -30,7 +29,7 @@ export interface ApiError {
   error: {
     code: string;
     message: string;
-    details: any[];
+    details: unknown[];
   };
 }
 

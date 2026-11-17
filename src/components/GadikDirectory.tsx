@@ -232,6 +232,7 @@ export const GadikDirectory: React.FC = () => {
                 >
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
                   Database REST API Aktif
+                  {isLoading && <span style={{ color: '#93c5fd', marginLeft: '4px' }}>(Memuat...)</span>}
                 </span>
               )}
             </div>

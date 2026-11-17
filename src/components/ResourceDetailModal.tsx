@@ -22,9 +22,11 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
   const [activeSection, setActiveSection] = useState<'kop' | 'skl' | 'bab1' | 'bab2' | 'bab3' | 'bab4' | 'tugas'>('bab1');
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
 
-  useEffect(() => {
+  const [prevInitial, setPrevInitial] = useState(initialResource);
+  if (initialResource !== prevInitial) {
+    setPrevInitial(initialResource);
     setResource(initialResource);
-  }, [initialResource]);
+  }
 
   if (resource && resource.id !== prevResourceId) {
     setPrevResourceId(resource.id);
@@ -35,8 +37,8 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
 
   useEffect(() => {
     if (!resource) {
-      setRelatedItems([]);
-      return;
+      const resetTimer = setTimeout(() => setRelatedItems([]), 0);
+      return () => clearTimeout(resetTimer);
     }
     let isMounted = true;
     const fetchRelated = async () => {
@@ -48,15 +50,15 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
         } else {
           setRelatedItems([]);
         }
-      } catch (err) {
-        setRelatedItems([]);
+      } catch {
+        if (isMounted) setRelatedItems([]);
       }
     };
     fetchRelated();
     return () => {
       isMounted = false;
     };
-  }, [resource?.id]);
+  }, [resource]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

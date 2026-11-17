@@ -9,6 +9,17 @@ import { ResourceDetailModal } from '@/components/ResourceDetailModal';
 import { ResourceItem, ResourceCategory, AccessClassification } from '@/types';
 import { sipintarApi, mapResourceToItem } from '@/lib/apiClient';
 
+interface SearchResultApiItem {
+  id: number | string;
+  uuid?: string;
+  title: string;
+  category?: string;
+  description?: string;
+  subtitle?: string;
+  access_classification?: string;
+  type?: string;
+}
+
 function SearchContent({ initialQuery }: { initialQuery: string }) {
   const [query, setQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
@@ -47,8 +58,10 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
   useEffect(() => {
     const trimmed = query.trim();
     if (!trimmed || trimmed.length < 2) {
-      setLiveSearchResults(null);
-      return;
+      const resetTimer = setTimeout(() => {
+        setLiveSearchResults(null);
+      }, 0);
+      return () => clearTimeout(resetTimer);
     }
 
     let isMounted = true;
@@ -57,7 +70,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
         setIsSearchingLive(true);
         const res = await sipintarApi.search.unified(trimmed);
         if (isMounted && res.items) {
-          const mapped: ResourceItem[] = res.items.map((item: any) => {
+          const mapped: ResourceItem[] = res.items.map((item: SearchResultApiItem) => {
             const author = item.subtitle ? item.subtitle.split('•')[1]?.trim() : 'Sespimma Lemdiklat Polri';
             return {
               id: item.uuid || `res-${item.id}`,
@@ -71,7 +84,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
               access: (item.access_classification || 'Internal') as AccessClassification,
               hasDigitalFile: true,
               fileFormat: 'PDF',
-              tags: [item.category, item.type]
+              tags: [item.category || 'Materi', item.type || 'Naskah']
             };
           });
           setLiveSearchResults(mapped);
@@ -256,6 +269,11 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
                 >
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
                   Database REST API & Fulltext Search Aktif
+                  {isSearchingLive && (
+                    <span style={{ color: '#93c5fd', fontWeight: 500, marginLeft: '4px' }}>
+                      (Mencari...)
+                    </span>
+                  )}
                 </span>
               )}
             </div>
