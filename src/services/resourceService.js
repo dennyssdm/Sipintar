@@ -71,23 +71,36 @@ export async function getResources(params = {}, user = null) {
   const total = countRows[0].total;
   const totalPages = Math.ceil(total / limit);
 
-  // Get paginated items
+  // Get paginated items with attached tags
   const dataQuery = `
     SELECT r.id, r.uuid, r.title, r.category_id, c.name AS category_name, c.slug AS category_slug,
            r.sub_category_id, sc.name AS sub_category_name, r.sub_category_text,
            r.description, r.author_or_instructor, r.unit_or_source,
            r.lifecycle_status, r.access_classification,
            r.has_digital_file, r.file_format, r.file_size_bytes, r.file_size_label,
-           r.physical_location, r.published_at, r.created_at, r.updated_at
+           r.physical_location, r.published_at, r.created_at, r.updated_at,
+           GROUP_CONCAT(DISTINCT t.tag_name) AS tags_csv
     FROM resources r
     LEFT JOIN categories c ON r.category_id = c.id
     LEFT JOIN sub_categories sc ON r.sub_category_id = sc.id
+    LEFT JOIN resource_tags rt ON r.id = rt.resource_id
+    LEFT JOIN tags t ON rt.tag_id = t.id
     ${whereClause}
+    GROUP BY r.id
     ORDER BY r.created_at DESC
     LIMIT ? OFFSET ?
   `;
 
-  const [items] = await pool.query(dataQuery, [...queryParams, limit, offset]);
+  const [rawItems] = await pool.query(dataQuery, [...queryParams, limit, offset]);
+
+  const items = rawItems.map(item => {
+    const tags = item.tags_csv ? item.tags_csv.split(',').map(t => t.trim()) : [];
+    const { tags_csv, ...rest } = item;
+    return {
+      ...rest,
+      tags
+    };
+  });
 
   return {
     items,
