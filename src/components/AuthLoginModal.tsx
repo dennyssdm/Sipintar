@@ -434,3 +434,4 @@ export const AuthLoginModal: React.FC<AuthLoginModalProps> = ({
     </div>
   );
 };
+

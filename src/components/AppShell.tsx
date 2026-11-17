@@ -85,8 +85,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         setNotifOpen(false);
       }
     };
+    const handleOpenLogin = () => setLoginModalOpen(true);
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-sipintar-login', handleOpenLogin);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-sipintar-login', handleOpenLogin);
+    };
   }, []);
 
   const navItems = [

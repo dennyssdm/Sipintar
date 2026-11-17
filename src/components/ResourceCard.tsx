@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResourceItem } from '@/types';
 import { StatusBadge } from './StatusBadge';
+import { getAuthenticatedFileUrl } from '@/lib/apiClient';
 
 interface ResourceCardProps {
   resource: ResourceItem;
@@ -165,9 +166,21 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, onSelect }
 
           {resource.fileUrl ? (
             <a
-              href={resource.fileUrl}
+              href={getAuthenticatedFileUrl(resource.fileUrl)}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => {
+                const token =
+                  typeof window !== 'undefined'
+                    ? localStorage.getItem('sipintar_auth_token')
+                    : null;
+                const isRestricted =
+                  resource.access === 'Internal' || resource.access === 'Terbatas';
+                if (isRestricted && !token) {
+                  e.preventDefault();
+                  window.dispatchEvent(new CustomEvent('open-sipintar-login'));
+                }
+              }}
               className="btn-secondary"
               style={{
                 fontSize: '12px',

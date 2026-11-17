@@ -166,7 +166,9 @@ class SipintarApiClient {
       return res.data;
     },
     getFileUrl: (id: string | number, isDownload = false) => {
-      return `${this.baseUrl}/resources/${id}/file${isDownload ? '?download=true' : ''}`;
+      const token = this.getToken();
+      const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
+      return `${this.baseUrl}/resources/${id}/file?download=${isDownload}${tokenParam}`;
     }
   };
 
@@ -274,10 +276,39 @@ export const sipintarApi = new SipintarApiClient();
 
 // --- DATA MAPPERS (Database snake_case -> Frontend camelCase Types) ---
 
+/**
+ * Generates an authenticated direct file URL carrying the JWT token for browser iframes/downloads
+ */
+export function getAuthenticatedFileUrl(rawUrl?: string, isDownload = false): string {
+  if (!rawUrl) return '';
+  try {
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('sipintar_auth_token') || sipintarApi.getToken()
+        : null;
+    const url = new URL(rawUrl, API_BASE_URL);
+    if (token) {
+      url.searchParams.set('token', token);
+    }
+    if (isDownload) {
+      url.searchParams.set('download', 'true');
+    }
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
 export function mapResourceToItem(r: any): ResourceItem {
-  const fileUrl = r.has_digital_file
-    ? `${API_BASE_URL}/resources/${r.id}/file`
-    : undefined;
+  let fileUrl = undefined;
+  if (r.has_digital_file) {
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('sipintar_auth_token') || sipintarApi.getToken()
+        : null;
+    const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+    fileUrl = `${API_BASE_URL}/resources/${r.id}/file${tokenParam}`;
+  }
 
   let tags: string[] = [];
   if (Array.isArray(r.tags)) {
