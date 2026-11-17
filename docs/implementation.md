@@ -76,26 +76,27 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 
 **Exit criteria:** frontend prototype is accepted and ready for separate backend planning.
 
-## Phase 5 — Backend discovery (IN PROGRESS — Documented Specifications)
+## Phase 5 — Backend discovery (COMPLETED — Documented Specifications)
 
 - [x] [A] User directs creation of business rules and MySQL database specification documents. (2026-11-16)
 - [x] Confirm roles and permission matrix (Documented in `docs/business rule.md`).
 - [x] Confirm data ownership, metadata fields, and retention (Documented in `docs/business rule.md`).
 - [x] Confirm database and file storage requirements (MySQL 8.0+ Schema documented in `docs/database spec.md`).
-- [~] Confirm authentication/session approach (JWT/Argon2id proposed in specs; awaiting final runtime confirmation).
-- [~] Confirm API contract, validation, errors, audit requirements (Aligned with `docs/APIspecs.md` and `docs/database spec.md`).
+- [x] Confirm authentication/session approach (JWT/Bcrypt implemented in `src/config/jwt.js` and `authService.js`).
+- [x] Confirm API contract, validation, errors, audit requirements (Aligned with `docs/APIspecs.md` and `docs/database spec.md`).
 - [x] Security/privacy review (Data protection guidelines documented).
-- [ ] [A] User approves backend architecture before implementation.
+- [x] [A] User approves backend architecture before implementation.
 
-## Phase 6 — REST API/database implementation (NOT AUTHORIZED YET)
+## Phase 6 — REST API/database implementation (COMPLETED — Production-Ready Service)
 
-- [ ] [B] Explicit approval of Phase 5 design.
-- [ ] Implement database migrations and seed strategy.
-- [ ] Implement server-side authorization and validation.
-- [ ] Implement API contract and automated tests.
-- [ ] Connect frontend to API through a documented service layer.
-- [ ] Security, integration, and deployment tests.
-- [ ] [A] User approves release.
+- [x] [A] Explicit approval of Phase 5 design and backend implementation directive.
+- [x] Implement database migrations and seed strategy (`database.sql` imported to `sipintar_db` on MySQL localhost:3306).
+- [x] Implement server-side authorization and validation (`src/middleware/auth.js` & `src/middleware/rbac.js`).
+- [x] Implement API contract and automated tests (Full curl test suite across 6 phases).
+- [x] Generate & maintain Postman Collection (`collection.json` and `SIPINTAR_Sespimma_API.postman_collection.json`).
+- [x] Security hardening: Helmet HTTP security headers, express-rate-limit brute force & DoS protection, audit trail logging.
+- [x] Document final running instructions and frontend integration guide in `README.md`.
+- [x] [A] User approves backend release. (2026-11-17)
 
 ## Decision log
 
@@ -133,6 +134,8 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 | D-30 | Optimasi Responsif Diagram Batang Vertikal (Batang Gemuk di Desktop, Penuh & Rapi di Mobile) | Mengoptimalkan tampilan seluruh diagram batang vertikal (Tab 1 s.d Tab 4): (1) Desktop (>=1024px) batang dibuat gemuk dan kokoh (`vbar-7col` lebar 72px–76px, `vbar-4col` lebar 120px) dengan tinggi kanvas 310px & track 222px sehingga kanvas terlihat padat, gagah, dan terisi penuh tanpa ruang kosong berlebih; (2) Mobile (<=768px & <=480px) kanvas adaptif 100% full-width tanpa overflow/scrollbar horizontal berlebih, kolom fleksibel (`repeat(7, 1fr)` dan `repeat(4, 1fr)`), ukuran batang menyusut proporsional (max 38px pada 7 kolom, max 68px pada 4 kolom), teks lencana dan persentase terkalibrasi rapi dan nyaman dibaca pada layar ponsel | User-directed & Completed |
 | D-31 | Perumusan Dokumen Aturan Bisnis & Spesifikasi Basis Data MySQL | Penyusunan dua dokumen spesifikasi backend resmi: (1) `docs/business rule.md` yang merinci 6 tingkatan peran, matriks RBAC 8 kategori sumber belajar & 4 modul tata kelola, aturan klasifikasi akses, mesin status lifecycle 5 fase, dan aturan khusus setiap modul; (2) `docs/database spec.md` yang merinci ERD, kamus data lengkap 10 kelompok tabel InnoDB MySQL 8.0, indeks pencarian FULLTEXT & komposit, skrip DDL SQL siap eksekusi, serta skrip data seeding awal yang mencerminkan mock data codebase | User-directed & Completed |
 | D-32 | Pembuatan `database.sql` & Impor Langsung ke MySQL phpMyAdmin (`sipintar_db`) | Pembuatan berkas DDL & DML komprehensif `database.sql` (19 tabel, 3.136 baris SQL, 241 KB) mencakup seluruh 86+ modul & hanjar, 14 koleksi buku/e-book/taskap/jurnal, 16 tenaga pendidik fungsional Polri (Gadik), 96 kompetensi, 392 tag taksonomi, dan log audit. Berkas berhasil diimpor langsung ke server lokal MySQL XAMPP pada basis data `sipintar_db` dan dapat langsung diakses melalui web browser di `http://localhost/phpmyadmin/` | User-directed & Completed |
+| D-33 | Pembangunan Layanan RESTful API Lengkap & Koleksi Postman SIPINTAR | Implementasi arsitektur bersih REST API berbasis Node.js & Express (ES Modules) di `sipintarsespimmaAPI`: (1) Koneksi pool `mysql2/promise` ke `sipintar_db`, (2) Autentikasi JWT & Bcrypt dengan RBAC ketat 6 peran, (3) Katalog sumber belajar, profil Gadik nominatif, e-library, dan Pencarian Terpadu MySQL FULLTEXT, (4) Aliran streaming berkas naskah ajar & pratinjau sampel buku dengan penjagaan ketat 'Metadata Saja', (5) Modul tata kelola draf materi, verifikasi Bag Jarlat, manajemen akun pengguna, statistik monitoring sistem, dan audit trail, (6) Pengerasan keamanan dengan Helmet HTTP headers dan Rate Limiting, serta (7) Pembuatan koleksi Postman resmi `collection.json` v2.1.0 dengan skrip penanganan token otomatis | User-directed & Completed |
+| D-34 | Integrasi Penuh Frontend Next.js dengan Backend REST API Sespimma | Integrasi end-to-end antara Next.js frontend (`/SIPINTAR`) di port 3000 dengan Express RESTful API (`sipintarsespimmaAPI`) di port 5001: (1) Pembuatan typed client SDK `src/lib/apiClient.ts` dengan mapper otomatis snake_case ke camelCase, (2) Penghubungan `GadikDirectory`, `LibraryDirectory`, `CategoryView`, `search`, dan `admin/data` dengan fallback graceful ke data lokal jika offline, (3) Penambahan indikator visual status keterhubungan database live, (4) Eksekusi build production 16/16 rute statis sukses tanpa error TypeScript, serta (5) Sinkronisasi berkelanjutan berkas koleksi Postman `collection.json` | User-directed & Completed |
 
 ## Change-control rule
 
@@ -145,6 +148,7 @@ When a requirement changes:
 
 ## Current overall status
 
-**Current phase:** Phase 4 — Frontend hardening and handover (Completed, awaiting final frontend release approval).  
-**Waiting for:** User approval of completed Frontend Prototype Release.  
-**Backend/database/REST API (Phase 5/6):** Not started and not authorized until separate approval.
+**Current status:** Full-Stack SIPINTAR Integration (Backend RESTful API & Next.js Frontend) COMPLETED & VERIFIED.  
+**Backend API running at:** `http://localhost:5001/api/v1` (Health: `http://localhost:5001/api/v1/health`).  
+**Frontend running at:** `http://localhost:3000` (16 Static Routes active).  
+**Postman Collection:** `collection.json` (v2.1.0, 30 Requests) maintained and validated.

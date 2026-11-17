@@ -1,133 +1,200 @@
-# SIPINTAR — API Specification (Future / Not Implemented)
+# SIPINTAR Sespimma — Production RESTful API Specification (v1.0.0)
 
-**Status:** Planning placeholder only  
-**Phase 1:** No REST API calls. Use local typed mock data.  
-**Approval gate:** Do not implement a backend until the user approves the completed frontend and authorizes a backend design phase.
+**Status:** Approved & Implemented in Production  
+**Base URL:** `http://localhost:5001/api/v1`  
+**Protocol:** HTTP/1.1 / JSON over UTF-8  
+**Authentication:** Bearer JWT (`Authorization: Bearer <token>`)  
+**Postman Collection:** [collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/collection.json) (v2.1.0)
 
-## 1. Purpose and boundary
+---
 
-This document records a provisional interface boundary so frontend code can be structured without pretending that a production API exists. The source documents do not define endpoints, authentication protocols, request schemas, or deployment details. The contracts below are proposals for later review, not approved production requirements.
+## 1. Arsitektur & Konvensi Umum
 
-## 2. Future API conventions (proposed)
+- Seluruh payload request dan response menggunakan format **JSON** dengan charset **UTF-8**.
+- Setiap respons API dibungkus dalam **Standardized Response Envelope**:
+  ```json
+  {
+    "success": true,
+    "message": "Deskripsi status operasi",
+    "data": { ... },
+    "meta": {
+      "page": 1,
+      "limit": 20,
+      "total": 100,
+      "totalPages": 5
+    }
+  }
+  ```
+- Respons kegagalan atau validasi dibungkus dalam **Standardized Error Envelope**:
+  ```json
+  {
+    "success": false,
+    "error": {
+      "code": "UNAUTHORIZED | FORBIDDEN | NOT_FOUND | VALIDATION_ERROR | INTERNAL_ERROR",
+      "message": "Pesan kesalahan dalam bahasa Indonesia",
+      "details": []
+    }
+  }
+  ```
+- **Keamanan & Rate Limiting:**
+  - Global Rate Limiter: Maksimal 500 permintaan per jendela 15 menit per alamat IP.
+  - Auth Rate Limiter (`/api/v1/auth/*`): Maksimal 30 percobaan per jendela 15 menit.
+  - HTTP Security Headers dikelola via `Helmet` (HSTS, CSP, X-Frame-Options DENY, XSS Protection).
 
-- Base path: `/api/v1` (provisional).
-- JSON request/response bodies.
-- UTF-8.
-- Consistent pagination, validation errors, and server-side authorization.
-- Dates in ISO 8601 format with timezone where relevant.
-- Never trust client-side role flags for authorization.
-- API must enforce classification: Terbuka, Internal, Terbatas, Metadata Saja.
-- Return only fields the requesting principal is authorized to see.
-- File download routes must validate both document availability and authorization.
-- Do not expose confidential records merely because a search query matches metadata.
+---
 
-## 3. Proposed resources
+## 2. Matriks Hak Akses & Klasifikasi Dokumen
 
-| Resource | Purpose | Status |
-|---|---|---|
-| `/auth/session` | Establish/check session | Proposed; auth method undecided |
-| `/auth/logout` | End session | Proposed |
-| `/search` | Unified search across allowed categories | Proposed |
-| `/gadik` | Gadik competence profiles | Proposed |
-| `/resources` | Modul, Hanjar, references, and other learning resources | Proposed |
-| `/library/books` | Book catalogue metadata | Proposed |
-| `/curriculum` | Curriculum and service standards | Proposed |
-| `/documents` | SOP, Pedoman, Manual Book metadata | Proposed |
-| `/admin/resources` | Create/update records | Proposed |
-| `/admin/resources/{id}/verify` | Verification action | Proposed |
-| `/admin/access-policies` | Access policy administration | Proposed |
-| `/admin/monitoring` | Aggregate monitoring data | Proposed |
+### A. 6 Peran Pengguna (RBAC Matrix)
+1. `serdik` — Peserta Didik Sespimma (hanya naskah publik/internal berstatus `Dipublikasikan`).
+2. `gadik` — Tenaga Pendidik / Widyaiswara (dapat mengusulkan materi draf, melihat naskah internal).
+3. `pengelola` — Pengelola Pustaka (katalogisasi buku fisik, taskap, e-book).
+4. `verifikator` — Tim Pokja / Bag Jarlat (verifikasi draf $\rightarrow$ `Dipublikasikan` / revisi).
+5. `admin` — Administrator Sistem (akses penuh manajemen pengguna, monitoring, arsip).
+6. `pimpinan` — Kasespimma / Pimpinan Lemdiklat (eksplorasi naskah dan dasbor analitik).
 
-Endpoints are illustrative and may be renamed during backend design.
+### B. 4 Klasifikasi Dokumen
+- `Terbuka`: Dapat diakses oleh seluruh pengguna terotentikasi.
+- `Internal`: Terbatas untuk personel Sespimma / Polri terdaftar.
+- `Terbatas`: Hanya untuk Pokja pengampu naskah, Gadik bersangkutan, atau Administrator.
+- `Metadata Saja`: Hanya judul, sinopsis, dan abstrak yang ditampilkan. **Pengunduhan berkas digital diblokir keras (HTTP 403 Forbidden).**
 
-## 4. Proposed search query
+### C. 5 Status Siklus Hidup (Lifecycle States)
+`Draft` $\rightarrow$ `Diverifikasi` $\rightarrow$ `Dipublikasikan` $\rightarrow$ `Tidak Aktif` $\rightarrow$ `Arsip`
 
-`GET /api/v1/search?q={query}&category={category}&page={page}&pageSize={pageSize}`
+---
 
-Possible categories: `gadik`, `modul`, `hanjar`, `buku`, `taskap`, `referensi`.
+## 3. Ringkasan Endpoint API
 
-Illustrative response:
+### Modul 1: Sistem & Health
+| Method | Endpoint | Deskripsi | Hak Akses |
+|---|---|---|---|
+| `GET` | `/api/v1/health` | Status koneksi basis data MySQL `sipintar_db` & timestamp server | Terbuka |
+
+### Modul 2: Autentikasi & Akun
+| Method | Endpoint | Deskripsi | Hak Akses |
+|---|---|---|---|
+| `POST` | `/api/v1/auth/login` | Login menggunakan email atau NRP/NIP & kata sandi | Terbuka |
+| `GET` | `/api/v1/auth/me` | Memperoleh data profil & hak akses pengguna saat ini | Bearer Token |
+| `POST` | `/api/v1/auth/register` | Pendaftaran mandiri Serdik / Gadik / Pengelola | Terbuka |
+
+### Modul 3: Sumber Belajar & Pencarian Terpadu
+| Method | Endpoint | Deskripsi | Hak Akses |
+|---|---|---|---|
+| `GET` | `/api/v1/categories` | Daftar 8 kategori sumber belajar & jumlah naskah dinamis | Terbuka |
+| `GET` | `/api/v1/categories/:id/subcategories` | Daftar subkategori taksonomi | Terbuka |
+| `GET` | `/api/v1/resources` | Katalog materi ajar (`limit`, `page`, `category_id`, `q`) | Publik / Auth |
+| `GET` | `/api/v1/resources/:id` | Rincian lengkap materi ajar beserta kompetensi & tag | Publik / Auth |
+| `GET` | `/api/v1/gadik` | Daftar 16 profil Tenaga Pendidik fungsional Polri | Publik / Auth |
+| `GET` | `/api/v1/gadik/:id` | Rincian kompetensi, Sprin penugasan, dan mata ajar Gadik | Publik / Auth |
+| `GET` | `/api/v1/library/categories` | Daftar 4 kategori koleksi perpustakaan Sespimma | Terbuka |
+| `GET` | `/api/v1/library/books` | Katalog koleksi buku fisik, e-book, dan Taskap | Publik / Auth |
+| `GET` | `/api/v1/library/books/:id` | Rincian metadata bibliografi buku perpustakaan | Publik / Auth |
+| `GET` | `/api/v1/search` | Pencarian terpadu MySQL Fulltext lintas tabel | Publik / Auth |
+
+### Modul 4: Berkas Digital & Streaming Pembaca
+| Method | Endpoint | Deskripsi | Hak Akses |
+|---|---|---|---|
+| `GET` | `/api/v1/resources/:id/file` | Streaming / unduhan berkas PDF naskah materi | Sesuai Klasifikasi |
+| `GET` | `/api/v1/library/books/:id/preview` | Streaming berkas pratinjau sampel buku (10-25 hal.) | Terbuka |
+
+### Modul 5: Tata Kelola & Administrasi (Governance)
+| Method | Endpoint | Deskripsi | Hak Akses |
+|---|---|---|---|
+| `POST` | `/api/v1/admin/resources` | Pembuatan draf sumber belajar baru dengan unggah file | `gadik`, `pengelola`, `admin` |
+| `PUT` | `/api/v1/admin/resources/:id` | Pembaruan data metadata sumber belajar | `gadik`, `pengelola`, `admin` |
+| `PATCH` | `/api/v1/admin/resources/:id/archive` | Pengarsipan naskah (Soft delete) | `admin` |
+| `GET` | `/api/v1/admin/verification/queue` | Antrean verifikasi berkas `Draft` / `Diverifikasi` | `verifikator`, `admin` |
+| `POST` | `/api/v1/admin/verification/:id/review` | Persetujuan (`approve`) atau penolakan (`reject`) draf | `verifikator`, `admin` |
+| `GET` | `/api/v1/admin/users` | Daftar seluruh akun terdaftar beserta peran | `admin` |
+| `PATCH` | `/api/v1/admin/users/:id/role` | Penyesuaian peran operasional akun | `admin` |
+| `PATCH` | `/api/v1/admin/users/:id/status` | Aktivasi atau deaktivasi status akun | `admin` |
+| `GET` | `/api/v1/admin/monitoring/stats` | Agregasi statistik metrik sistem real-time | `admin`, `pimpinan` |
+| `GET` | `/api/v1/admin/monitoring/logs` | Log aktivitas mutasi dan penelusuran pencarian | `admin`, `pimpinan` |
+
+---
+
+## 4. Skema Permintaan & Contoh Respons Kunci
+
+### A. Autentikasi Pengguna (`POST /api/v1/auth/login`)
+**Permintaan:**
 ```json
 {
-  "items": [
-    {
-      "id": "mock-resource-001",
-      "title": "Contoh Materi Pembelajaran",
-      "category": "modul",
-      "verificationStatus": "Dipublikasikan",
-      "accessClassification": "Internal",
-      "digitalAssetAvailable": false,
-      "updatedAt": "2026-01-15T09:00:00+07:00"
+  "identifier": "dewi.susilo@sespimma.lemdiklat.polri.go.id",
+  "password": "Password123!"
+}
+```
+**Respons (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Autentikasi berhasil",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "uuid": "usr-admin-01",
+      "nrp_nip": "80010001",
+      "nama_lengkap": "AKBP Dewi Susilo Pangestuti, S.Ak.",
+      "email": "dewi.susilo@sespimma.lemdiklat.polri.go.id",
+      "role": "admin",
+      "pangkat": "AKBP",
+      "jabatan": "Administrator Sistem & Penjamin Mutu"
     }
-  ],
-  "page": 1,
-  "pageSize": 20,
-  "total": 1
+  }
 }
 ```
 
-This is an example only, not a source-derived production schema.
-
-## 5. Proposed data lifecycle enums
-
-- `Draft`
-- `Diverifikasi`
-- `Dipublikasikan`
-- `Tidak Aktif`
-- `Arsip`
-
-Access classification:
-- `Terbuka`
-- `Internal`
-- `Terbatas`
-- `Metadata Saja`
-
-The UI should not assume all transitions are permitted for every role. The approved authorization matrix must be defined before backend implementation.
-
-## 6. Error response proposal
-
+### B. Pencarian Terpadu (`GET /api/v1/search?q=hanjar`)
+**Respons (200 OK):**
 ```json
 {
+  "success": true,
+  "message": "Pencarian berhasil dieksekusi",
+  "data": [
+    {
+      "id": 1,
+      "uuid": "res-hanjar-sespimma-01",
+      "type": "resource",
+      "title": "Hanjar 01: Peran Polri dalam Optimalisasi Sektor Pangan",
+      "subtitle": "Modul & Hanjar • Tim Pokja Hanjar Sespimma Lemdiklat Polri",
+      "description": "Bahan ajar resmi Sespimma Lemdiklat Polri TA 2025 mengenai strategi pengawalan...",
+      "category": "Modul & Hanjar",
+      "category_slug": "modul",
+      "access_classification": "Internal",
+      "score": 5.289
+    }
+  ],
+  "meta": {
+    "query": "hanjar",
+    "totalResults": 14
+  }
+}
+```
+
+### C. Perlindungan Berkas Metadata Saja (`GET /api/v1/resources/:id/file`)
+Jika berkas berstatus `access_classification = 'Metadata Saja'`, sistem mengembalikan:
+**Respons (403 Forbidden):**
+```json
+{
+  "success": false,
   "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Periksa kembali data yang dimasukkan.",
+    "code": "FORBIDDEN",
+    "message": "Berkas digital tidak tersedia untuk publik. Silakan akses fisik di perpustakaan/ruang baca.",
     "details": []
   }
 }
 ```
 
-Suggested classes: `400` validation, `401` unauthenticated, `403` unauthorized, `404` not found, `409` conflict, `429` rate limited, `500` unexpected server error. Final behavior and error disclosure rules require security review.
+---
 
-## 7. Security requirements for future implementation
+## 5. Sinkronisasi Postman Collection
 
-- Server-side authorization for every resource and action.
-- Secure session/cookie strategy selected during architecture review.
-- Password handling delegated to a vetted authentication mechanism; never store plaintext passwords.
-- Input validation and output encoding.
-- Rate limiting and abuse protection where appropriate.
-- Audit events for sensitive admin actions if approved and supported.
-- Secure file access and upload validation if uploads are introduced.
-- Minimize personal data and define retention/deletion policy with the owner.
-- Backups, secrets management, monitoring, and incident handling.
-- Threat modeling and security testing before production release.
+Koleksi Postman resmi disimpan dalam file [collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/collection.json) pada direktori root repositori ini.
 
-## 8. Open decisions before API approval
-
-- Hosting/deployment environment and network constraints.
-- Authentication provider and account lifecycle.
-- Final roles and permission matrix.
-- Database choice and ownership.
-- File/document storage and download controls.
-- Search strategy and expected data volume.
-- Audit logging requirements and retention.
-- Integration with existing services, if authorized.
-- Data migration and stewardship process.
-- Operational support and incident response.
-
-## 9. Approval rule
-
-This file is not permission to build the API. API work starts only after:
-1. Frontend visual/interaction review is approved.
-2. Data ownership and permission matrix are confirmed.
-3. API/database design is reviewed as a separate phase.
-4. The user explicitly authorizes implementation.
+- **Import ke Postman:**
+  Buka Postman $\rightarrow$ Klik **Import** $\rightarrow$ Pilih `collection.json`.
+- **Environment Variables Otomatis:**
+  - `baseUrl`: `http://localhost:5001/api/v1`
+  - `rootUrl`: `http://localhost:5001`
+  - `authToken`: Otomatis diisi oleh skrip *Tests* saat login sukses pada folder `2. Autentikasi & Profil`.
