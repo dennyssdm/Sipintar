@@ -1142,6 +1142,54 @@
           ]
         },
         {
+          "name": "Admin - Ubah Peran (Role) Pengguna",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"verifikator\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/23/role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "23",
+                "role"
+              ]
+            },
+            "description": "Mengubah wewenang atau peran (role) pengguna SIPINTAR (serdik, gadik, pengelola, verifikator, admin, pimpinan)."
+          },
+          "response": [
+            {
+              "name": "200 Peran Pengguna Diperbarui",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Peran pengguna berhasil diubah menjadi verifikator\",\n  \"data\": {\n    \"user_id\": 23,\n    \"user_name\": \"KOMPOL Fajar Nugraha, S.I.K.\",\n    \"role\": \"verifikator\"\n  }\n}"
+            }
+          ]
+        },
+        {
           "name": "Admin - Statistik Monitoring Sistem",
           "request": {
             "auth": {
