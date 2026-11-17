@@ -23,13 +23,14 @@ export const apiLimiter = rateLimit({
 
 /**
  * Strict rate limiter for authentication routes to prevent brute force
- * 30 attempts per 15-minute window per IP
+ * 30 attempts per 15-minute window in production, relaxed in dev/test
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: process.env.NODE_ENV === 'production' ? 30 : 500,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
   handler: (req, res) => {
     return sendError(
       res,
