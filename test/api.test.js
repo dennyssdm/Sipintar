@@ -420,6 +420,59 @@ async function runTests() {
     assert(false, '25. Perlindungan Sampel Metadata Saja', err.message);
   }
 
+  // 26. User Status Management & Self-Deactivation Guard
+  try {
+    const meRes = await request('/auth/me', {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    const adminId = meRes.data?.data?.id;
+
+    // A. Rejection of self-deactivation
+    const selfRes = await request(`/admin/users/${adminId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ is_active: false })
+    });
+
+    // B. Normal status toggle
+    const toggleRes = await request('/admin/users/23/status', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ is_active: true })
+    });
+
+    assert(
+      selfRes.status === 400 && selfRes.data?.error?.code === 'INVALID_ACTION' && toggleRes.status === 200,
+      '26. User Status Management & Self-Deactivation Guard (/admin/users/:id/status)'
+    );
+  } catch (err) {
+    assert(false, '26. User Status Management', err.message);
+  }
+
+  // 27. User Role Updating & RBAC Assignment
+  try {
+    const res = await request('/admin/users/23/role', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ role_code: 'serdik' })
+    });
+    assert(
+      res.status === 200 && res.data?.data?.new_role === 'serdik',
+      '27. User Role Updating & RBAC Assignment (/admin/users/:id/role)'
+    );
+  } catch (err) {
+    assert(false, '27. User Role Updating', err.message);
+  }
+
   console.log(`\n------------------------------------------------------------`);
   console.log(`  Test Summary: \x1b[32m${passed} Passed\x1b[0m, \x1b[31m${failed} Failed\x1b[0m out of ${passed + failed} Tests`);
   console.log(`------------------------------------------------------------\n`);
