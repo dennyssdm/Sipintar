@@ -281,12 +281,30 @@ export const sipintarApi = new SipintarApiClient();
  */
 export function getAuthenticatedFileUrl(rawUrl?: string, isDownload = false): string {
   if (!rawUrl) return '';
+
+  // If it's a local static asset in Next.js public directory (e.g. '/1. HANJAR...')
+  if (rawUrl.startsWith('/') && !rawUrl.startsWith('/api')) {
+    return rawUrl;
+  }
+
   try {
-    const token =
+    let token =
       typeof window !== 'undefined'
         ? localStorage.getItem('sipintar_auth_token') || sipintarApi.getToken()
         : null;
-    const url = new URL(rawUrl, API_BASE_URL);
+
+    if (!token && typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('sipintar_auth_user');
+      if (userStr) {
+        try {
+          const u = JSON.parse(userStr);
+          if (u.token) token = u.token;
+        } catch {}
+      }
+    }
+
+    const base = rawUrl.startsWith('http') ? undefined : API_BASE_URL;
+    const url = new URL(rawUrl, base || API_BASE_URL);
     if (token) {
       url.searchParams.set('token', token);
     }

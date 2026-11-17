@@ -63,7 +63,7 @@ export const AuthLoginModal: React.FC<AuthLoginModalProps> = ({
       setIsLoading(true);
       const res = await sipintarApi.auth.login(identifier.trim(), password);
       if (res?.user) {
-        onSuccess(res.user);
+        onSuccess({ ...res.user, token: res.token });
         handleClose();
       }
     } catch (err: any) {
@@ -73,10 +73,22 @@ export const AuthLoginModal: React.FC<AuthLoginModalProps> = ({
     }
   };
 
-  const handleQuickLogin = (emailOrNrp: string) => {
+  const handleQuickLogin = async (emailOrNrp: string) => {
     setIdentifier(emailOrNrp);
     setPassword('Password123!');
     setErrorMsg(null);
+    try {
+      setIsLoading(true);
+      const res = await sipintarApi.auth.login(emailOrNrp, 'Password123!');
+      if (res?.user) {
+        onSuccess({ ...res.user, token: res.token });
+        handleClose();
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Gagal masuk akun pengujian.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

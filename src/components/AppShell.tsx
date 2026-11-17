@@ -32,6 +32,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         try {
           const user = JSON.parse(savedUserStr);
           setCurrentUser(user);
+          if (user.token) {
+            localStorage.setItem('sipintar_auth_token', user.token);
+            sipintarApi.setToken(user.token);
+          }
           if (user.role) {
             if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
               setCurrentRole('Administrator');
@@ -54,6 +58,11 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     setCurrentUser(user);
     if (typeof window !== 'undefined') {
       localStorage.setItem('sipintar_auth_user', JSON.stringify(user));
+      if (user.token) {
+        localStorage.setItem('sipintar_auth_token', user.token);
+        sipintarApi.setToken(user.token);
+      }
+      window.dispatchEvent(new CustomEvent('sipintar-auth-changed', { detail: user }));
     }
     if (user.role) {
       if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
@@ -73,6 +82,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     sipintarApi.auth.logout();
     if (typeof window !== 'undefined') {
       localStorage.removeItem('sipintar_auth_user');
+      localStorage.removeItem('sipintar_auth_token');
+      window.dispatchEvent(new CustomEvent('sipintar-auth-changed', { detail: null }));
     }
     setCurrentUser(null);
     setCurrentRole('Serdik');

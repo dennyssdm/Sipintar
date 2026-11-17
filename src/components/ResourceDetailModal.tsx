@@ -22,18 +22,35 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
   const [activeSection, setActiveSection] = useState<'kop' | 'skl' | 'bab1' | 'bab2' | 'bab3' | 'bab4' | 'tugas'>('bab1');
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
 
   useEffect(() => {
     const checkAuth = () => {
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('sipintar_auth_token');
+        const userStr = localStorage.getItem('sipintar_auth_user');
         setIsLoggedIn(Boolean(token));
+        if (userStr) {
+          try {
+            setCurrentUser(JSON.parse(userStr));
+          } catch {
+            setCurrentUser(null);
+          }
+        } else {
+          setCurrentUser(null);
+        }
       }
     };
     checkAuth();
     window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
+    window.addEventListener('sipintar-auth-changed', checkAuth);
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('sipintar-auth-changed', checkAuth);
+    };
   }, []);
+
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'pimpinan';
 
   const [prevInitial, setPrevInitial] = useState(initialResource);
   if (initialResource !== prevInitial) {
@@ -260,7 +277,7 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
             <div>
               {/* If authentic PDF exists, render PDF iframe or Login Required Card */}
               {resource.fileUrl ? (
-                (resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn ? (
+                (resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn && !isAdmin ? (
                   <div
                     style={{
                       padding: '48px 24px',
@@ -387,18 +404,31 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
                       </div>
                     </div>
 
-                    <iframe
-                      src={getAuthenticatedFileUrl(resource.fileUrl, false)}
-                      title={resource.title}
+                    <object
+                      data={`${getAuthenticatedFileUrl(resource.fileUrl, false)}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`}
+                      type="application/pdf"
                       style={{
                         width: '100%',
-                        height: '68vh',
-                        minHeight: '480px',
+                        height: '70vh',
+                        minHeight: '520px',
                         border: 'none',
                         display: 'block',
-                        backgroundColor: '#525659',
+                        backgroundColor: '#ffffff',
                       }}
-                    />
+                    >
+                      <iframe
+                        src={`${getAuthenticatedFileUrl(resource.fileUrl, false)}#toolbar=1&view=FitH`}
+                        title={resource.title}
+                        style={{
+                          width: '100%',
+                          height: '70vh',
+                          minHeight: '520px',
+                          border: 'none',
+                          display: 'block',
+                          backgroundColor: '#ffffff',
+                        }}
+                      />
+                    </object>
                   </div>
                 )
               ) : (
@@ -1070,10 +1100,10 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
             {resource.fileUrl ? (
               <>
                 <a
-                  href={(resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn ? '#' : getAuthenticatedFileUrl(resource.fileUrl, true)}
-                  download={!((resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn)}
+                  href={(resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn && !isAdmin ? '#' : getAuthenticatedFileUrl(resource.fileUrl, true)}
+                  download={!((resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn && !isAdmin)}
                   onClick={(e) => {
-                    if ((resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn) {
+                    if ((resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn && !isAdmin) {
                       e.preventDefault();
                       window.dispatchEvent(new CustomEvent('open-sipintar-login'));
                     }
@@ -1099,11 +1129,11 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
                 </a>
 
                 <a
-                  href={(resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn ? '#' : getAuthenticatedFileUrl(resource.fileUrl, false)}
-                  target={(resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn ? undefined : '_blank'}
+                  href={(resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn && !isAdmin ? '#' : getAuthenticatedFileUrl(resource.fileUrl, false)}
+                  target={(resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn && !isAdmin ? undefined : '_blank'}
                   rel="noopener noreferrer"
                   onClick={(e) => {
-                    if ((resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn) {
+                    if ((resource.access === 'Internal' || resource.access === 'Terbatas') && !isLoggedIn && !isAdmin) {
                       e.preventDefault();
                       window.dispatchEvent(new CustomEvent('open-sipintar-login'));
                     }
