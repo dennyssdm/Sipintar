@@ -135,6 +135,7 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 | D-31 | Perumusan Dokumen Aturan Bisnis & Spesifikasi Basis Data MySQL | Penyusunan dua dokumen spesifikasi backend resmi: (1) `docs/business rule.md` yang merinci 6 tingkatan peran, matriks RBAC 8 kategori sumber belajar & 4 modul tata kelola, aturan klasifikasi akses, mesin status lifecycle 5 fase, dan aturan khusus setiap modul; (2) `docs/database spec.md` yang merinci ERD, kamus data lengkap 10 kelompok tabel InnoDB MySQL 8.0, indeks pencarian FULLTEXT & komposit, skrip DDL SQL siap eksekusi, serta skrip data seeding awal yang mencerminkan mock data codebase | User-directed & Completed |
 | D-32 | Pembuatan `database.sql` & Impor Langsung ke MySQL phpMyAdmin (`sipintar_db`) | Pembuatan berkas DDL & DML komprehensif `database.sql` (19 tabel, 3.136 baris SQL, 241 KB) mencakup seluruh 86+ modul & hanjar, 14 koleksi buku/e-book/taskap/jurnal, 16 tenaga pendidik fungsional Polri (Gadik), 96 kompetensi, 392 tag taksonomi, dan log audit. Berkas berhasil diimpor langsung ke server lokal MySQL XAMPP pada basis data `sipintar_db` dan dapat langsung diakses melalui web browser di `http://localhost/phpmyadmin/` | User-directed & Completed |
 | D-33 | Pembangunan Layanan RESTful API Lengkap & Koleksi Postman SIPINTAR | Implementasi arsitektur bersih REST API berbasis Node.js & Express (ES Modules) di `sipintarsespimmaAPI`: (1) Koneksi pool `mysql2/promise` ke `sipintar_db`, (2) Autentikasi JWT & Bcrypt dengan RBAC ketat 6 peran, (3) Katalog sumber belajar, profil Gadik nominatif, e-library, dan Pencarian Terpadu MySQL FULLTEXT, (4) Aliran streaming berkas naskah ajar & pratinjau sampel buku dengan penjagaan ketat 'Metadata Saja', (5) Modul tata kelola draf materi, verifikasi Bag Jarlat, manajemen akun pengguna, statistik monitoring sistem, dan audit trail, (6) Pengerasan keamanan dengan Helmet HTTP headers dan Rate Limiting, serta (7) Pembuatan koleksi Postman resmi `collection.json` v2.1.0 dengan skrip penanganan token otomatis | User-directed & Completed |
+| D-34 | Integrasi Penuh Frontend Next.js dengan Backend REST API Sespimma | Integrasi end-to-end antara Next.js frontend (`/SIPINTAR`) di port 3000 dengan Express RESTful API (`sipintarsespimmaAPI`) di port 5001: (1) Pembuatan typed client SDK `src/lib/apiClient.ts` dengan mapper otomatis snake_case ke camelCase, (2) Penghubungan `GadikDirectory`, `LibraryDirectory`, `CategoryView`, `search`, dan `admin/data` dengan fallback graceful ke data lokal jika offline, (3) Penambahan indikator visual status keterhubungan database live, (4) Eksekusi build production 16/16 rute statis sukses tanpa error TypeScript, serta (5) Sinkronisasi berkelanjutan berkas koleksi Postman `collection.json` | User-directed & Completed |
 
 ## Change-control rule
 
@@ -147,6 +148,7 @@ When a requirement changes:
 
 ## Current overall status
 
-**Current status:** Backend RESTful API & MySQL Database Full Implementation COMPLETED.  
-**Server running at:** `http://localhost:5001/api/v1` (Health: `http://localhost:5001/api/v1/health`).  
-**Postman Collection:** `collection.json` (v2.1.0) ready for frontend integration.
+**Current status:** Full-Stack SIPINTAR Integration (Backend RESTful API & Next.js Frontend) COMPLETED & VERIFIED.  
+**Backend API running at:** `http://localhost:5001/api/v1` (Health: `http://localhost:5001/api/v1/health`).  
+**Frontend running at:** `http://localhost:3000` (16 Static Routes active).  
+**Postman Collection:** `collection.json` (v2.1.0, 30 Requests) maintained and validated.
