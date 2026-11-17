@@ -225,8 +225,8 @@ export async function registerUser(data, meta = {}) {
     throw error;
   }
 
-  if (!['serdik', 'gadik'].includes(role_code)) {
-    const error = new Error('Registrasi mandiri hanya diperbolehkan untuk peran serdik atau gadik');
+  if (!['serdik', 'gadik', 'pengelola'].includes(role_code)) {
+    const error = new Error('Registrasi mandiri hanya diperbolehkan untuk peran serdik, gadik, atau pengelola');
     error.statusCode = 400;
     error.code = 'VALIDATION_ERROR';
     throw error;
@@ -247,17 +247,14 @@ export async function registerUser(data, meta = {}) {
     throw error;
   }
 
-  // If serdik, check nosis
+  // If serdik, check/populate nosis & angkatan
+  const cleanNosis = (nosis && nosis.trim()) || `2026${nrp_nip.trim().slice(-4)}`;
+  const cleanAngkatan = (angkatan && angkatan.trim()) || 'Sespimma Angkatan 73 TA 2026';
+
   if (role_code === 'serdik') {
-    if (!nosis || !angkatan) {
-      const error = new Error('Untuk peran Serdik, nomor siswa (nosis) dan angkatan wajib diisi');
-      error.statusCode = 400;
-      error.code = 'VALIDATION_ERROR';
-      throw error;
-    }
     const [existingNosis] = await pool.query(
       'SELECT user_id FROM user_profiles_serdik WHERE nosis = ?',
-      [nosis.trim()]
+      [cleanNosis]
     );
     if (existingNosis.length > 0) {
       const error = new Error('Nomor Siswa (NOSIS) sudah terdaftar');
@@ -267,15 +264,9 @@ export async function registerUser(data, meta = {}) {
     }
   }
 
-  // If gadik, check jabatan & kategori_jabatan
-  if (role_code === 'gadik') {
-    if (!jabatan || !kategori_jabatan) {
-      const error = new Error('Untuk peran Gadik, jabatan dan kategori jabatan wajib diisi');
-      error.statusCode = 400;
-      error.code = 'VALIDATION_ERROR';
-      throw error;
-    }
-  }
+  // If gadik, ensure default jabatan & kategori_jabatan
+  const cleanJabatan = jabatan ? jabatan.trim() : 'Gadik Madya Sespimma';
+  const cleanKategoriJabatan = kategori_jabatan ? kategori_jabatan.trim() : 'Kepemimpinan & Manajemen Operasional';
 
   // Fetch role_id
   const [roles] = await pool.query('SELECT id, role_name FROM roles WHERE role_code = ?', [role_code]);
@@ -308,13 +299,20 @@ export async function registerUser(data, meta = {}) {
       await connection.query(
         `INSERT INTO user_profiles_serdik (user_id, nosis, pangkat, angkatan, sindikat, satuan_asal)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [newUserId, nosis.trim(), pangkat, angkatan.trim(), sindikat, satuan_asal]
+        [newUserId, cleanNosis, pangkat, cleanAngkatan, sindikat, satuan_asal]
       );
     } else if (role_code === 'gadik') {
       await connection.query(
         `INSERT INTO user_profiles_gadik (user_id, pangkat, jabatan, kategori_jabatan, agama, status_fungsional, no_sprint, bio)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [newUserId, pangkat, jabatan, kategori_jabatan, agama, status_fungsional, no_sprint, bio]
+        [newUserId, pangkat, cleanJabatan, cleanKategoriJabatan, agama, status_fungsional, no_sprint, bio]
+      );
+    } else if (role_code === 'pengelola') {
+      const cleanLingkup = Array.isArray(data.lingkup_akses) ? data.lingkup_akses.join(', ') : (data.lingkup_akses || 'Katalogisasi Buku Fisik, Unggah E-Book');
+      await connection.query(
+        `INSERT INTO user_profiles_pengelola (user_id, unit_kerja, lingkup_akses)
+         VALUES (?, ?, ?)`,
+        [newUserId, data.unit_kerja || 'Subbag Renmin / Unit Perpustakaan Sespimma', cleanLingkup]
       );
     }
 
