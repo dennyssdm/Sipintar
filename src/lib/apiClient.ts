@@ -344,6 +344,18 @@ class SipintarApiClient {
       });
       return res.data;
     },
+    // Data Export & Import (CMS CRUD)
+    exportData: async (entity: 'resources' | 'books' | 'users') => {
+      const res = await this.request<any[]>(`/admin/export/${entity}`);
+      return { items: res.data, meta: res.meta };
+    },
+    importData: async (entity: 'resources' | 'books' | 'users', items: any[]) => {
+      const res = await this.request<any>(`/admin/import/${entity}`, {
+        method: 'POST',
+        body: JSON.stringify({ items })
+      });
+      return res.data;
+    },
     getStats: async () => {
       const res = await this.request<any>('/admin/monitoring/stats');
       return res.data;

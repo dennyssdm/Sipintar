@@ -28,6 +28,305 @@ const CATEGORIES: ResourceCategory[] = [
   'Manual Book',
 ];
 
+/**
+ * ------------------------------------------------------------------
+ * EXPORT / IMPORT HELPERS (CSV / EXCEL & JSON)
+ * ------------------------------------------------------------------
+ */
+
+function triggerDownload(filename: string, content: string, mimeType = 'text/csv;charset=utf-8;', withBom = true) {
+  const blob = withBom
+    ? new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), content], { type: mimeType })
+    : new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function convertToCsv(data: Record<string, any>[]): string {
+  if (!data || data.length === 0) return '';
+  const headers = Object.keys(data[0]);
+  const rows: string[] = [];
+
+  // Header row
+  rows.push(headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(','));
+
+  // Data rows
+  for (const row of data) {
+    const values = headers.map(h => {
+      const val = row[h] === null || row[h] === undefined ? '' : String(row[h]);
+      return `"${val.replace(/"/g, '""')}"`;
+    });
+    rows.push(values.join(','));
+  }
+
+  return rows.join('\r\n');
+}
+
+function parseCsv(text: string): Record<string, string>[] {
+  const clean = text.replace(/^\uFEFF/, '').trim();
+  if (!clean) return [];
+
+  const firstLine = clean.split('\n')[0];
+  let delimiter = ',';
+  if ((firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length) {
+    delimiter = ';';
+  } else if (firstLine.includes('\t')) {
+    delimiter = '\t';
+  }
+
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentVal = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < clean.length; i++) {
+    const char = clean[i];
+    const nextChar = clean[i + 1];
+
+    if (inQuotes) {
+      if (char === '"' && nextChar === '"') {
+        currentVal += '"';
+        i++;
+      } else if (char === '"') {
+        inQuotes = false;
+      } else {
+        currentVal += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === delimiter) {
+        currentRow.push(currentVal.trim());
+        currentVal = '';
+      } else if (char === '\r') {
+        // ignore CR
+      } else if (char === '\n') {
+        currentRow.push(currentVal.trim());
+        rows.push(currentRow);
+        currentRow = [];
+        currentVal = '';
+      } else {
+        currentVal += char;
+      }
+    }
+  }
+  if (currentVal || currentRow.length > 0) {
+    currentRow.push(currentVal.trim());
+    rows.push(currentRow);
+  }
+
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map(h => h.replace(/^["']|["']$/g, '').trim().toLowerCase());
+  const result: Record<string, string>[] = [];
+
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (row.length === 1 && !row[0]) continue;
+    const obj: Record<string, string> = {};
+    for (let c = 0; c < headers.length; c++) {
+      obj[headers[c]] = row[c] !== undefined ? row[c] : '';
+    }
+    result.push(obj);
+  }
+
+  return result;
+}
+
+const TEMPLATES: Record<'resources' | 'books' | 'users', { filename: string; headers: string[]; samples: string[][] }> = {
+  resources: {
+    filename: 'Template_Import_Dokumen_SIPINTAR.csv',
+    headers: [
+      'Judul Dokumen',
+      'Kategori',
+      'Subkategori',
+      'Deskripsi',
+      'Penulis / Penyusun',
+      'Satuan / Sumber',
+      'Klasifikasi Akses',
+      'Status',
+      'Format Berkas',
+      'Lokasi Fisik'
+    ],
+    samples: [
+      [
+        'MODUL CORE 1 SESPIMMA ANALISIS DAN PEMECAHAN MASALAH OPERASIONAL',
+        'Modul & Hanjar',
+        'Modul Core Sespimma',
+        'Bahan ajar pokok analisis masalah operasional tingkat staf dan pimpinan.',
+        'Tim Pokja Jarlat Sespimma Lemdiklat Polri',
+        'Bag Jarlat Sespimma Lemdiklat Polri',
+        'Internal',
+        'Dipublikasikan',
+        'PDF',
+        'Ruang Jarlat Rak A1'
+      ],
+      [
+        'STANDAR OPERASIONAL PROSEDUR PENYELENGGARAAN EVALUASI AKADEMIK',
+        'SOP',
+        'Standar Layanan & SOP',
+        'Prosedur operasional baku pelaksanaan evaluasi pembelajaran serdik.',
+        'Bagian Pengajaran dan Latihan',
+        'Sespimma Lemdiklat Polri',
+        'Internal',
+        'Dipublikasikan',
+        'PDF',
+        'Ruang Pengajaran'
+      ]
+    ]
+  },
+  books: {
+    filename: 'Template_Import_Perpustakaan_SIPINTAR.csv',
+    headers: [
+      'Judul Buku',
+      'Penulis',
+      'Penerbit',
+      'Tahun Terbit',
+      'ISBN',
+      'Kategori',
+      'Subkategori',
+      'Nomor Panggil',
+      'Lokasi Rak',
+      'Stok Total',
+      'Stok Tersedia',
+      'Klasifikasi Akses',
+      'Status',
+      'Sinopsis'
+    ],
+    samples: [
+      [
+        'MANAJEMEN KEPEMIMPINAN STRATEGIS POLRI ERA DIGITAL',
+        'Kombes Pol Dr. Budi Santoso, M.Si.',
+        'Sespimma Lemdiklat Polri Press',
+        '2026',
+        '978-623-00-1234-5',
+        'buku-fisik',
+        'Kepemimpinan',
+        '350.1 BUD m',
+        'Lantai 2 - Rak B3',
+        '5',
+        '5',
+        'Internal',
+        'Dipublikasikan',
+        'Buku pegangan wajib kepemimpinan transformasional perwira menengah Polri.'
+      ],
+      [
+        'OPTIMALISASI DETEKSI DINI DAN PREVENSI KONFLIK SOSIAL',
+        'AKBP H. Prasetyo, S.I.K.',
+        'Sespimma Lemdiklat Polri',
+        '2025',
+        '',
+        'taskap',
+        'Intelijen Keamanan',
+        'TASKAP-2025-042',
+        'Lantai 1 - Lemari Tesis',
+        '1',
+        '0',
+        'Internal',
+        'Dipublikasikan',
+        'Kertas Karya Perorangan (Taskap) serdik Sespimma angkatan ke-72.'
+      ]
+    ]
+  },
+  users: {
+    filename: 'Template_Import_Pengguna_SIPINTAR.csv',
+    headers: [
+      'NRP / NIP',
+      'Nama Lengkap',
+      'Email',
+      'Nomor Telepon',
+      'Peran',
+      'Status Akun',
+      'Kata Sandi Awal'
+    ],
+    samples: [
+      [
+        '85071234',
+        'KOMPOL Arya Ramadhan, S.I.K.',
+        'arya.ramadhan@polri.go.id',
+        '081298765432',
+        'serdik',
+        'Aktif',
+        'Sespimma@2026!'
+      ],
+      [
+        '78030987',
+        'AKBP Bambang Wijaya, S.H., M.H.',
+        'bambang.wijaya@polri.go.id',
+        '081312345678',
+        'gadik',
+        'Aktif',
+        'Sespimma@2026!'
+      ]
+    ]
+  }
+};
+
+function mapCsvRowToPayload(row: Record<string, string>, entity: 'resources' | 'books' | 'users'): any {
+  const getVal = (...keys: string[]) => {
+    for (const k of keys) {
+      const lower = k.toLowerCase().trim();
+      if (row[lower] !== undefined && row[lower] !== '') return row[lower];
+      for (const objKey of Object.keys(row)) {
+        if (objKey.toLowerCase().trim() === lower && row[objKey]) return row[objKey];
+      }
+    }
+    return '';
+  };
+
+  if (entity === 'resources') {
+    return {
+      judul: getVal('judul dokumen', 'judul', 'title', 'nama'),
+      kategori: getVal('kategori', 'category') || 'Modul & Hanjar',
+      sub_kategori: getVal('subkategori', 'sub_kategori', 'sub kategori'),
+      deskripsi: getVal('deskripsi', 'description', 'keterangan'),
+      penulis_penyusun: getVal('penulis / penyusun', 'penulis', 'penyusun', 'author') || 'Tim Pokja Sespimma Lemdiklat Polri',
+      unit_sumber: getVal('satuan / sumber', 'unit', 'sumber') || 'Bag Jarlat Sespimma Lemdiklat Polri',
+      klasifikasi_akses: getVal('klasifikasi akses', 'klasifikasi', 'akses') || 'Internal',
+      status: getVal('status', 'lifecycle_status') || 'Dipublikasikan',
+      format_berkas: getVal('format berkas', 'format', 'tipe') || 'PDF',
+      lokasi_fisik: getVal('lokasi fisik', 'lokasi')
+    };
+  }
+
+  if (entity === 'books') {
+    return {
+      judul: getVal('judul buku', 'judul', 'title'),
+      penulis: getVal('penulis', 'author', 'pengarang') || 'Tim Penulis Sespimma',
+      penerbit: getVal('penerbit', 'publisher') || 'Sespimma Lemdiklat Polri',
+      tahun_terbit: parseInt(getVal('tahun terbit', 'tahun', 'year') || '2026', 10) || 2026,
+      isbn: getVal('isbn'),
+      kategori: getVal('kategori', 'library_category_id') || 'buku-fisik',
+      sub_kategori: getVal('subkategori', 'sub_kategori', 'sub kategori'),
+      nomor_panggil: getVal('nomor panggil', 'call_number'),
+      lokasi_rak: getVal('lokasi rak', 'lokasi'),
+      stok_total: parseInt(getVal('stok total', 'stok_total', 'total stok') || '1', 10) || 1,
+      stok_tersedia: parseInt(getVal('stok tersedia', 'stok_tersedia') || '1', 10) || 1,
+      klasifikasi_akses: getVal('klasifikasi akses', 'klasifikasi') || 'Internal',
+      status: getVal('status') || 'Dipublikasikan',
+      sinopsis: getVal('sinopsis', 'abstrak', 'synopsis')
+    };
+  }
+
+  if (entity === 'users') {
+    return {
+      nrp_nip: getVal('nrp / nip', 'nrp', 'nip', 'identifier'),
+      nama_lengkap: getVal('nama lengkap', 'nama', 'name'),
+      email: getVal('email'),
+      no_telepon: getVal('nomor telepon', 'no telepon', 'no hp', 'phone'),
+      peran: getVal('peran', 'role') || 'serdik',
+      status_akun: getVal('status akun', 'status') || 'Aktif',
+      kata_sandi: getVal('kata sandi awal', 'kata sandi', 'password') || 'Sespimma@2026!'
+    };
+  }
+}
+
 export default function AdminDataPage() {
   const [activeTab, setActiveTab] = useState<'resources' | 'books' | 'users'>('resources');
 
@@ -129,6 +428,128 @@ export default function AdminDataPage() {
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback(null), 6000);
+  };
+
+  // --- EXPORT & IMPORT STATE ---
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importParsedRows, setImportParsedRows] = useState<any[]>([]);
+  const [importErrorDetails, setImportErrorDetails] = useState<string[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDownloadTemplate = () => {
+    const tpl = TEMPLATES[activeTab];
+    const headerLine = tpl.headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
+    const sampleLines = tpl.samples.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const csvContent = `${headerLine}\r\n${sampleLines}`;
+    triggerDownload(tpl.filename, csvContent, 'text/csv;charset=utf-8;', true);
+    showNotification(`Template import ${activeTab.toUpperCase()} berhasil diunduh. Silakan isi berkas sesuai kolom.`);
+  };
+
+  const handleExport = async (format: 'csv' | 'json') => {
+    setShowExportDropdown(false);
+    setIsExporting(true);
+    try {
+      const res = await sipintarApi.admin.exportData(activeTab);
+      const items = res.items || [];
+      if (items.length === 0) {
+        showNotification(`Tidak ada data ${activeTab} untuk diekspor`, 'error');
+        return;
+      }
+
+      const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
+      const filename = `SIPINTAR_${activeTab.toUpperCase()}_EXPORT_${timestamp}`;
+
+      if (format === 'csv') {
+        const csvContent = convertToCsv(items);
+        triggerDownload(`${filename}.csv`, csvContent, 'text/csv;charset=utf-8;', true);
+        showNotification(`Berhasil mengekspor ${items.length} baris data ${activeTab} ke Excel/CSV!`);
+      } else {
+        const jsonContent = JSON.stringify(items, null, 2);
+        triggerDownload(`${filename}.json`, jsonContent, 'application/json;charset=utf-8;', false);
+        showNotification(`Berhasil mengekspor ${items.length} data ${activeTab} ke JSON!`);
+      }
+    } catch (err: any) {
+      showNotification(`Gagal mengekspor data: ${err.message || 'Kesalahan server'}`, 'error');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportFile(file);
+    setImportErrorDetails([]);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target?.result as string;
+        let parsed: any[] = [];
+
+        if (file.name.endsWith('.json')) {
+          const raw = JSON.parse(content);
+          parsed = Array.isArray(raw) ? raw : [raw];
+        } else {
+          const rawRows = parseCsv(content);
+          parsed = rawRows.map(r => mapCsvRowToPayload(r, activeTab));
+        }
+
+        const errors: string[] = [];
+        parsed.forEach((item, idx) => {
+          if (activeTab === 'resources' && !item.judul) {
+            errors.push(`Baris ${idx + 1}: Judul dokumen wajib diisi`);
+          } else if (activeTab === 'books' && !item.judul) {
+            errors.push(`Baris ${idx + 1}: Judul buku wajib diisi`);
+          } else if (activeTab === 'users' && (!item.nrp_nip || !item.nama_lengkap || !item.email)) {
+            errors.push(`Baris ${idx + 1}: NRP/NIP, Nama Lengkap, atau Email wajib diisi`);
+          }
+        });
+
+        setImportParsedRows(parsed);
+        setImportErrorDetails(errors);
+      } catch (err: any) {
+        setImportErrorDetails([`Gagal membaca berkas: ${err.message || 'Format tidak valid'}`]);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleConfirmImport = async () => {
+    if (importParsedRows.length === 0) {
+      showNotification('Tidak ada baris data valid yang siap diimpor', 'error');
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const res = await sipintarApi.admin.importData(activeTab, importParsedRows);
+      const count = res.imported_count || 0;
+      const skipped = res.skipped_count || 0;
+
+      showNotification(
+        `Import selesai! ${count} data berhasil dimasukkan${skipped > 0 ? `, ${skipped} dilewati (sudah terdaftar)` : ''}.`
+      );
+
+      if (activeTab === 'resources') fetchResources();
+      else if (activeTab === 'books') fetchBooks();
+      else if (activeTab === 'users') fetchUsers();
+
+      setShowImportModal(false);
+      setImportFile(null);
+      setImportParsedRows([]);
+      setImportErrorDetails([]);
+    } catch (err: any) {
+      showNotification(`Gagal melakukan import: ${err.message || 'Terjadi kesalahan server'}`, 'error');
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   // --- FETCH DATA HOOKS ---
@@ -592,7 +1013,175 @@ export default function AdminDataPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 10, flexWrap: 'wrap' }}>
+          {/* 1. Format Template CSV */}
+          <button
+            type="button"
+            onClick={handleDownloadTemplate}
+            title={`Unduh berkas template CSV resmi untuk ${activeTab}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 13px',
+              borderRadius: '6px',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#f1f5f9',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="12" y1="18" x2="12" y2="12" />
+              <polyline points="9 15 12 18 15 15" />
+            </svg>
+            <span>Format Template</span>
+          </button>
+
+          {/* 2. Export Dropdown Menu */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              disabled={isExporting}
+              onClick={() => setShowExportDropdown(!showExportDropdown)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 13px',
+                borderRadius: '6px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                border: '1px solid rgba(59, 130, 246, 0.4)',
+                color: '#60a5fa',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>{isExporting ? 'Mengekspor...' : '📥 Export Data'}</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {showExportDropdown && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  backgroundColor: 'var(--color-surface-raised, #182842)',
+                  border: '1px solid var(--color-border, #223758)',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                  padding: '6px',
+                  minWidth: '190px',
+                  zIndex: 50,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => handleExport('csv')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#e2e8f0',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <span style={{ fontSize: '15px' }}>📊</span>
+                  <div>
+                    <div>Export Excel / CSV</div>
+                    <div style={{ fontSize: '10px', color: '#94a3b8' }}>Format tabel (.csv UTF-8)</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleExport('json')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#e2e8f0',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <span style={{ fontSize: '15px' }}>🗄️</span>
+                  <div>
+                    <div>Export JSON (Cadangan)</div>
+                    <div style={{ fontSize: '10px', color: '#94a3b8' }}>Struktur data penuh (.json)</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Import Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setImportFile(null);
+              setImportParsedRows([]);
+              setImportErrorDetails([]);
+              setShowImportModal(true);
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 13px',
+              borderRadius: '6px',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              border: '1px solid rgba(16, 185, 129, 0.4)',
+              color: '#34d399',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span>📤 Import Data</span>
+          </button>
+
+          {/* 4. Tab-Specific Add Button */}
           {activeTab === 'resources' && (
             <button
               type="button"
@@ -604,11 +1193,11 @@ export default function AdminDataPage() {
                 boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              <span>+ Tambah Naskah Baru</span>
+              <span>+ Tambah Naskah</span>
             </button>
           )}
 
@@ -622,11 +1211,11 @@ export default function AdminDataPage() {
                 color: '#ffffff',
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              <span>+ Tambah Buku / Taskap</span>
+              <span>+ Tambah Buku</span>
             </button>
           )}
 
@@ -640,13 +1229,13 @@ export default function AdminDataPage() {
                 color: '#ffffff',
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="8.5" cy="7" r="4" />
                 <line x1="20" y1="8" x2="20" y2="14" />
                 <line x1="23" y1="11" x2="17" y2="11" />
               </svg>
-              <span>+ Tambah Pengguna Baru</span>
+              <span>+ Tambah Pengguna</span>
             </button>
           )}
         </div>
@@ -2046,6 +2635,323 @@ export default function AdminDataPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 7. MODAL IMPORT DATA (CSV / EXCEL & JSON) */}
+      {showImportModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(11, 18, 32, 0.8)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={() => {
+            if (!isImporting) setShowImportModal(false);
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface, #0f1c31)',
+              borderRadius: 'var(--radius-lg, 12px)',
+              border: '1px solid var(--color-border, #223758)',
+              width: '100%',
+              maxWidth: '820px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '24px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
+              position: 'relative',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px', borderBottom: '1px solid var(--color-border, #223758)', paddingBottom: '14px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>📤</span>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-text-main, #e8f0fc)', margin: 0 }}>
+                    Import Data {activeTab === 'resources' ? 'Dokumen & Bahan Ajar' : activeTab === 'books' ? 'Perpustakaan & Taskap' : 'Pengguna SIPINTAR'}
+                  </h3>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--color-text-muted, #94a3b8)', margin: '4px 0 0 28px' }}>
+                  Unggah berkas spreadsheet <strong>.csv</strong> atau <strong>.json</strong> sesuai kolom master data institusi.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                disabled={isImporting}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '20px',
+                  color: 'var(--color-text-muted, #94a3b8)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Step 1: Format & Download Template Banner */}
+            <div
+              style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                borderRadius: '8px',
+                padding: '14px 16px',
+                marginBottom: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#93c5fd', marginBottom: '3px' }}>
+                  💡 Belum memiliki berkas sesuai format kolom?
+                </div>
+                <div style={{ fontSize: '12px', color: '#cbd5e1' }}>
+                  Unduh template Excel/CSV resmi dengan susunan header kolom dan contoh baris data siap pakai.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  backgroundColor: '#2563eb',
+                  border: 'none',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>Unduh Template CSV</span>
+              </button>
+            </div>
+
+            {/* Step 2: Upload Area */}
+            <div style={{ marginBottom: '18px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main, #e8f0fc)' }}>
+                Pilih Berkas CSV / JSON untuk Diimpor:
+              </label>
+              <div
+                onClick={() => importFileInputRef.current?.click()}
+                style={{
+                  border: '2px dashed var(--color-border, #223758)',
+                  borderRadius: '10px',
+                  padding: '24px 16px',
+                  textAlign: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#3b82f6')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--color-border, #223758)')}
+              >
+                <input
+                  ref={importFileInputRef}
+                  type="file"
+                  accept=".csv, .json, text/csv, application/json"
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                />
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📁</div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-main, #e8f0fc)', marginBottom: '4px' }}>
+                  {importFile ? importFile.name : 'Klik atau seret berkas .csv / .json ke sini'}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted, #94a3b8)' }}>
+                  {importFile ? `${(importFile.size / 1024).toFixed(1)} KB — Siap diproses` : 'Mendukung CSV (Pemisah koma / titik koma) dan JSON'}
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: Error Warning Banner */}
+            {importErrorDetails.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid #ef4444',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  marginBottom: '16px',
+                  maxHeight: '120px',
+                  overflowY: 'auto',
+                }}
+              >
+                <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#f87171', marginBottom: '4px' }}>
+                  ⚠️ Ditemukan catatan validasi kolom:
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#fca5a5' }}>
+                  {importErrorDetails.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Step 4: Live Data Preview Table */}
+            {importParsedRows.length > 0 && (
+              <div style={{ marginBottom: '22px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-main, #e8f0fc)' }}>
+                    Pratinjau Data Terdeteksi ({importParsedRows.length} baris):
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      backgroundColor: 'rgba(52, 211, 153, 0.15)',
+                      color: '#34d399',
+                      border: '1px solid rgba(52, 211, 153, 0.3)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    Siap Diimpor
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    maxHeight: '220px',
+                    overflowX: 'auto',
+                    overflowY: 'auto',
+                    border: '1px solid var(--color-border, #223758)',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                  }}
+                >
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid var(--color-border, #223758)' }}>
+                        <th style={{ padding: '8px 10px', color: '#94a3b8' }}>#</th>
+                        {activeTab === 'resources' && (
+                          <>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Judul Dokumen</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Kategori</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Subkategori</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Penulis</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Akses</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Status</th>
+                          </>
+                        )}
+                        {activeTab === 'books' && (
+                          <>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Judul Buku</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Penulis</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Tahun</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Kategori</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Stok</th>
+                          </>
+                        )}
+                        {activeTab === 'users' && (
+                          <>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>NRP / NIP</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Nama Lengkap</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Email</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Peran</th>
+                            <th style={{ padding: '8px 10px', color: '#94a3b8' }}>Status</th>
+                          </>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importParsedRows.slice(0, 10).map((row, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding: '8px 10px', color: '#64748b' }}>{idx + 1}</td>
+                          {activeTab === 'resources' && (
+                            <>
+                              <td style={{ padding: '8px 10px', fontWeight: 600, color: '#f1f5f9' }}>{row.judul || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.kategori || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.sub_kategori || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.penulis_penyusun || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.klasifikasi_akses || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.status || '-'}</td>
+                            </>
+                          )}
+                          {activeTab === 'books' && (
+                            <>
+                              <td style={{ padding: '8px 10px', fontWeight: 600, color: '#f1f5f9' }}>{row.judul || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.penulis || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.tahun_terbit || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.kategori || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.stok_total || '1'}</td>
+                            </>
+                          )}
+                          {activeTab === 'users' && (
+                            <>
+                              <td style={{ padding: '8px 10px', fontWeight: 600, color: '#f1f5f9' }}>{row.nrp_nip || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.nama_lengkap || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.email || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.peran || '-'}</td>
+                              <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{row.status_akun || '-'}</td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {importParsedRows.length > 10 && (
+                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted, #94a3b8)', marginTop: '4px', textAlign: 'right' }}>
+                    Menampilkan 10 dari {importParsedRows.length} baris data. Seluruh baris akan diproses saat import.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid var(--color-border, #223758)', paddingTop: '16px' }}>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                disabled={isImporting}
+                className="btn-secondary"
+                style={{ padding: '9px 18px', fontSize: '13px' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmImport}
+                disabled={isImporting || importParsedRows.length === 0}
+                className="btn-primary"
+                style={{
+                  padding: '9px 22px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  backgroundColor: '#10b981',
+                  color: '#ffffff',
+                  opacity: isImporting || importParsedRows.length === 0 ? 0.6 : 1,
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+                }}
+              >
+                {isImporting ? 'Memproses Import...' : `🚀 Mulai Import (${importParsedRows.length} Baris)`}
+              </button>
+            </div>
           </div>
         </div>
       )}
