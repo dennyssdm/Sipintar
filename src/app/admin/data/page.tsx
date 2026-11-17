@@ -988,14 +988,29 @@ export default function AdminDataPage() {
     return matchCat && matchLifecycle && matchAccess && matchSearch;
   });
 
+  // --- PAGINATION STATE ---
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   const filteredBooks = books.filter((b) => {
-    const matchCat =
-      bookFilterCat === 'Semua' ||
-      String(b.category_name || b.category_slug || '').toLowerCase() === bookFilterCat.toLowerCase();
+    let matchCat = bookFilterCat === 'Semua';
+    if (!matchCat) {
+      const catSlug = (b.category_slug || '').toLowerCase();
+      const catName = (b.category_name || '').toLowerCase();
+      const filter = bookFilterCat.toLowerCase();
+      matchCat =
+        catSlug === filter ||
+        catName.includes(filter) ||
+        (filter === 'buku-fisik' && (catName.includes('fisik') || b.library_category_id === 1)) ||
+        (filter === 'ebook' && (catName.includes('ebook') || catName.includes('e-book') || b.library_category_id === 2)) ||
+        (filter === 'taskap' && (catName.includes('taskap') || b.library_category_id === 3)) ||
+        (filter === 'jurnal' && (catName.includes('jurnal') || b.library_category_id === 4));
+    }
     const matchSearch =
       !bookSearch ||
       String(b.title || '').toLowerCase().includes(bookSearch.toLowerCase()) ||
-      String(b.author || '').toLowerCase().includes(bookSearch.toLowerCase());
+      String(b.author || '').toLowerCase().includes(bookSearch.toLowerCase()) ||
+      String(b.publisher || '').toLowerCase().includes(bookSearch.toLowerCase());
     return matchCat && matchSearch;
   });
 
@@ -1010,6 +1025,170 @@ export default function AdminDataPage() {
       String(u.email || '').toLowerCase().includes(userSearch.toLowerCase());
     return matchRole && matchSearch;
   });
+
+  // Reset pagination on filter or tab change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, search, filterCategory, filterLifecycle, filterAccess, bookSearch, bookFilterCat, userSearch, userFilterRole]);
+
+  // Paginated Slices
+  const totalResourcePages = Math.ceil(filteredResources.length / pageSize) || 1;
+  const paginatedResources = filteredResources.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const totalBookPages = Math.ceil(filteredBooks.length / pageSize) || 1;
+  const paginatedBooks = filteredBooks.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const totalUserPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const renderPagination = (totalItems: number, totalPages: number) => {
+    if (totalItems === 0) return null;
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 20px',
+          borderTop: '1px solid var(--color-border)',
+          backgroundColor: 'var(--color-surface)',
+          flexWrap: 'wrap',
+          gap: '12px',
+          fontSize: '12.5px',
+        }}
+      >
+        <div style={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span>
+            Menampilkan <strong>{startItem}</strong>–<strong>{endItem}</strong> dari <strong>{totalItems}</strong> data
+          </span>
+          <span style={{ opacity: 0.4 }}>|</span>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <span>Per halaman:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              style={{
+                padding: '4px 8px',
+                borderRadius: '5px',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface-hover)',
+                color: 'var(--color-text-main)',
+                fontSize: '12px',
+                fontWeight: 600,
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(1)}
+            disabled={currentPage === 1}
+            title="Halaman Pertama"
+            style={{
+              padding: '5px 10px',
+              borderRadius: '5px',
+              border: '1px solid var(--color-border)',
+              backgroundColor: currentPage === 1 ? 'transparent' : 'var(--color-surface-hover)',
+              color: currentPage === 1 ? 'var(--color-text-muted)' : 'var(--color-text-main)',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+              opacity: currentPage === 1 ? 0.4 : 1,
+            }}
+          >
+            «
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            title="Halaman Sebelumnya"
+            style={{
+              padding: '5px 12px',
+              borderRadius: '5px',
+              border: '1px solid var(--color-border)',
+              backgroundColor: currentPage === 1 ? 'transparent' : 'var(--color-surface-hover)',
+              color: currentPage === 1 ? 'var(--color-text-muted)' : 'var(--color-text-main)',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+              opacity: currentPage === 1 ? 0.4 : 1,
+            }}
+          >
+            ‹ Sebelumnya
+          </button>
+
+          <span
+            style={{
+              padding: '5px 12px',
+              borderRadius: '5px',
+              backgroundColor: 'rgba(37, 99, 235, 0.12)',
+              border: '1px solid rgba(37, 99, 235, 0.3)',
+              color: 'var(--color-primary)',
+              fontWeight: 700,
+              fontSize: '12px',
+            }}
+          >
+            {currentPage} / {totalPages}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            title="Halaman Selanjutnya"
+            style={{
+              padding: '5px 12px',
+              borderRadius: '5px',
+              border: '1px solid var(--color-border)',
+              backgroundColor: currentPage === totalPages ? 'transparent' : 'var(--color-surface-hover)',
+              color: currentPage === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-main)',
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+              opacity: currentPage === totalPages ? 0.4 : 1,
+            }}
+          >
+            Selanjutnya ›
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={currentPage === totalPages}
+            title="Halaman Terakhir"
+            style={{
+              padding: '5px 10px',
+              borderRadius: '5px',
+              border: '1px solid var(--color-border)',
+              backgroundColor: currentPage === totalPages ? 'transparent' : 'var(--color-surface-hover)',
+              color: currentPage === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-main)',
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+              opacity: currentPage === totalPages ? 0.4 : 1,
+            }}
+          >
+            »
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   // Metrics
   const totalCount = resources.length;
@@ -1297,24 +1476,82 @@ export default function AdminDataPage() {
         </div>
       )}
 
-      {/* Metrics Bar */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '20px' }}>
-        <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Total Dokumen Terdaftar</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-navy)', marginTop: '4px' }}>{totalCount}</div>
-        </div>
-        <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: '11.5px', color: '#16a34a', fontWeight: 700, textTransform: 'uppercase' }}>Dipublikasikan (Aktif)</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#16a34a', marginTop: '4px' }}>{publishedCount}</div>
-        </div>
-        <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: '11.5px', color: '#d97706', fontWeight: 700, textTransform: 'uppercase' }}>Dalam Draf / Verifikasi</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>{draftCount}</div>
-        </div>
-        <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Arsip Dokumen</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-text-muted)', marginTop: '4px' }}>{archivedCount}</div>
-        </div>
+      {/* Dynamic Module Metrics Bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px', marginBottom: '22px' }}>
+        {activeTab === 'resources' && (
+          <>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Dokumen Terdaftar</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-navy)', marginTop: '4px' }}>{totalCount}</div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dipublikasikan (Aktif)</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#16a34a', marginTop: '4px' }}>{publishedCount}</div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#d97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dalam Draf / Verifikasi</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>{draftCount}</div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Arsip Dokumen</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-text-muted)', marginTop: '4px' }}>{archivedCount}</div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'books' && (
+          <>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Koleksi Pustaka</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-navy)', marginTop: '4px' }}>{books.length}</div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#3b82f6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>E-Book Digital</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#3b82f6', marginTop: '4px' }}>
+                {books.filter((b) => b.library_category_id === 2 || String(b.category_name || b.category_slug || '').toLowerCase().includes('ebook')).length}
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Buku Fisik Koleksi</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#10b981', marginTop: '4px' }}>
+                {books.filter((b) => b.library_category_id === 1 || String(b.category_name || b.category_slug || '').toLowerCase().includes('fisik')).length}
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Taskap & Jurnal</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#8b5cf6', marginTop: '4px' }}>
+                {books.filter((b) => [3, 4].includes(b.library_category_id) || String(b.category_name || b.category_slug || '').toLowerCase().includes('taskap') || String(b.category_name || b.category_slug || '').toLowerCase().includes('jurnal')).length}
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'users' && (
+          <>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Pengguna Terdaftar</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-navy)', marginTop: '4px' }}>{users.length}</div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#06b6d4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Peserta Didik (Serdik)</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#06b6d4', marginTop: '4px' }}>
+                {users.filter((u) => String(u.role_code || u.role || '').toLowerCase() === 'serdik').length}
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tenaga Pendidik (Gadik)</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', marginTop: '4px' }}>
+                {users.filter((u) => String(u.role_code || u.role || '').toLowerCase() === 'gadik').length}
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#ec4899', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Admin, Verifikator & Pustaka</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#ec4899', marginTop: '4px' }}>
+                {users.filter((u) => ['admin', 'verifikator', 'pengelola', 'pimpinan'].includes(String(u.role_code || u.role || '').toLowerCase())).length}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* CMS Module Tabs */}
@@ -1492,6 +1729,34 @@ export default function AdminDataPage() {
                 <option value="Terbatas">Terbatas</option>
                 <option value="Metadata Saja">Metadata Saja</option>
               </select>
+
+              {(search || filterCategory !== 'Semua' || filterLifecycle !== 'Semua' || filterAccess !== 'Semua') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('');
+                    setFilterCategory('Semua');
+                    setFilterLifecycle('Semua');
+                    setFilterAccess('Semua');
+                  }}
+                  title="Bersihkan Filter Pencarian"
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  ✕ Reset Filter
+                </button>
+              )}
             </div>
 
             {/* ACTION BUTTONS FOR RESOURCES TAB */}
@@ -1642,7 +1907,7 @@ export default function AdminDataPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredResources.map((item) => (
+                    {paginatedResources.map((item) => (
                       <tr
                         key={item.id}
                         style={{
@@ -1762,6 +2027,7 @@ export default function AdminDataPage() {
                 </table>
               </div>
             )}
+            {renderPagination(filteredResources.length, totalResourcePages)}
           </div>
         </div>
       )}
@@ -1806,6 +2072,32 @@ export default function AdminDataPage() {
                 <option value="taskap">Karya Tulis Akhir (Taskap)</option>
                 <option value="jurnal">Jurnal Kepolisian</option>
               </select>
+
+              {(bookSearch || bookFilterCat !== 'Semua') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBookSearch('');
+                    setBookFilterCat('Semua');
+                  }}
+                  title="Bersihkan Filter Perpustakaan"
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  ✕ Reset Filter
+                </button>
+              )}
             </div>
 
             {/* ACTION BUTTONS FOR BOOKS TAB */}
@@ -1955,7 +2247,7 @@ export default function AdminDataPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredBooks.map((b) => (
+                    {paginatedBooks.map((b) => (
                       <tr key={b.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
                         <td style={{ padding: '14px 16px', maxWidth: '360px' }}>
                           <div style={{ fontWeight: 700, color: 'var(--color-text-main)', marginBottom: '2px' }}>{b.title}</div>
@@ -2018,6 +2310,7 @@ export default function AdminDataPage() {
                 </table>
               </div>
             )}
+            {renderPagination(filteredBooks.length, totalBookPages)}
           </div>
         </div>
       )}
@@ -2065,6 +2358,32 @@ export default function AdminDataPage() {
                 <option value="pengelola">Pengelola Data & Pustaka</option>
                 <option value="pimpinan">Pimpinan Sespimma</option>
               </select>
+
+              {(userSearch || userFilterRole !== 'Semua') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserSearch('');
+                    setUserFilterRole('Semua');
+                  }}
+                  title="Bersihkan Filter Pengguna"
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  ✕ Reset Filter
+                </button>
+              )}
             </div>
 
             {/* ACTION BUTTONS FOR USERS TAB */}
@@ -2216,7 +2535,7 @@ export default function AdminDataPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredUsers.map((u) => (
+                    {paginatedUsers.map((u) => (
                       <tr key={u.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
                         <td style={{ padding: '14px 16px' }}>
                           <div style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{u.nama_lengkap}</div>
@@ -2285,6 +2604,7 @@ export default function AdminDataPage() {
                 </table>
               </div>
             )}
+            {renderPagination(filteredUsers.length, totalUserPages)}
           </div>
         </div>
       )}
@@ -2893,6 +3213,202 @@ export default function AdminDataPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4.1 MODAL EDIT BUKU */}
+      {showEditBookModal && editingBook && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(11, 18, 32, 0.75)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={() => setShowEditBookModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)',
+              width: '100%',
+              maxWidth: '560px',
+              padding: '24px',
+              boxShadow: 'var(--shadow-lg)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', margin: '0 0 6px' }}>
+              Ubah Data Buku / Koleksi E-Library
+            </h3>
+            <p style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', margin: '0 0 16px' }}>
+              ID Koleksi: #{editingBook.id} — Perbarui metadata naskah atau berkas digital.
+            </p>
+
+            <form onSubmit={handleUpdateBook} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>Judul Koleksi: *</label>
+                <input
+                  type="text"
+                  required
+                  value={editBookTitle}
+                  onChange={(e) => setEditBookTitle(e.target.value)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>Penulis / Penyusun:</label>
+                  <input
+                    type="text"
+                    value={editBookAuthor}
+                    onChange={(e) => setEditBookAuthor(e.target.value)}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>Kategori Perpustakaan:</label>
+                  <select
+                    value={editBookCatId}
+                    onChange={(e) => setEditBookCatId(Number(e.target.value))}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '13px' }}
+                  >
+                    <option value={1}>Buku Fisik</option>
+                    <option value={2}>E-Book Digital</option>
+                    <option value={3}>Karya Tulis Akhir (Taskap)</option>
+                    <option value={4}>Jurnal Kepolisian</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>Penerbit:</label>
+                  <input
+                    type="text"
+                    value={editBookPublisher}
+                    onChange={(e) => setEditBookPublisher(e.target.value)}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>Tahun Terbit:</label>
+                  <input
+                    type="number"
+                    value={editBookYear}
+                    onChange={(e) => setEditBookYear(Number(e.target.value))}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>Klasifikasi Akses:</label>
+                <select
+                  value={editBookAccess}
+                  onChange={(e) => setEditBookAccess(e.target.value as AccessClassification)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '13px' }}
+                >
+                  <option value="Terbuka">Terbuka (Dapat dibaca seluruh Serdik/Gadik)</option>
+                  <option value="Internal">Internal Sespimma</option>
+                  <option value="Terbatas">Terbatas (Khusus Pokja / Pimpinan)</option>
+                  <option value="Metadata Saja">Metadata Saja (Tanpa Berkas Unduhan)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>Ganti Berkas Digital (.pdf):</label>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => setEditBookFile(e.target.files?.[0] || null)}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px dashed var(--color-border)', fontSize: '12px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button type="button" onClick={() => setShowEditBookModal(false)} className="btn-secondary" style={{ padding: '9px 16px' }}>Batal</button>
+                <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ padding: '9px 20px', fontWeight: 700, background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' }}>
+                  {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4.2 MODAL DELETE BUKU */}
+      {showDeleteBookModal && deletingBook && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(11, 18, 32, 0.75)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={() => setShowDeleteBookModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)',
+              width: '100%',
+              maxWidth: '460px',
+              padding: '24px',
+              boxShadow: 'var(--shadow-lg)',
+              textAlign: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: '38px', marginBottom: '12px' }}>🗑️</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#ef4444', margin: '0 0 8px' }}>
+              Hapus Koleksi Buku?
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.5, margin: '0 0 20px' }}>
+              Apakah Anda yakin ingin menghapus buku <strong>&ldquo;{deletingBook.title}&rdquo;</strong> dari katalog perpustakaan?
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowDeleteBookModal(false)}
+                disabled={isSubmitting}
+                className="btn-secondary"
+                style={{ padding: '9px 18px' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteBook}
+                disabled={isSubmitting}
+                style={{
+                  padding: '9px 20px',
+                  borderRadius: '6px',
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {isSubmitting ? 'Menghapus...' : 'Ya, Hapus Buku'}
+              </button>
+            </div>
           </div>
         </div>
       )}
