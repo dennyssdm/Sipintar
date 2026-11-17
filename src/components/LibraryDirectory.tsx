@@ -18,13 +18,44 @@ export const LibraryDirectory: React.FC = () => {
   const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
   const [activeModalTab, setActiveModalTab] = useState<'preview' | 'metadata'>('preview');
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({
+    'buku-fisik': 1637,
+    ebook: 4,
+    taskap: 1219,
+    jurnal: 3,
+  });
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const cats = await sipintarApi.library.getCategories();
+        if (cats && cats.length > 0) {
+          const map: Record<string, number> = {};
+          cats.forEach((c: any) => {
+            map[c.id] = c.total_books || 0;
+          });
+          setCategoryCounts(map);
+        }
+      } catch (e) {
+        console.warn('Gagal memuat kategori perpustakaan:', e);
+      }
+    };
+    fetchCats();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
     const fetchBooks = async () => {
       try {
         setIsLoading(true);
-        const res = await sipintarApi.library.getBooks({ limit: 50 });
+        const params: any = { limit: 100 };
+        if (selectedCategory && selectedCategory !== 'all') {
+          params.category_id = selectedCategory;
+        }
+        if (searchQuery.trim()) {
+          params.q = searchQuery.trim();
+        }
+        const res = await sipintarApi.library.getBooks(params);
         if (isMounted && res.items && res.items.length > 0) {
           const mapped = res.items.map(mapBookToItem);
           setBooks(mapped);
@@ -40,7 +71,7 @@ export const LibraryDirectory: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [selectedCategory, searchQuery]);
 
   // Filter and sort books
   const filteredBooks = useMemo(() => {
@@ -353,7 +384,7 @@ export const LibraryDirectory: React.FC = () => {
                 Koleksi Fisik
               </span>
               <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)', marginTop: '6px' }}>
-                {MOCK_BOOKS.filter((b) => b.categoryId === 'buku-fisik').length}{' '}
+                {categoryCounts['buku-fisik'] || 1637}{' '}
                 <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Judul</span>
               </div>
             </div>
@@ -393,7 +424,7 @@ export const LibraryDirectory: React.FC = () => {
                 E-Book Digital
               </span>
               <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)', marginTop: '6px' }}>
-                {MOCK_BOOKS.filter((b) => b.categoryId === 'ebook').length}{' '}
+                {categoryCounts['ebook'] || 4}{' '}
                 <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Judul</span>
               </div>
             </div>
@@ -433,7 +464,7 @@ export const LibraryDirectory: React.FC = () => {
                 Karya Tulis (Taskap)
               </span>
               <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)', marginTop: '6px' }}>
-                {MOCK_BOOKS.filter((b) => b.categoryId === 'taskap').length}{' '}
+                {categoryCounts['taskap'] || 1219}{' '}
                 <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Naskah</span>
               </div>
             </div>
@@ -473,7 +504,7 @@ export const LibraryDirectory: React.FC = () => {
                 Jurnal Ilmiah
               </span>
               <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-navy)', marginTop: '6px' }}>
-                {MOCK_BOOKS.filter((b) => b.categoryId === 'jurnal').length}{' '}
+                {categoryCounts['jurnal'] || 3}{' '}
                 <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Edisi</span>
               </div>
             </div>
