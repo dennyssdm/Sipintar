@@ -430,6 +430,39 @@ export default function AdminDataPage() {
     setTimeout(() => setFeedback(null), 6000);
   };
 
+  // --- USER AUTH & ACCESS CONTROL ---
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('sipintar_auth_user');
+        if (saved) {
+          try {
+            const user = JSON.parse(saved);
+            setCurrentUser(user);
+            setIsAuthChecking(false);
+            return;
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+      setCurrentUser(null);
+      setIsAuthChecking(false);
+    };
+
+    checkAuth();
+    window.addEventListener('sipintar-auth-changed', checkAuth);
+    return () => {
+      window.removeEventListener('sipintar-auth-changed', checkAuth);
+    };
+  }, []);
+
+  const userRole = (currentUser?.role || currentUser?.role_code || '').toLowerCase();
+  const isSuperAdmin = Boolean(currentUser && userRole === 'admin');
+
   // --- EXPORT & IMPORT STATE ---
 
   const [isExporting, setIsExporting] = useState(false);
@@ -643,17 +676,19 @@ export default function AdminDataPage() {
   };
 
   useEffect(() => {
-    fetchResources();
-  }, []);
+    if (isSuperAdmin) {
+      fetchResources();
+    }
+  }, [isSuperAdmin]);
 
   useEffect(() => {
-    if (activeTab === 'books' && books.length === 0) {
+    if (isSuperAdmin && activeTab === 'books' && books.length === 0) {
       fetchBooks();
     }
-    if (activeTab === 'users' && users.length === 0) {
+    if (isSuperAdmin && activeTab === 'users' && users.length === 0) {
       fetchUsers();
     }
-  }, [activeTab]);
+  }, [isSuperAdmin, activeTab, books.length, users.length]);
 
   // --- RESOURCE CRUD HANDLERS ---
   const handleCreateResource = async (e: React.FormEvent) => {
@@ -981,6 +1016,173 @@ export default function AdminDataPage() {
   const publishedCount = resources.filter((r) => r.lifecycle === 'Dipublikasikan').length;
   const draftCount = resources.filter((r) => r.lifecycle === 'Draft' || r.lifecycle === 'Diverifikasi').length;
   const archivedCount = resources.filter((r) => r.lifecycle === 'Arsip').length;
+
+  if (isAuthChecking) {
+    return (
+      <div style={{ padding: '80px 20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+        <div style={{ fontSize: '14px', fontWeight: 600 }}>Memverifikasi hak akses Administrator Sistem...</div>
+      </div>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div style={{ paddingBottom: '40px' }}>
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" style={{ marginBottom: '16px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+          <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
+            Beranda
+          </Link>
+          <span style={{ margin: '0 8px' }}>/</span>
+          <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>Superadmin CMS & Data Control</span>
+        </nav>
+
+        <div style={{ maxWidth: '640px', margin: '40px auto', padding: '0 12px' }}>
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface, #111d33)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              borderRadius: 'var(--radius-lg, 12px)',
+              padding: '40px 32px',
+              textAlign: 'center',
+              boxShadow: '0 12px 36px rgba(0, 0, 0, 0.4)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Subtle top alert glow */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: '-70px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '280px',
+                height: '160px',
+                background: 'radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0) 70%)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            <div
+              style={{
+                width: '68px',
+                height: '68px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1.5px solid rgba(239, 68, 68, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
+                color: '#ef4444',
+              }}
+            >
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                color: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                padding: '3px 10px',
+                borderRadius: '4px',
+                letterSpacing: '0.8px',
+                display: 'inline-block',
+                marginBottom: '12px',
+              }}
+            >
+              OTORISASI KETAT • KHUSUS SUPERADMIN
+            </span>
+
+            <h1 style={{ fontSize: '23px', fontWeight: 800, color: '#f8fafc', margin: '0 0 10px', letterSpacing: '-0.3px' }}>
+              Pusat Pengendali Master Data & CMS
+            </h1>
+
+            <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.6, margin: '0 0 24px', maxWidth: '520px', marginLeft: 'auto', marginRight: 'auto' }}>
+              Fitur <strong>CRUD Master Data, Ekspor/Impor Naskah, dan Manajemen Akun</strong> hanya dapat diakses oleh akun <strong>Administrator Sistem (Superadmin)</strong> Sespimma Lemdiklat Polri.
+            </p>
+
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--color-border, #1e293b)',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                color: '#cbd5e1',
+                marginBottom: '28px',
+              }}
+            >
+              <span>Status Login:</span>
+              <strong style={{ color: currentUser ? '#fbbf24' : '#ef4444' }}>
+                {currentUser ? `${currentUser.nama_lengkap} (${currentUser.role_name || currentUser.role})` : 'Pengguna Tamu (Belum Masuk)'}
+              </strong>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-sipintar-login'))}
+                className="btn-primary"
+                style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  color: '#ffffff',
+                  padding: '11px 22px',
+                  fontSize: '13.5px',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                <span>Masuk sebagai Superadmin</span>
+              </button>
+
+              <Link
+                href="/"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '11px 20px',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  color: '#cbd5e1',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                }}
+              >
+                <span>Kembali ke Beranda</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ paddingBottom: '40px' }}>

@@ -26,32 +26,62 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
   useEffect(() => {
     // Check saved session in localStorage
-    if (typeof window !== 'undefined') {
-      const savedUserStr = localStorage.getItem('sipintar_auth_user');
-      if (savedUserStr) {
-        try {
-          const user = JSON.parse(savedUserStr);
-          setCurrentUser(user);
-          if (user.token) {
-            localStorage.setItem('sipintar_auth_token', user.token);
-            sipintarApi.setToken(user.token);
-          }
-          if (user.role) {
-            if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
-              setCurrentRole('Administrator');
-            } else if (user.role === 'gadik') {
-              setCurrentRole('Gadik');
-            } else if (user.role === 'pengelola') {
-              setCurrentRole('Pengelola Perpustakaan');
-            } else {
-              setCurrentRole('Serdik');
+    const syncUser = () => {
+      if (typeof window !== 'undefined') {
+        const savedUserStr = localStorage.getItem('sipintar_auth_user');
+        if (savedUserStr) {
+          try {
+            const user = JSON.parse(savedUserStr);
+            setCurrentUser(user);
+            if (user.token) {
+              localStorage.setItem('sipintar_auth_token', user.token);
+              sipintarApi.setToken(user.token);
             }
+            if (user.role) {
+              if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
+                setCurrentRole('Administrator');
+              } else if (user.role === 'gadik') {
+                setCurrentRole('Gadik');
+              } else if (user.role === 'pengelola') {
+                setCurrentRole('Pengelola Perpustakaan');
+              } else {
+                setCurrentRole('Serdik');
+              }
+            }
+            return;
+          } catch (e) {
+            console.error('Failed to parse cached user', e);
           }
-        } catch (e) {
-          console.error('Failed to parse cached user', e);
         }
+        setCurrentUser(null);
+        setCurrentRole('Serdik');
       }
-    }
+    };
+
+    syncUser();
+
+    const handleAuthChange = (e: any) => {
+      const user = e.detail;
+      setCurrentUser(user);
+      if (user && user.role) {
+        if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
+          setCurrentRole('Administrator');
+        } else if (user.role === 'gadik') {
+          setCurrentRole('Gadik');
+        } else if (user.role === 'pengelola') {
+          setCurrentRole('Pengelola Perpustakaan');
+        } else {
+          setCurrentRole('Serdik');
+        }
+      } else {
+        setCurrentRole('Serdik');
+      }
+    };
+
+    window.addEventListener('sipintar-auth-changed', handleAuthChange);
+    return () => {
+      window.removeEventListener('sipintar-auth-changed', handleAuthChange);
+    };
   }, []);
 
   const handleLoginSuccess = (user: any) => {
@@ -119,12 +149,18 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     { name: 'Pencarian Terpadu', href: '/search', icon: 'search' },
   ];
 
+  const userRole = (currentUser?.role || currentUser?.role_code || '').toLowerCase();
+
   const adminNavItems = [
-    { name: 'Manajemen Data', href: '/admin/data', icon: 'database', badge: 5 },
-    { name: 'Verifikasi', href: '/admin/verifikasi', icon: 'shield-check', badge: 3 },
-    { name: 'Hak Akses', href: '/admin/akses', icon: 'lock' },
-    { name: 'Monitoring', href: '/admin/monitoring', icon: 'activity', badge: 2 },
+    { name: 'Manajemen Data', href: '/admin/data', icon: 'database', badge: 5, roles: ['admin'] },
+    { name: 'Verifikasi', href: '/admin/verifikasi', icon: 'shield-check', badge: 3, roles: ['admin', 'verifikator'] },
+    { name: 'Hak Akses', href: '/admin/akses', icon: 'lock', roles: ['admin'] },
+    { name: 'Monitoring', href: '/admin/monitoring', icon: 'activity', badge: 2, roles: ['admin', 'pimpinan', 'verifikator'] },
   ];
+
+  const visibleAdminNavItems = currentUser && userRole
+    ? adminNavItems.filter((item) => item.roles.includes(userRole))
+    : [];
 
   const renderIcon = (type: string) => {
     switch (type) {
@@ -283,40 +319,44 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               );
             })}
 
-            <div className="nav-section-title-admin">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-              <span>FUNGSI ADMINISTRATOR</span>
-            </div>
-            {adminNavItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`nav-item ${isActive ? 'active' : ''}`}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <span className="nav-icon">{renderIcon(item.icon)}</span>
-                  <span style={{ flex: 1 }}>{item.name}</span>
-                  {item.badge && (
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        backgroundColor: 'var(--color-primary-light)',
-                        color: 'var(--color-primary)',
-                        padding: '2px 7px',
-                        borderRadius: 'var(--radius-full)',
-                        fontWeight: 700,
-                      }}
+            {visibleAdminNavItems.length > 0 && (
+              <>
+                <div className="nav-section-title-admin">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <span>FUNGSI ADMINISTRATOR</span>
+                </div>
+                {visibleAdminNavItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`nav-item ${isActive ? 'active' : ''}`}
+                      onClick={() => setMobileOpen(false)}
                     >
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+                      <span className="nav-icon">{renderIcon(item.icon)}</span>
+                      <span style={{ flex: 1 }}>{item.name}</span>
+                      {item.badge && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            backgroundColor: 'var(--color-primary-light)',
+                            color: 'var(--color-primary)',
+                            padding: '2px 7px',
+                            borderRadius: 'var(--radius-full)',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
 
           <div className="sidebar-footer">

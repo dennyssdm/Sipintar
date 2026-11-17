@@ -14,7 +14,41 @@ export default function AdminVerifikasiPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [reviewItem, setReviewItem] = useState<ResourceItem | null>(null);
 
+  // User Auth & Verifikator Access Control
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
   useEffect(() => {
+    const checkAuth = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('sipintar_auth_user');
+        if (saved) {
+          try {
+            const user = JSON.parse(saved);
+            setCurrentUser(user);
+            setIsAuthChecking(false);
+            return;
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+      setCurrentUser(null);
+      setIsAuthChecking(false);
+    };
+
+    checkAuth();
+    window.addEventListener('sipintar-auth-changed', checkAuth);
+    return () => {
+      window.removeEventListener('sipintar-auth-changed', checkAuth);
+    };
+  }, []);
+
+  const userRole = (currentUser?.role || currentUser?.role_code || '').toLowerCase();
+  const canVerify = Boolean(currentUser && (userRole === 'admin' || userRole === 'verifikator'));
+
+  useEffect(() => {
+    if (!canVerify) return;
     let isMounted = true;
     const fetchQueue = async () => {
       try {
@@ -31,7 +65,7 @@ export default function AdminVerifikasiPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [canVerify]);
 
   const handleApprove = async (id: string, title: string) => {
     try {
@@ -66,6 +100,157 @@ export default function AdminVerifikasiPage() {
       setTimeout(() => setFeedback(null), 5000);
     }
   };
+
+  if (isAuthChecking) {
+    return (
+      <div style={{ padding: '80px 20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+        <div style={{ fontSize: '14px', fontWeight: 600 }}>Memverifikasi hak akses Verifikator & Administrator...</div>
+      </div>
+    );
+  }
+
+  if (!canVerify) {
+    return (
+      <div>
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" style={{ marginBottom: '16px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+          <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
+            Beranda
+          </Link>
+          <span style={{ margin: '0 8px' }}>/</span>
+          <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>Fungsi Admin: Verifikasi Naskah</span>
+        </nav>
+
+        <div style={{ maxWidth: '640px', margin: '40px auto', padding: '0 12px' }}>
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface, #111d33)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              borderRadius: 'var(--radius-lg, 12px)',
+              padding: '40px 32px',
+              textAlign: 'center',
+              boxShadow: '0 12px 36px rgba(0, 0, 0, 0.4)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: '68px',
+                height: '68px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1.5px solid rgba(239, 68, 68, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
+                color: '#ef4444',
+              }}
+            >
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                color: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                padding: '3px 10px',
+                borderRadius: '4px',
+                letterSpacing: '0.8px',
+                display: 'inline-block',
+                marginBottom: '12px',
+              }}
+            >
+              OTORISASI KETAT • TIM VERIFIKATOR & ADMIN
+            </span>
+
+            <h1 style={{ fontSize: '23px', fontWeight: 800, color: '#f8fafc', margin: '0 0 10px', letterSpacing: '-0.3px' }}>
+              Antrean Verifikasi Bahan Ajar & Dokumen
+            </h1>
+
+            <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.6, margin: '0 0 24px', maxWidth: '520px', marginLeft: 'auto', marginRight: 'auto' }}>
+              Pemeriksaan mutu, validasi kebenaran materi, dan penerbitan draf hanya dapat dilakukan oleh <strong>Tim Verifikator Bag Jarlat</strong> atau <strong>Administrator Sistem</strong> Sespimma Lemdiklat Polri.
+            </p>
+
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--color-border, #1e293b)',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                color: '#cbd5e1',
+                marginBottom: '28px',
+              }}
+            >
+              <span>Status Login:</span>
+              <strong style={{ color: currentUser ? '#fbbf24' : '#ef4444' }}>
+                {currentUser ? `${currentUser.nama_lengkap} (${currentUser.role_name || currentUser.role})` : 'Pengguna Tamu (Belum Masuk)'}
+              </strong>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-sipintar-login'))}
+                className="btn-primary"
+                style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  color: '#ffffff',
+                  padding: '11px 22px',
+                  fontSize: '13.5px',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                <span>Masuk sebagai Verifikator / Admin</span>
+              </button>
+
+              <Link
+                href="/"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '11px 20px',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  color: '#cbd5e1',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                }}
+              >
+                <span>Kembali ke Beranda</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
