@@ -93,7 +93,7 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 - [x] Implement database migrations and seed strategy (`database.sql` imported to `sipintar_db` on MySQL localhost:3306).
 - [x] Implement server-side authorization and validation (`src/middleware/auth.js` & `src/middleware/rbac.js`).
 - [x] Implement API contract and automated tests (Full curl test suite across 6 phases).
-- [x] Generate & maintain Postman Collection (`collection.json` and `SIPINTAR_Sespimma_API.postman_collection.json`).
+- [x] Generate & maintain Postman Collection (`collection.json`, v2.1.0 dengan 38 skenario uji).
 - [x] Security hardening: Helmet HTTP security headers, express-rate-limit brute force & DoS protection, audit trail logging.
 - [x] Document final running instructions and frontend integration guide in `README.md`.
 - [x] [A] User approves backend release. (2026-11-17)

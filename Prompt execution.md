@@ -90,7 +90,7 @@ Your work is governed by:
 - [x] **Verification:** Execute draft creation, approval cycle, verify log entry in `activity_logs`.
 
 ### Phase 6 — Hardening, API Documentation & Frontend Handover
-- [x] Generate Postman Collection (`SIPINTAR_Sespimma_API.postman_collection.json`) with sample requests and environment variables.
+- [x] Generate Postman Collection (`collection.json`) with sample requests and environment variables.
 - [x] Ensure helmet security headers, rate limiting (`express-rate-limit`), and input sanitization.
 - [x] Test integration with the Next.js frontend by updating frontend fetch services.
 - [x] Document final running instructions in `README.md`.

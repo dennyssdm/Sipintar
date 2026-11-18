@@ -28,8 +28,7 @@ sipintarsespimmaAPI/
 ├── .env.example                      # Contoh template konfigurasi
 ├── package.json                      # Dependensi dan script NPM
 ├── server.js                         # Entry point aplikasi Express
-├── collection.json                   # Koleksi Postman v2.1.0 (33 Request, Live & Terupdate)
-├── SIPINTAR_Sespimma_API.postman_collection.json
+├── collection.json                   # Koleksi Postman v2.1.0 resmi & terupdate (38 Request)
 ├── database.sql                      # Skema DDL dan data awal MySQL
 ├── docs/                             # Dokumentasi institusional & teknis Sespimma
 │   ├── API_INTEGRATION_GUIDE.md      # Panduan integrasi lengkap frontend-backend (12 Modul)
@@ -255,8 +254,7 @@ const downloadUrl = `${BASE_URL}/resources/${resourceId}/file?download=true`;
 ## 8. Koleksi Postman
 
 Berkas koleksi resmi Postman v2.1.0 tersedia di direktori root proyek:
-- [collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/collection.json)
-- [SIPINTAR_Sespimma_API.postman_collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/SIPINTAR_Sespimma_API.postman_collection.json)
+- [collection.json](file:///Applications/XAMPP/xamppfiles/htdocs/sipintarsespimmaAPI/collection.json) (38 Request lengkap dengan otomatisasi token dan validasi assertions)
 
 **Fitur Otomatis Postman:**
 Saat melakukan request pada folder `2. Autentikasi & Profil -> Login - Admin (NRP / Email)`, script pengujian Postman akan secara otomatis menyimpan token ke variabel koleksi `{{authToken}}`, sehingga seluruh request terlindungi berikutnya dapat langsung dieksekusi tanpa menyalin token secara manual.
