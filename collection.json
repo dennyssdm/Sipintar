@@ -1312,6 +1312,186 @@
               "body": "{\n  \"success\": true,\n  \"message\": \"Log audit sistem berhasil diambil\",\n  \"data\": [\n    {\n      \"id\": 35,\n      \"action_type\": \"LOGIN\",\n      \"description\": \"Pengguna AKBP Dewi Susilo Pangestuti berhasil masuk ke sistem\"\n    }\n  ],\n  \"meta\": {\n    \"page\": 1,\n    \"limit\": 20,\n    \"total\": 35,\n    \"totalPages\": 2\n  }\n}"
             }
           ]
+        },
+        {
+          "name": "Admin - Tambah Koleksi Buku / Taskap",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Manajemen Taktis Penanganan Konflik Komunal\",\n  \"author\": \"Kombes Pol. Drs. Ahmad Fauzi, M.Hum.\",\n  \"publisher\": \"Pustaka Sespimma Lemdiklat Polri\",\n  \"published_year\": 2026,\n  \"library_category_id\": \"buku-fisik\",\n  \"sub_category\": \"Taktik Kepolisian\",\n  \"isbn\": \"978-602-9988-11-2\",\n  \"call_number\": \"355.43 FAU m\",\n  \"physical_location\": \"Rak Taktik B-02\",\n  \"stock_total\": 5,\n  \"stock_available\": 5,\n  \"access_classification\": \"Internal\",\n  \"lifecycle_status\": \"Dipublikasikan\",\n  \"synopsis\": \"Kajian komprehensif penanganan kerusuhan massa berbasis kearifan lokal.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "books"
+              ]
+            },
+            "description": "Menambahkan koleksi buku cetak, e-book, atau naskah taskap baru ke perpustakaan."
+          }
+        },
+        {
+          "name": "Admin - Tambah Pengguna Baru",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nrp_nip\": \"88091244\",\n  \"nama_lengkap\": \"KOMPOL Rian Anggoro, S.I.K.\",\n  \"email\": \"rian.anggoro@sespimma.polri.go.id\",\n  \"password\": \"Password123!\",\n  \"role_id\": 2,\n  \"phone_number\": \"081345678912\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            },
+            "description": "Mendaftarkan akun kedinasan baru langsung oleh Administrator."
+          }
+        },
+        {
+          "name": "Admin - Ekspor Data (CSV / Excel)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/export/resources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "export",
+                "resources"
+              ]
+            },
+            "description": "Mengekspor data mentah naskah, buku, atau pengguna (entitas: resources, books, users)."
+          }
+        },
+        {
+          "name": "Admin - Impor Massal Data (Batch Import)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"judul\": \"Modul Pengamanan Pemilu Serentak dan Kontijensi Wilayah\",\n      \"kategori\": \"Modul & Hanjar\",\n      \"sub_kategori\": \"Operasi Kepolisian\",\n      \"deskripsi\": \"Panduan taktis pengamanan pemilu serentak bagi kapolres.\",\n      \"penulis_penyusun\": \"Tim Pokja Sespimma Lemdiklat Polri\",\n      \"unit_sumber\": \"Bag Jarlat Sespimma\",\n      \"status\": \"Dipublikasikan\",\n      \"klasifikasi_akses\": \"Internal\",\n      \"format_berkas\": \"PDF\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/import/resources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "import",
+                "resources"
+              ]
+            },
+            "description": "Melakukan impor massal array objek data (entitas: resources, books, users)."
+          }
+        },
+        {
+          "name": "Admin - Ubah Status Naskah Langsung",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Dipublikasikan\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/resources/155/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "resources",
+                "155",
+                "status"
+              ]
+            },
+            "description": "Mengubah status siklus hidup dokumen secara langsung oleh Superadmin/Verifikator."
+          }
         }
       ]
     }
