@@ -1027,9 +1027,14 @@ export default function AdminDataPage() {
   });
 
   // Reset pagination on filter or tab change
-  useEffect(() => {
+  const [filterKey, setFilterKey] = useState(
+    () => `${activeTab}_${search}_${filterCategory}_${filterLifecycle}_${filterAccess}_${bookSearch}_${bookFilterCat}_${userSearch}_${userFilterRole}`
+  );
+  const currentFilterKey = `${activeTab}_${search}_${filterCategory}_${filterLifecycle}_${filterAccess}_${bookSearch}_${bookFilterCat}_${userSearch}_${userFilterRole}`;
+  if (filterKey !== currentFilterKey) {
+    setFilterKey(currentFilterKey);
     setCurrentPage(1);
-  }, [activeTab, search, filterCategory, filterLifecycle, filterAccess, bookSearch, bookFilterCat, userSearch, userFilterRole]);
+  }
 
   // Paginated Slices
   const totalResourcePages = Math.ceil(filteredResources.length / pageSize) || 1;

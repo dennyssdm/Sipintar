@@ -232,3 +232,4 @@ Integrasi antara antarmuka **Frontend SIPINTAR** dan layanan **Backend RESTful A
 
 ---
 *Laporan ini disusun dengan penuh tanggung jawab sebagai dokumentasi resmi Proyek Perubahan PKN Tingkat II Angkatan XXIX Nawasena TA 2026 oleh Tim Pengembang Sistem SIPINTAR Sespimma Lemdiklat Polri.*
+

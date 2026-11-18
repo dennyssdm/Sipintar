@@ -15,25 +15,39 @@ interface Message {
   timestamp: string;
 }
 
+function getFormattedTimestamp() {
+  return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+}
+
+let messageSeq = 0;
+function getNextMessageId(prefix: string) {
+  messageSeq += 1;
+  return `${prefix}-${Date.now()}-${messageSeq}`;
+}
+
+function createInitialGreeting(resource: ResourceItem): Message {
+  return {
+    id: `init-${resource.id}`,
+    sender: 'gemini',
+    text: `Halo! Saya **Asisten Cerdas Gemini AI** untuk sistem pembelajaran SIPINTAR Sespimma Lemdiklat Polri.\n\nSaya telah terhubung dengan dokumen yang sedang Anda baca:\n📘 **${resource.title}**\n📂 Kategori: *${resource.category}* (${resource.subCategory || 'Bahan Pokok'})\n\nSilakan klik salah satu menu rekomendasi di atas atau ketik pertanyaan Anda pada kolom di bawah.`,
+    timestamp: getFormattedTimestamp(),
+  };
+}
+
 export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
   resource,
   onClose,
 }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [prevResourceId, setPrevResourceId] = useState(resource.id);
+  const [messages, setMessages] = useState<Message[]>(() => [createInitialGreeting(resource)]);
   const [inputPrompt, setInputPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize with document context when resource changes
-  useEffect(() => {
-    const initialGreeting: Message = {
-      id: 'init-1',
-      sender: 'gemini',
-      text: `Halo! Saya **Asisten Cerdas Gemini AI** untuk sistem pembelajaran SIPINTAR Sespimma Lemdiklat Polri.\n\nSaya telah terhubung dengan dokumen yang sedang Anda baca:\n📘 **${resource.title}**\n📂 Kategori: *${resource.category}* (${resource.subCategory || 'Bahan Pokok'})\n\nSilakan klik salah satu menu rekomendasi di atas atau ketik pertanyaan Anda pada kolom di bawah.`,
-      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages([initialGreeting]);
-  }, [resource]);
+  if (prevResourceId !== resource.id) {
+    setPrevResourceId(resource.id);
+    setMessages([createInitialGreeting(resource)]);
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -144,10 +158,10 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
     if (!text.trim() || isLoading) return;
 
     const userMsg: Message = {
-      id: `usr-${Date.now()}`,
+      id: getNextMessageId('usr'),
       sender: 'user',
       text: text.trim(),
-      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: getFormattedTimestamp(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -157,18 +171,18 @@ export const GeminiReadingAssistant: React.FC<GeminiReadingAssistantProps> = ({
     try {
       const responseText = await generateGeminiResponse(text.trim());
       const geminiMsg: Message = {
-        id: `gem-${Date.now()}`,
+        id: getNextMessageId('gem'),
         sender: 'gemini',
         text: responseText,
-        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: getFormattedTimestamp(),
       };
       setMessages((prev) => [...prev, geminiMsg]);
     } catch {
       const errorMsg: Message = {
-        id: `err-${Date.now()}`,
+        id: getNextMessageId('err'),
         sender: 'gemini',
         text: 'Maaf, terjadi kendala saat memproses jawaban. Silakan coba kembali.',
-        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: getFormattedTimestamp(),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
