@@ -246,7 +246,7 @@ export const MOCK_BOOKS: BookItem[] = [
     id: 'book-ebook-03',
     isbn: '978-602-74892-7-5',
     title: 'Investigasi Kejahatan Siber & Pembongkaran Sindikat Judi Online (E-Book)',
-    author: 'AKBP Dina Novitasari, S.H., S.I.K., M.H. & Tim Siber Bareskrim',
+    author: 'Tim Siber Bareskrim & Pokja Jarlat Sespimma',
     publisher: 'Pustaka Ilmu Kepolisian (Digital Edition)',
     publishedYear: 2025,
     synopsis:
@@ -265,7 +265,7 @@ export const MOCK_BOOKS: BookItem[] = [
       totalPages: 290,
       previewPages: 22,
     },
-    callNumber: '364.168 DIN i 2025 (E)',
+    callNumber: '364.168 SIB i 2025 (E)',
     physicalLocation: 'Koleksi Digital SIPINTAR Cloud Server & Rak S-05',
     stockAvailable: 99,
     stockTotal: 99,
@@ -277,7 +277,7 @@ export const MOCK_BOOKS: BookItem[] = [
     id: 'book-ebook-04',
     isbn: '978-623-88012-9-1',
     title: 'Inovasi dan Kreatifitas Kepolisian: Akselerasi Smart Policing (E-Book)',
-    author: 'AKBP Rahmawaty Tumulo, S.I.K., M.M.',
+    author: 'Tim Pokja Kurikulum & Gadik Sespimma Lemdiklat Polri',
     publisher: 'Pustaka Smart Policing (Digital Edition)',
     publishedYear: 2025,
     synopsis:
