@@ -17,12 +17,22 @@ interface AuthUser {
   token?: string;
 }
 
+// Cached reference to prevent React 19 infinite re-render in useSyncExternalStore
+let cachedUserRaw: string | null = null;
+let cachedUserObj: AuthUser | null = null;
+
 function getSavedUser(): AuthUser | null {
   if (typeof window === 'undefined') return null;
   try {
-    const saved = localStorage.getItem('sipintar_auth_user');
-    return saved ? JSON.parse(saved) : null;
+    const raw = localStorage.getItem('sipintar_auth_user');
+    if (raw !== cachedUserRaw) {
+      cachedUserRaw = raw;
+      cachedUserObj = raw ? (JSON.parse(raw) as AuthUser) : null;
+    }
+    return cachedUserObj;
   } catch {
+    cachedUserRaw = null;
+    cachedUserObj = null;
     return null;
   }
 }
@@ -209,7 +219,7 @@ function LoginForm() {
             overflow: 'hidden',
           }}
         >
-          {/* Card Header (Identitas Tipografi Institusional Sespimma Tanpa Logo) */}
+          {/* Card Header (Identitas Tipografi Institusional Sespimma Tanpa Logo Gambar) */}
           <div
             style={{
               background: 'linear-gradient(135deg, #071731 0%, #174f9c 100%)',
@@ -282,350 +292,276 @@ function LoginForm() {
 
           {/* Card Body */}
           <div style={{ padding: '24px' }}>
-            {/* If user already logged in */}
-            {existingUser && existingUser.nama_lengkap ? (
+            {/* Active session info banner if user is already logged in */}
+            {existingUser && existingUser.nama_lengkap && (
               <div
                 style={{
-                  backgroundColor: 'var(--color-background, #f8fafc)',
-                  border: '1px solid var(--color-border, #e2e8f0)',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  textAlign: 'center',
-                  marginBottom: '20px',
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  marginBottom: '18px',
+                  fontSize: '12.5px',
+                  color: '#1e40af',
                 }}
               >
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '50%',
-                    backgroundColor: '#dbeafe',
-                    color: '#1d4ed8',
-                    marginBottom: '12px',
-                  }}
-                >
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-muted, #64748b)' }}>
-                  Sesi aktif terdeteksi sebagai:
-                </div>
-                <div
-                  style={{
-                    fontSize: '15px',
-                    fontWeight: 800,
-                    color: 'var(--color-navy, #0f172a)',
-                    marginTop: '4px',
-                  }}
-                >
-                  {existingUser.nama_lengkap}
-                </div>
-                <div
-                  style={{
-                    display: 'inline-block',
-                    marginTop: '6px',
-                    padding: '3px 10px',
-                    borderRadius: '12px',
-                    backgroundColor: '#eff6ff',
-                    border: '1px solid #bfdbfe',
-                    color: '#1e40af',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Peran: {existingUser.role_name || existingUser.role}
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '10px',
-                    marginTop: '20px',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (existingUser.role && ['admin', 'verifikator', 'pimpinan'].includes(existingUser.role)) {
-                        router.push('/admin/data');
-                      } else {
-                        router.push('/');
-                      }
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--color-primary, #1d4ed8)',
-                      color: 'white',
-                      border: 'none',
-                      fontWeight: 700,
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Lanjut Masuk &rarr;
-                  </button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <div>
+                    Sesi aktif: <strong>{existingUser.nama_lengkap}</strong> ({existingUser.role_name || existingUser.role})
+                  </div>
                   <button
                     type="button"
                     onClick={handleLogoutExisting}
                     style={{
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      backgroundColor: 'transparent',
-                      color: '#ef4444',
-                      border: '1px solid #fecaca',
-                      fontWeight: 700,
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Ganti Akun
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Error Banner */}
-                {errorMsg && (
-                  <div
-                    style={{
-                      backgroundColor: '#fef2f2',
-                      border: '1px solid #fecaca',
-                      color: '#991b1b',
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      fontSize: '12.5px',
-                      marginBottom: '16px',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '8px',
-                    }}
-                    role="alert"
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      style={{ flexShrink: 0, marginTop: '2px' }}
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                    <div>{errorMsg}</div>
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit}>
-                  {/* Identifier Input */}
-                  <div style={{ marginBottom: '16px' }}>
-                    <label
-                      htmlFor="login-page-identifier"
-                      style={{
-                        display: 'block',
-                        fontSize: '12.5px',
-                        fontWeight: 700,
-                        marginBottom: '6px',
-                        color: 'var(--color-navy, #0f172a)',
-                      }}
-                    >
-                      NRP / NIP atau Alamat Email
-                    </label>
-                    <input
-                      id="login-page-identifier"
-                      type="text"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="Contoh: 80010001 atau dewi@polri.go.id"
-                      required
-                      autoFocus
-                      style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        fontSize: '13.5px',
-                        borderRadius: '8px',
-                        border: '1.5px solid var(--color-border, #cbd5e1)',
-                        backgroundColor: 'var(--color-background, #f8fafc)',
-                        color: 'inherit',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  {/* Password Input */}
-                  <div style={{ marginBottom: '20px' }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '6px',
-                      }}
-                    >
-                      <label
-                        htmlFor="login-page-password"
-                        style={{
-                          fontSize: '12.5px',
-                          fontWeight: 700,
-                          color: 'var(--color-navy, #0f172a)',
-                        }}
-                      >
-                        Kata Sandi
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          fontSize: '11.5px',
-                          color: 'var(--color-primary, #1d4ed8)',
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {showPassword ? 'Sembunyikan' : 'Tampilkan'}
-                      </button>
-                    </div>
-                    <input
-                      id="login-page-password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Masukkan kata sandi akun Anda"
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        fontSize: '13.5px',
-                        borderRadius: '8px',
-                        border: '1.5px solid var(--color-border, #cbd5e1)',
-                        backgroundColor: 'var(--color-background, #f8fafc)',
-                        color: 'inherit',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      fontSize: '14px',
-                      fontWeight: 800,
-                      borderRadius: '8px',
-                      border: 'none',
-                      backgroundColor: 'var(--color-primary, #1d4ed8)',
-                      color: 'white',
-                      cursor: isLoading ? 'not-allowed' : 'pointer',
-                      opacity: isLoading ? 0.7 : 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(29, 78, 216, 0.25)',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {isLoading ? (
-                      <>
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          className="spin-icon"
-                        >
-                          <line x1="12" y1="2" x2="12" y2="6" />
-                          <line x1="12" y1="18" x2="12" y2="22" />
-                          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
-                          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
-                          <line x1="2" y1="12" x2="6" y2="12" />
-                          <line x1="18" y1="12" x2="22" y2="12" />
-                        </svg>
-                        <span>Memverifikasi Akun...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                          <polyline points="10 17 15 12 10 7" />
-                          <line x1="15" y1="12" x2="3" y2="12" />
-                        </svg>
-                        <span>Masuk Sekarang</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-
-                {/* Register Link */}
-                <div
-                  style={{
-                    marginTop: '24px',
-                    paddingTop: '20px',
-                    borderTop: '1px solid var(--color-border, #e2e8f0)',
-                    textAlign: 'center',
-                    fontSize: '13px',
-                    color: 'var(--color-text-muted, #64748b)',
-                  }}
-                >
-                  Belum memiliki akun terdaftar?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setRegisterOpen(true)}
-                    style={{
                       background: 'none',
                       border: 'none',
-                      color: 'var(--color-primary, #1d4ed8)',
+                      color: '#ef4444',
                       fontWeight: 700,
                       cursor: 'pointer',
                       padding: 0,
+                      fontSize: '11.5px',
+                    }}
+                  >
+                    (Keluar)
+                  </button>
+                </div>
+                <div style={{ marginTop: '6px' }}>
+                  <Link
+                    href={existingUser.role && ['admin', 'verifikator', 'pimpinan'].includes(existingUser.role) ? '/admin/data' : '/'}
+                    style={{
+                      color: '#1d4ed8',
+                      fontWeight: 700,
                       textDecoration: 'underline',
                     }}
                   >
-                    Daftar Akun Baru
+                    Lanjut ke Dasbor &rarr;
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Error Banner */}
+            {errorMsg && (
+              <div
+                style={{
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#991b1b',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontSize: '12.5px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '8px',
+                }}
+                role="alert"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ flexShrink: 0, marginTop: '2px' }}
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <div>{errorMsg}</div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              {/* Identifier Input */}
+              <div style={{ marginBottom: '16px' }}>
+                <label
+                  htmlFor="login-page-identifier"
+                  style={{
+                    display: 'block',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    marginBottom: '6px',
+                    color: 'var(--color-navy, #0f172a)',
+                  }}
+                >
+                  NRP / NIP atau Alamat Email
+                </label>
+                <input
+                  id="login-page-identifier"
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="Contoh: 80010001 atau nama@polri.go.id"
+                  required
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '11px 14px',
+                    fontSize: '13.5px',
+                    borderRadius: '8px',
+                    border: '1.5px solid var(--color-border, #cbd5e1)',
+                    backgroundColor: 'var(--color-background, #f8fafc)',
+                    color: 'inherit',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Password Input */}
+              <div style={{ marginBottom: '20px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '6px',
+                  }}
+                >
+                  <label
+                    htmlFor="login-page-password"
+                    style={{
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      color: 'var(--color-navy, #0f172a)',
+                    }}
+                  >
+                    Kata Sandi
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '11.5px',
+                      color: 'var(--color-primary, #1d4ed8)',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {showPassword ? 'Sembunyikan' : 'Tampilkan'}
                   </button>
                 </div>
-              </>
-            )}
+                <input
+                  id="login-page-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan kata sandi akun Anda"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '11px 14px',
+                    fontSize: '13.5px',
+                    borderRadius: '8px',
+                    border: '1.5px solid var(--color-border, #cbd5e1)',
+                    backgroundColor: 'var(--color-background, #f8fafc)',
+                    color: 'inherit',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: 'var(--color-primary, #1d4ed8)',
+                  color: 'white',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(29, 78, 216, 0.25)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {isLoading ? (
+                  <>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      className="spin-icon"
+                    >
+                      <line x1="12" y1="2" x2="12" y2="6" />
+                      <line x1="12" y1="18" x2="12" y2="22" />
+                      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+                      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+                      <line x1="2" y1="12" x2="6" y2="12" />
+                      <line x1="18" y1="12" x2="22" y2="12" />
+                    </svg>
+                    <span>Memverifikasi Akun...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    <span>Masuk Sekarang</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Register Link (Hanya tampil di bawah form sesuai arahan) */}
+            <div
+              style={{
+                marginTop: '24px',
+                paddingTop: '20px',
+                borderTop: '1px solid var(--color-border, #e2e8f0)',
+                textAlign: 'center',
+                fontSize: '13px',
+                color: 'var(--color-text-muted, #64748b)',
+              }}
+            >
+              Belum memiliki akun terdaftar?{' '}
+              <button
+                type="button"
+                onClick={() => setRegisterOpen(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-primary, #1d4ed8)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 0,
+                  textDecoration: 'underline',
+                }}
+              >
+                Daftar Akun Baru
+              </button>
+            </div>
           </div>
         </div>
       </main>
