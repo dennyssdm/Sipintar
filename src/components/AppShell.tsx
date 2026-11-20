@@ -6,9 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
 import { SearchBar } from './SearchBar';
 import { BrandLogo } from './BrandLogo';
-import { RoleRegistrationModal } from './RoleRegistrationModal';
-import { AuthLoginModal } from './AuthLoginModal';
 import { sipintarApi } from '@/lib/apiClient';
+import { getAuthSession, clearAuthSession, AuthSessionUser } from '@/lib/session';
 import { UserRole } from '@/types';
 
 interface AppShellProps {
@@ -18,50 +17,65 @@ interface AppShellProps {
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
+  const isAuthPage = pathname === '/' || pathname === '/login';
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState<UserRole>('Serdik');
   const [notifOpen, setNotifOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any | null>(null);
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AuthSessionUser | null>(null);
+  const [isVerifyingAuth, setIsVerifyingAuth] = useState(true);
 
   useEffect(() => {
-    // Check saved session in localStorage
     const syncUser = () => {
-      if (typeof window !== 'undefined') {
-        const savedUserStr = localStorage.getItem('sipintar_auth_user');
-        if (savedUserStr) {
-          try {
-            const user = JSON.parse(savedUserStr);
-            setCurrentUser(user);
-            if (user.token) {
-              localStorage.setItem('sipintar_auth_token', user.token);
-              sipintarApi.setToken(user.token);
-            }
-            if (user.role) {
-              if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
-                setCurrentRole('Administrator');
-              } else if (user.role === 'gadik') {
-                setCurrentRole('Gadik');
-              } else if (user.role === 'pengelola') {
-                setCurrentRole('Pengelola Perpustakaan');
-              } else {
-                setCurrentRole('Serdik');
-              }
-            }
-            return;
-          } catch (e) {
-            console.error('Failed to parse cached user', e);
+      const { user, isExpired } = getAuthSession();
+      if (!isAuthPage) {
+        if (!user || isExpired) {
+          clearAuthSession();
+          setCurrentUser(null);
+          setIsVerifyingAuth(false);
+          router.replace(isExpired ? '/?expired=1' : '/');
+          return;
+        }
+      }
+
+      if (user) {
+        setCurrentUser(user);
+        if (user.token) {
+          sipintarApi.setToken(user.token);
+        }
+        if (user.role) {
+          if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
+            setCurrentRole('Administrator');
+          } else if (user.role === 'gadik') {
+            setCurrentRole('Gadik');
+          } else if (user.role === 'pengelola') {
+            setCurrentRole('Pengelola Perpustakaan');
+          } else {
+            setCurrentRole('Serdik');
           }
         }
+      } else {
         setCurrentUser(null);
         setCurrentRole('Serdik');
       }
+      setIsVerifyingAuth(false);
     };
 
     syncUser();
 
-    const handleAuthChange = (e: any) => {
+    // Sesi kedaluwarsa 6 jam dicek otomatis secara periodik
+    const interval = setInterval(() => {
+      if (!isAuthPage) {
+        const { user, isExpired } = getAuthSession();
+        if (!user || isExpired) {
+          clearAuthSession();
+          setCurrentUser(null);
+          router.replace('/?expired=1');
+        }
+      }
+    }, 15000);
+
+    const handleAuthChange = (e: CustomEvent<AuthSessionUser | null>) => {
       const user = e.detail;
       setCurrentUser(user);
       if (user && user.role) {
@@ -79,45 +93,19 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       }
     };
 
-    window.addEventListener('sipintar-auth-changed', handleAuthChange);
+    window.addEventListener('sipintar-auth-changed', handleAuthChange as EventListener);
     return () => {
-      window.removeEventListener('sipintar-auth-changed', handleAuthChange);
+      clearInterval(interval);
+      window.removeEventListener('sipintar-auth-changed', handleAuthChange as EventListener);
     };
-  }, []);
-
-  const handleLoginSuccess = (user: any) => {
-    setCurrentUser(user);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sipintar_auth_user', JSON.stringify(user));
-      if (user.token) {
-        localStorage.setItem('sipintar_auth_token', user.token);
-        sipintarApi.setToken(user.token);
-      }
-      window.dispatchEvent(new CustomEvent('sipintar-auth-changed', { detail: user }));
-    }
-    if (user.role) {
-      if (['admin', 'verifikator', 'pimpinan'].includes(user.role)) {
-        setCurrentRole('Administrator');
-      } else if (user.role === 'gadik') {
-        setCurrentRole('Gadik');
-      } else if (user.role === 'pengelola') {
-        setCurrentRole('Pengelola Perpustakaan');
-      } else {
-        setCurrentRole('Serdik');
-      }
-    }
-    setLoginModalOpen(false);
-  };
+  }, [pathname, isAuthPage, router]);
 
   const handleLogout = () => {
     sipintarApi.auth.logout();
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('sipintar_auth_user');
-      localStorage.removeItem('sipintar_auth_token');
-      window.dispatchEvent(new CustomEvent('sipintar-auth-changed', { detail: null }));
-    }
+    clearAuthSession();
     setCurrentUser(null);
-    setCurrentRole('Serdik');
+    window.dispatchEvent(new CustomEvent('sipintar-auth-changed', { detail: null }));
+    router.replace('/');
   };
 
   useEffect(() => {
@@ -127,19 +115,58 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         setNotifOpen(false);
       }
     };
-    const handleOpenLogin = () => setLoginModalOpen(true);
 
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('open-sipintar-login', handleOpenLogin);
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('open-sipintar-login', handleOpenLogin);
     };
   }, []);
 
+  // Jika di halaman login (root / atau /login), render murni konten halaman tanpa layout dashboard
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
+
+  // Jika sedang memverifikasi sesi kedinasan pada halaman internal
+  if (isVerifyingAuth || !currentUser) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#071731',
+          color: '#cbd5e1',
+          fontFamily: 'var(--font-sans, sans-serif)',
+          gap: '14px',
+        }}
+      >
+        <div
+          style={{
+            width: '36px',
+            height: '36px',
+            border: '3px solid rgba(255, 255, 255, 0.15)',
+            borderTopColor: '#3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        <div style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.02em' }}>
+          Memverifikasi Sesi Kedinasan Sespimma...
+        </div>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   const navItems = [
-    { name: 'Beranda', href: '/', icon: 'home' },
+    { name: 'Beranda', href: '/dashboard', icon: 'home' },
     { name: 'Gadik & Kompetensi', href: '/gadik', icon: 'users' },
     { name: 'Modul & Hanjar', href: '/modul', icon: 'book' },
     { name: 'E-Library/Perpustakaan', href: '/library', icon: 'bookmark' },
@@ -150,7 +177,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     { name: 'Pencarian Terpadu', href: '/search', icon: 'search' },
   ];
 
-  const userRole = (currentUser?.role || currentUser?.role_code || '').toLowerCase();
+  const userRole = (currentUser?.role || '').toLowerCase();
 
   const adminNavItems = [
     { name: 'Manajemen Data', href: '/admin/data', icon: 'database', badge: 5, roles: ['admin'] },
@@ -266,13 +293,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     }
   };
 
-  const handleCloseLoginModal = () => {
-    setLoginModalOpen(false);
-    if (pathname === '/login') {
-      router.push('/');
-    }
-  };
-
   return (
     <div className="app-container">
       {/* Mobile Backdrop */}
@@ -282,495 +302,382 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         aria-hidden="true"
       />
 
-        {/* Sidebar Navigation */}
-        <aside
-          className={`app-sidebar ${mobileOpen ? 'open' : ''}`}
-          aria-label="Navigasi Utama"
-        >
-          <div className="sidebar-header" style={{ justifyContent: 'space-between' }}>
-            <BrandLogo size="md" showSubtitle={true} />
-            {mobileOpen && (
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                aria-label="Tutup menu navigasi"
-                style={{ padding: '6px', color: 'var(--color-text-muted)' }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          <nav className="sidebar-nav">
-            <div className="nav-section-title-sumber">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      {/* Sidebar Navigation */}
+      <aside
+        className={`app-sidebar ${mobileOpen ? 'open' : ''}`}
+        aria-label="Navigasi Utama"
+      >
+        <div className="sidebar-header" style={{ justifyContent: 'space-between' }}>
+          <BrandLogo size="md" showSubtitle={true} />
+          {mobileOpen && (
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Tutup menu navigasi"
+              style={{ padding: '6px', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-              <span>SUMBER BELAJAR</span>
-            </div>
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`nav-item ${isActive ? 'active' : ''}`}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <span className="nav-icon">{renderIcon(item.icon)}</span>
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+            </button>
+          )}
+        </div>
 
-            {visibleAdminNavItems.length > 0 && (
-              <>
-                <div className="nav-section-title-admin">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                  <span>FUNGSI ADMINISTRATOR</span>
-                </div>
-                {visibleAdminNavItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`nav-item ${isActive ? 'active' : ''}`}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <span className="nav-icon">{renderIcon(item.icon)}</span>
-                      <span style={{ flex: 1 }}>{item.name}</span>
-                      {item.badge && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            backgroundColor: 'var(--color-primary-light)',
-                            color: 'var(--color-primary)',
-                            padding: '2px 7px',
-                            borderRadius: 'var(--radius-full)',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </>
-            )}
-          </nav>
-
-          <div className="sidebar-footer">
-            <div className="user-profile-card">
-              <div
-                className="user-avatar"
-                aria-hidden="true"
-                style={{
-                  backgroundColor: currentUser ? '#1d4ed8' : '#334155',
-                  color: '#ffffff',
-                }}
-              >
-                {currentUser
-                  ? (currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US')
-                  : currentRole.substring(0, 2).toUpperCase()}
-              </div>
-              <div className="user-info" style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  className="user-name"
-                  style={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    fontWeight: 700,
-                  }}
-                  title={currentUser ? currentUser.nama_lengkap : 'Pengguna Tamu'}
-                >
-                  {currentUser ? currentUser.nama_lengkap : 'Pengguna Tamu'}
-                </div>
-                <div className="user-role-badge">
-                  {currentUser ? (currentUser.role_name || currentRole) : `Pratinjau: ${currentRole}`}
-                </div>
-
-                {currentUser ? (
-                  <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                      NRP: {currentUser.nrp_nip}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#ef4444',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        padding: 0,
-                      }}
-                      title="Keluar dari akun Anda"
-                    >
-                      (Keluar)
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ marginTop: '6px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => setLoginModalOpen(true)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--color-primary)',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        padding: 0,
-                      }}
-                    >
-                      Masuk
-                    </button>
-                    <span style={{ fontSize: '11px', color: 'var(--color-border)' }}>•</span>
-                    <button
-                      type="button"
-                      onClick={() => setRegisterModalOpen(true)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--color-primary)',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        padding: 0,
-                      }}
-                    >
-                      Daftar Baru
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+        <nav className="sidebar-nav">
+          <div className="nav-section-title-sumber">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            <span>SUMBER BELAJAR</span>
           </div>
-        </aside>
-
-        {/* Main Content Viewport */}
-        <div className="app-main">
-
-          {/* Header */}
-          <header className="app-header">
-            <div className="header-left">
-              <button
-                type="button"
-                className="mobile-nav-toggle"
-                onClick={() => setMobileOpen(!mobileOpen)}
-                aria-label="Buka menu navigasi"
+          {navItems.map((item) => {
+            const isActive = item.href === '/dashboard' ? (pathname === '/dashboard') : pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => setMobileOpen(false)}
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
+                <span className="nav-icon">{renderIcon(item.icon)}</span>
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+
+          {visibleAdminNavItems.length > 0 && (
+            <>
+              <div className="nav-section-title-admin">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
-              </button>
-
-              <div className="mobile-brand" style={{ display: 'none' }}>
-                <BrandLogo size="sm" showSubtitle={false} />
+                <span>FUNGSI ADMINISTRATOR</span>
               </div>
-            </div>
-
-            <div className="header-search">
-              <SearchBar />
-            </div>
-
-            <div className="header-right">
-              {/* Notifications Indicator */}
-              <div className="header-notif-wrap" style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className="theme-toggle-btn"
-                  onClick={() => setNotifOpen(!notifOpen)}
-                  aria-label="Pemberitahuan simulasi"
-                  title="Pemberitahuan Sistem (Demo)"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: '6px',
-                      right: '6px',
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--color-action)',
-                    }}
-                  />
-                </button>
-
-                {notifOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: '46px',
-                      width: '280px',
-                      backgroundColor: 'var(--color-surface)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-md)',
-                      boxShadow: 'var(--shadow-md)',
-                      padding: '12px',
-                      zIndex: 70,
-                    }}
+              {visibleAdminNavItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`nav-item ${isActive ? 'active' : ''}`}
+                    onClick={() => setMobileOpen(false)}
                   >
-                    <div style={{ fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-navy)' }}>
-                      Pemberitahuan Sistem
-                    </div>
-                    <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-                      • 1 Modul baru diverifikasi oleh Bag Jarlat.<br />
-                      • Buku Referensi Hukum Pidana diperbarui lokasinya.
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* User Authentication Status or Login/Register Action */}
-              {currentUser ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '4px 10px',
-                      backgroundColor: 'var(--color-surface)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-full)',
-                      boxShadow: 'var(--shadow-sm)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        backgroundColor: '#1d4ed8',
-                        color: 'white',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US'}
-                    </div>
-                    <div style={{ fontSize: '12px', lineHeight: 1.2 }}>
-                      <div
+                    <span className="nav-icon">{renderIcon(item.icon)}</span>
+                    <span style={{ flex: 1 }}>{item.name}</span>
+                    {item.badge && (
+                      <span
                         style={{
+                          fontSize: '11px',
+                          backgroundColor: 'var(--color-primary-light)',
+                          color: 'var(--color-primary)',
+                          padding: '2px 7px',
+                          borderRadius: 'var(--radius-full)',
                           fontWeight: 700,
-                          color: 'var(--color-navy)',
-                          maxWidth: '120px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
                         }}
-                        title={currentUser.nama_lengkap}
                       >
-                        {currentUser.nama_lengkap}
-                      </div>
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
-                        {currentUser.role_name || currentRole}
-                      </div>
-                    </div>
-                  </div>
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </>
+          )}
+        </nav>
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    style={{
-                      padding: '5px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                      color: '#dc2626',
-                      border: '1px solid rgba(239, 68, 68, 0.25)',
-                      fontSize: '11.5px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                    title="Keluar dari akun Anda"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                    <span>Keluar</span>
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <button
-                    type="button"
-                    className="header-login-btn"
-                    onClick={() => setLoginModalOpen(true)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '6px 13px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: 'linear-gradient(135deg, #0f2c59 0%, #1e40af 100%)',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      border: '1px solid rgba(255, 255, 255, 0.25)',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 4px rgba(15, 44, 89, 0.25)',
-                      transition: 'all 0.15s ease',
-                      whiteSpace: 'nowrap',
-                    }}
-                    title="Masuk ke Akun SIPINTAR (NRP / Email & Password)"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                      <polyline points="10 17 15 12 10 7" />
-                      <line x1="15" y1="12" x2="3" y2="12" />
-                    </svg>
-                    <span>Masuk / Login</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="header-daftar-btn"
-                    onClick={() => setRegisterModalOpen(true)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '5px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: 'var(--color-surface)',
-                      color: 'var(--color-navy)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '11.5px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      whiteSpace: 'nowrap',
-                    }}
-                    title="Daftar keanggotaan baru dengan Email Pribadi"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                      <circle cx="8.5" cy="7" r="4" />
-                      <line x1="20" y1="8" x2="20" y2="14" />
-                      <line x1="23" y1="11" x2="17" y2="11" />
-                    </svg>
-                    <span>Daftar</span>
-                  </button>
+        <div className="sidebar-footer">
+          <div className="user-profile-card">
+            <div
+              className="user-avatar"
+              aria-hidden="true"
+              style={{
+                backgroundColor: '#1d4ed8',
+                color: '#ffffff',
+                fontWeight: 800,
+              }}
+            >
+              {currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US'}
+            </div>
+            <div className="user-info" style={{ flex: 1, minWidth: 0 }}>
+              <div
+                className="user-name"
+                style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontWeight: 700,
+                }}
+                title={currentUser.nama_lengkap}
+              >
+                {currentUser.nama_lengkap}
+              </div>
+              <div className="user-role-badge">
+                {currentUser.role_name || currentRole}
+              </div>
+              {currentUser.nrp_nip && (
+                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                  NRP/NIP: {currentUser.nrp_nip}
                 </div>
               )}
-
-              {/* Theme Toggle */}
-              <ThemeToggle />
             </div>
-          </header>
+          </div>
 
-          {/* Main Body Slot */}
-          <main className="page-content">{children}</main>
-
-          {/* Institutional Footer */}
-          <footer
-            className="app-footer"
+          {/* Tombol Logout Penuh di Sidebar */}
+          <button
+            type="button"
+            onClick={handleLogout}
             style={{
-              marginTop: 'auto',
-              borderTop: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface)',
-              padding: '24px 20px',
-              textAlign: 'center',
+              marginTop: '10px',
+              width: '100%',
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'rgba(239, 68, 68, 0.12)',
+              color: '#ef4444',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.15s ease',
+            }}
+            title="Keluar dari akun Anda (Logout)"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>Keluar dari Akun (Logout)</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Viewport */}
+      <div className="app-main">
+        {/* Header */}
+        <header className="app-header">
+          <div className="header-left">
+            <button
+              type="button"
+              className="mobile-nav-toggle"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Buka menu navigasi"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+
+            <div className="mobile-brand" style={{ display: 'none' }}>
+              <BrandLogo size="sm" showSubtitle={false} />
+            </div>
+          </div>
+
+          <div className="header-search">
+            <SearchBar />
+          </div>
+
+          <div className="header-right">
+            {/* Notifications Indicator */}
+            <div className="header-notif-wrap" style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className="theme-toggle-btn"
+                onClick={() => setNotifOpen(!notifOpen)}
+                aria-label="Pemberitahuan simulasi"
+                title="Pemberitahuan Sistem (Demo)"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '6px',
+                    right: '6px',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--color-action)',
+                  }}
+                />
+              </button>
+
+              {notifOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '46px',
+                    width: '280px',
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: 'var(--shadow-md)',
+                    padding: '12px',
+                    zIndex: 70,
+                  }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-navy)' }}>
+                    Pemberitahuan Sistem
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+                    • 1 Modul baru diverifikasi oleh Bag Jarlat.<br />
+                    • Buku Referensi Hukum Pidana diperbarui lokasinya.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* User Profile Pill & Prominent Red Logout Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '4px 10px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-full)',
+                  boxShadow: 'var(--shadow-sm)',
+                }}
+              >
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: '#1d4ed8',
+                    color: 'white',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US'}
+                </div>
+                <div style={{ fontSize: '12px', lineHeight: 1.2 }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: 'var(--color-navy)',
+                      maxWidth: '120px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title={currentUser.nama_lengkap}
+                  >
+                    {currentUser.nama_lengkap}
+                  </div>
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                    {currentUser.role_name || currentRole}
+                  </div>
+                </div>
+              </div>
+
+              {/* Tombol Logout Menonjol di Header */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                  border: '1px solid #b91c1c',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(220, 38, 38, 0.25)',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Keluar dari akun SIPINTAR (Logout)"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Keluar / Logout</span>
+              </button>
+            </div>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Main Body Slot */}
+        <main className="page-content">{children}</main>
+
+        {/* Institutional Footer */}
+        <footer
+          className="app-footer"
+          style={{
+            marginTop: 'auto',
+            borderTop: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface)',
+            padding: '24px 20px',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 'var(--max-content-width)',
+              margin: '0 auto',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
             <div
               style={{
-                maxWidth: 'var(--max-content-width)',
-                margin: '0 auto',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '8px',
+                fontSize: '13.5px',
+                fontWeight: 800,
+                color: 'var(--color-navy)',
+                letterSpacing: '0.4px',
+                lineHeight: 1.4,
               }}
             >
-              <div
-                style={{
-                  fontSize: '13.5px',
-                  fontWeight: 800,
-                  color: 'var(--color-navy)',
-                  letterSpacing: '0.4px',
-                  lineHeight: 1.4,
-                }}
-              >
-                DEWI SUSILO PANGESTUTI, S.Ak - PKN TINGKAT II ANGKATAN XXIX NAWASENA TA 2026
-              </div>
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--color-text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                }}
-              >
-                <span>SiPINTAR — Sespimma Lemdiklat Polri</span>
-                <span>•</span>
-                <span style={{ fontStyle: 'italic' }}>
-                  &ldquo;Mengintegrasikan Pengetahuan, Mengakselerasikan Kepemimpinan&rdquo;
-                </span>
-              </div>
+              DEWI SUSILO PANGESTUTI, S.Ak - PKN TINGKAT II ANGKATAN XXIX NAWASENA TA 2026
             </div>
-          </footer>
-        </div>
-
-      {/* Interactive Login Modal */}
-      <AuthLoginModal
-        isOpen={loginModalOpen || pathname === '/login'}
-        onClose={handleCloseLoginModal}
-        onSuccess={handleLoginSuccess}
-        onOpenRegister={() => {
-          setLoginModalOpen(false);
-          setRegisterModalOpen(true);
-        }}
-      />
-
-      {/* Role Registration Modal for New Members (Serdik, Gadik, Pengelola Pustaka) */}
-      <RoleRegistrationModal
-        isOpen={registerModalOpen}
-        onClose={() => setRegisterModalOpen(false)}
-        onSuccessRole={(newRole, user) => {
-          setCurrentRole(newRole);
-          if (user) {
-            handleLoginSuccess(user);
-          }
-          setRegisterModalOpen(false);
-        }}
-        initialRole={currentRole}
-        onOpenLogin={() => {
-          setRegisterModalOpen(false);
-          setLoginModalOpen(true);
-        }}
-      />
+            <div
+              style={{
+                fontSize: '12px',
+                color: 'var(--color-text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+              }}
+            >
+              <span>SiPINTAR — Sespimma Lemdiklat Polri</span>
+              <span>•</span>
+              <span style={{ fontStyle: 'italic' }}>
+                &ldquo;Mengintegrasikan Pengetahuan, Mengakselerasikan Kepemimpinan&rdquo;
+              </span>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };

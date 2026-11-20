@@ -84,7 +84,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   if (clickable) {
     return (
-      <Link href="/" aria-label="SiPINTAR Beranda" style={{ display: isMax ? 'block' : 'inline-block', width: isMax ? '100%' : 'auto', maxWidth: '100%' }}>
+      <Link href="/dashboard" aria-label="SiPINTAR Beranda" style={{ display: isMax ? 'block' : 'inline-block', width: isMax ? '100%' : 'auto', maxWidth: '100%' }}>
         {content}
       </Link>
     );

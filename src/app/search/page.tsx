@@ -183,7 +183,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
 
       {/* Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" style={{ marginBottom: '16px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
-        <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 500, textDecoration: 'none' }}>
+        <Link href="/dashboard" style={{ color: 'var(--color-primary)', fontWeight: 500, textDecoration: 'none' }}>
           Beranda
         </Link>
         <span style={{ margin: '0 8px' }}>/</span>

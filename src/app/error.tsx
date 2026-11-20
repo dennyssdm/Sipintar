@@ -63,7 +63,7 @@ export default function ErrorBoundary({
           Muat Ulang Komponen
         </button>
         <Link
-          href="/"
+          href="/dashboard"
           className="btn-secondary"
           style={{ color: 'var(--color-text-main)' }}
         >

@@ -1214,7 +1214,7 @@ export default function AdminDataPage() {
       <div style={{ paddingBottom: '40px' }}>
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" style={{ marginBottom: '16px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
-          <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
+          <Link href="/dashboard" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
             Beranda
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>
@@ -1344,7 +1344,7 @@ export default function AdminDataPage() {
               </button>
 
               <Link
-                href="/"
+                href="/dashboard"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -1372,7 +1372,7 @@ export default function AdminDataPage() {
     <div style={{ paddingBottom: '40px' }}>
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" style={{ marginBottom: '16px', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
-        <Link href="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
+        <Link href="/dashboard" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
           Beranda
         </Link>
         <span style={{ margin: '0 8px' }}>/</span>

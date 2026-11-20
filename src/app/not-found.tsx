@@ -42,7 +42,7 @@ export default function NotFound() {
 
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
         <Link
-          href="/"
+          href="/dashboard"
           className="btn-primary"
           style={{ backgroundColor: 'var(--color-primary)', color: '#ffffff' }}
         >
