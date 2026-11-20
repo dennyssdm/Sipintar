@@ -109,6 +109,27 @@ class SipintarApiClient {
       const res = await this.request<any>('/auth/me');
       return res.data;
     },
+    updateProfile: async (data: {
+      nama_lengkap?: string;
+      phone_number?: string;
+      email?: string;
+      avatar_url?: string;
+      pangkat?: string;
+      jabatan?: string;
+    }) => {
+      const res = await this.request<any>('/auth/profile', {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      return res.data;
+    },
+    changePassword: async (current_password: string, new_password: string) => {
+      const res = await this.request<{ success: boolean; message: string }>('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ current_password, new_password })
+      });
+      return res.data;
+    },
     register: async (data: {
       nama_lengkap: string;
       email: string;

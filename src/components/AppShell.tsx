@@ -294,6 +294,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         );
+      case 'user-check':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        );
       default:
         return null;
     }
@@ -391,10 +398,33 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               })}
             </>
           )}
+
+          {/* Menu Detail Data Pengguna */}
+          <div className="nav-section-title-sumber" style={{ marginTop: '16px' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span>AKUN & PROFIL</span>
+          </div>
+          <Link
+            href="/profil"
+            className={`nav-item ${pathname === '/profil' || pathname === '/profile' ? 'active' : ''}`}
+            onClick={() => setMobileOpen(false)}
+          >
+            <span className="nav-icon">{renderIcon('user-check')}</span>
+            <span>Detail Data Pengguna</span>
+          </Link>
         </nav>
 
         <div className="sidebar-footer">
-          <div className="user-profile-card">
+          <Link
+            href="/profil"
+            className="user-profile-card"
+            title="Buka Detail Data Pengguna & Pengaturan Profil"
+            style={{ textDecoration: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+            onClick={() => setMobileOpen(false)}
+          >
             <div
               className="user-avatar"
               aria-hidden="true"
@@ -402,9 +432,22 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 backgroundColor: '#1d4ed8',
                 color: '#ffffff',
                 fontWeight: 800,
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              {currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US'}
+              {currentUser.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={currentUser.avatar_url}
+                  alt={currentUser.nama_lengkap}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US'
+              )}
             </div>
             <div className="user-info" style={{ flex: 1, minWidth: 0 }}>
               <div
@@ -428,7 +471,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 </div>
               )}
             </div>
-          </div>
+          </Link>
 
           {/* Tombol Logout Penuh di Sidebar */}
           <button
@@ -545,7 +588,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
             {/* User Profile Pill & Prominent Red Logout Button */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
+              <Link
+                href="/profil"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -555,7 +599,11 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                   border: '1px solid var(--color-border)',
                   borderRadius: 'var(--radius-full)',
                   boxShadow: 'var(--shadow-sm)',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease',
                 }}
+                title="Buka Detail Data Pengguna & Pengaturan Profil"
               >
                 <div
                   style={{
@@ -569,9 +617,19 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    overflow: 'hidden',
                   }}
                 >
-                  {currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US'}
+                  {currentUser.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={currentUser.avatar_url}
+                      alt={currentUser.nama_lengkap}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    currentUser.nama_lengkap?.slice(0, 2).toUpperCase() || 'US'
+                  )}
                 </div>
                 <div style={{ fontSize: '12px', lineHeight: 1.2 }}>
                   <div
@@ -591,7 +649,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                     {currentUser.role_name || currentRole}
                   </div>
                 </div>
-              </div>
+              </Link>
 
               {/* Tombol Logout Menonjol di Header */}
               <button

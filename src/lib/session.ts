@@ -11,6 +11,8 @@ export interface AuthSessionUser {
   nama_lengkap: string;
   nrp_nip: string;
   email: string;
+  pangkat?: string;
+  jabatan?: string;
   role: string;
   role_name?: string;
   can_delete?: boolean;
