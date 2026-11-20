@@ -116,9 +116,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       }
     };
 
+    const handleOpenLogin = () => {
+      router.push('/');
+    };
+
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-sipintar-login', handleOpenLogin);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-sipintar-login', handleOpenLogin);
     };
   }, []);
 
