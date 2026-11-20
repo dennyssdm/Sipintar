@@ -95,24 +95,6 @@ function LoginForm() {
     }
   };
 
-  const handleQuickLogin = async (emailOrNrp: string) => {
-    setIdentifier(emailOrNrp);
-    setPassword('Password123!');
-    setErrorMsg(null);
-    try {
-      setIsLoading(true);
-      const res = await sipintarApi.auth.login(emailOrNrp, 'Password123!');
-      if (res?.user) {
-        handleLoginSuccess({ ...res.user, token: res.token });
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal masuk ke akun pengujian.';
-      setErrorMsg(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleLogoutExisting = () => {
     sipintarApi.auth.logout();
     if (typeof window !== 'undefined') {
@@ -614,120 +596,14 @@ function LoginForm() {
                   </button>
                 </form>
 
-                {/* Quick Login Presets for Evaluator / Testing */}
+                {/* Register Link */}
                 <div
                   style={{
                     marginTop: '24px',
                     paddingTop: '20px',
                     borderTop: '1px solid var(--color-border, #e2e8f0)',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      color: 'var(--color-text-muted, #64748b)',
-                      marginBottom: '10px',
-                    }}
-                  >
-                    Akses Cepat Pengujian Kedinasan (1-Klik):
-                  </div>
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(2, 1fr)',
-                      gap: '8px',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogin('80010001')}
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #bfdbfe',
-                        backgroundColor: '#eff6ff',
-                        color: '#1e40af',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      👑 Admin (AKBP Dewi)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogin('85071234')}
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #e2e8f0',
-                        backgroundColor: '#f8fafc',
-                        color: '#334155',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      🎓 Serdik (Kompol Arya)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogin('72010235')}
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #e2e8f0',
-                        backgroundColor: '#f8fafc',
-                        color: '#334155',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      👨‍🏫 Gadik (Kombes Purwanto)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogin('75040112')}
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #e2e8f0',
-                        backgroundColor: '#f8fafc',
-                        color: '#334155',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      ⚖️ Verifikator (AKBP Bambang)
-                    </button>
-                  </div>
-                  <div
-                    style={{
-                      marginTop: '8px',
-                      fontSize: '11px',
-                      color: 'var(--color-text-muted, #94a3b8)',
-                      textAlign: 'center',
-                    }}
-                  >
-                    Sandi pengujian otomatis diisi: <code>Password123!</code>
-                  </div>
-                </div>
-
-                {/* Register Link */}
-                <div
-                  style={{
-                    marginTop: '20px',
                     textAlign: 'center',
-                    fontSize: '12.5px',
+                    fontSize: '13px',
                     color: 'var(--color-text-muted, #64748b)',
                   }}
                 >
