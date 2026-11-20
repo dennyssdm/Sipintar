@@ -173,6 +173,7 @@ Do not mark a phase `[A] APPROVED` unless the user explicitly approves it.
 | D-58 | Dokumentasi Lengkap Integrasi RESTful API & Laporan Resmi Sistem Sespimma | Penyusunan panduan integrasi komprehensif `docs/API_INTEGRATION_GUIDE.md` (13 modul, endpoint, request headers, body payload, success/error envelopes, kode helper TypeScript) serta dokumen laporan resmi kenegaraan `docs/LAPORAN_INTEGRASI.md` dan pendistribusiannya ke repositori frontend Next.js | User-directed & Completed |
 | D-59 | Migrasi & Sinkronisasi Repositori Terpisah Backend API ke GitHub | Konfigurasi remote Git origin backend diarahkan secara independen ke `https://github.com/dennyssdm/sipintarsespimmaAPI.git`, berhasil di-push secara utuh ke branch `main`, dan diselaraskan dengan repositori frontend di `https://github.com/dennyssdm/Sipintar.git` | User-directed & Completed |
 | D-60 | Penyusunan & Pengesahan Dokumen 45 Skenario Uji Sistem & Test Cases SIPINTAR | Perumusan dan pengesahan laporan rencana & skenario pengujian komprehensif (`docs/LAPORAN_SKENARIO_TEST_CASE.md`) mencakup 45 kasus uji dalam 11 kategori mutu (Autentikasi, Taksonomi & Katalog, Gadik, Perpustakaan/Taskap, Pencarian Terpadu, Keamanan & RBAC, Alur Verifikasi Bag Jarlat, CMS Master Data, Audit Trail & Monitoring, Gemini AI, serta UI & Responsivitas Ponsel) dengan status kelulusan 100% (45/45 Passed - Zero Defect) berstandar ISO/IEC/IEEE 29119 dan OWASP Top 10 | User-directed & Completed |
+| D-61 | Pembuatan Halaman Mandiri `/login` Tanpa Logo Gambar | Pembuatan rute mandiri `src/app/login/page.tsx` dengan tampilan penuh terdedikasi bernuansa institusional Sespimma Lemdiklat Polri berbasis tipografi dan lencana CSS murni (tanpa aset gambar logo sesuai arahan), terintegrasi langsung dengan API autentikasi JWT `POST /api/v1/auth/login`, tombol akses cepat pengujian 1-klik untuk 4 peran kedinasan, penanganan sesi aktif pengguna, dan integrasi modal registrasi anggota baru | User-directed & Completed |
 
 ## Change-control rule
 
@@ -188,7 +189,7 @@ When a requirement changes:
 **Current status:** Full-Stack SIPINTAR Integration (Backend RESTful API & Next.js Frontend) 100% COMPLETED, VERIFIED, & HANDED OVER.  
 **Backend API running at:** `http://localhost:5001/api/v1` (Health: `http://localhost:5001/api/v1/health`, Swagger Docs: `http://localhost:5001/docs`).  
 **Backend Git Repository:** `https://github.com/dennyssdm/sipintarsespimmaAPI.git` (Branch `main`).  
-**Frontend running at:** `http://localhost:3000` (16 Static Routes active & protected by Role Guards).  
+**Frontend running at:** `http://localhost:3000` (17 Static Routes active & protected by Role Guards).  
 **Frontend Git Repository:** `https://github.com/dennyssdm/Sipintar.git` (Branch `main`).  
 **Postman Collection:** `collection.json` (v2.1.0, 33 Requests) maintained and validated.  
 **Test Suite:** 45 Test Scenarios Documented & 32 Automated Integration Tests (100% Pass Rate — Zero Defect).  

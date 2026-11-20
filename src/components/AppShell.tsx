@@ -265,6 +265,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     }
   };
 
+  if (pathname === '/login') {
+    return <>{children}</>;
+  }
+
   return (
     <div className="app-container">
       {/* Mobile Backdrop */}
