@@ -462,6 +462,14 @@ export default function AdminDataPage() {
 
   const userRole = (currentUser?.role || currentUser?.role_code || '').toLowerCase();
   const isSuperAdmin = Boolean(currentUser && userRole === 'admin');
+  const isCruOnly = Boolean(
+    currentUser && (
+      currentUser.permission_scope === 'CRU' ||
+      currentUser.can_delete === false ||
+      currentUser.nrp_nip === 'livi'
+    )
+  );
+  const canDelete = isSuperAdmin && !isCruOnly;
 
   // --- EXPORT & IMPORT STATE ---
 
@@ -803,6 +811,13 @@ export default function AdminDataPage() {
   };
 
   const handleOpenDeleteModal = (item: ResourceItem) => {
+    if (isCruOnly) {
+      showNotification(
+        'Akses Ditolak: Akun Anda memiliki izin Admin CRU (Create, Read, Update). Tindakan Delete hanya dapat dilakukan oleh Superadmin CRUD (dennyboy).',
+        'error'
+      );
+      return;
+    }
     setDeleteItem(item);
     setIsHardDelete(false);
     setShowDeleteModal(true);
@@ -810,6 +825,14 @@ export default function AdminDataPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteItem) return;
+    if (isCruOnly) {
+      showNotification(
+        'Akses Ditolak: Akun Anda memiliki izin Admin CRU (Create, Read, Update). Tindakan Delete hanya dapat dilakukan oleh Superadmin CRUD (dennyboy).',
+        'error'
+      );
+      setShowDeleteModal(false);
+      return;
+    }
     setIsSubmitting(true);
     try {
       const cleanId = String(deleteItem.id).replace(/^res-0*/, '') || deleteItem.id;
@@ -908,6 +931,14 @@ export default function AdminDataPage() {
 
   const handleDeleteBook = async () => {
     if (!deletingBook) return;
+    if (isCruOnly) {
+      showNotification(
+        'Akses Ditolak: Akun Anda memiliki izin Admin CRU (Create, Read, Update). Tindakan Delete hanya dapat dilakukan oleh Superadmin CRUD (dennyboy).',
+        'error'
+      );
+      setShowDeleteBookModal(false);
+      return;
+    }
     setIsSubmitting(true);
     try {
       await sipintarApi.admin.deleteBook(deletingBook.id);
@@ -953,6 +984,13 @@ export default function AdminDataPage() {
   };
 
   const handleToggleUserStatus = async (user: any) => {
+    if (isCruOnly) {
+      showNotification(
+        'Akses Ditolak: Penonaktifan akun pengguna memerlukan wewenang Superadmin CRUD (dennyboy).',
+        'error'
+      );
+      return;
+    }
     try {
       const nextStatus = user.is_active ? 0 : 1;
       await sipintarApi.admin.updateUserStatus(user.id, nextStatus);
@@ -966,6 +1004,13 @@ export default function AdminDataPage() {
   };
 
   const handleChangeUserRole = async (user: any, newRoleId: number) => {
+    if (isCruOnly) {
+      showNotification(
+        'Akses Ditolak: Perubahan peran pengguna memerlukan wewenang Superadmin CRUD (dennyboy).',
+        'error'
+      );
+      return;
+    }
     try {
       await sipintarApi.admin.updateUserRole(user.id, newRoleId);
       showNotification(`Peran untuk ${user.nama_lengkap} berhasil diperbarui.`);
@@ -1405,28 +1450,28 @@ export default function AdminDataPage() {
                 fontSize: '11px',
                 fontWeight: 800,
                 textTransform: 'uppercase',
-                color: '#fbbf24',
-                backgroundColor: 'rgba(251, 191, 36, 0.15)',
-                border: '1px solid rgba(251, 191, 36, 0.35)',
+                color: isCruOnly ? '#38bdf8' : '#fbbf24',
+                backgroundColor: isCruOnly ? 'rgba(56, 189, 248, 0.15)' : 'rgba(251, 191, 36, 0.15)',
+                border: isCruOnly ? '1px solid rgba(56, 189, 248, 0.35)' : '1px solid rgba(251, 191, 36, 0.35)',
                 padding: '3px 8px',
                 borderRadius: '4px',
                 letterSpacing: '0.6px',
               }}
             >
-              CMS SUPERADMIN PUSAT
+              {isCruOnly ? 'CMS ADMIN CRU (LIVI)' : 'CMS SUPERADMIN PUSAT (DENNYBOY)'}
             </span>
             <span
               style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: '#34d399',
-                backgroundColor: 'rgba(52, 211, 153, 0.15)',
-                border: '1px solid rgba(52, 211, 153, 0.35)',
+                color: isCruOnly ? '#38bdf8' : '#34d399',
+                backgroundColor: isCruOnly ? 'rgba(56, 189, 248, 0.15)' : 'rgba(52, 211, 153, 0.15)',
+                border: isCruOnly ? '1px solid rgba(56, 189, 248, 0.35)' : '1px solid rgba(52, 211, 153, 0.35)',
                 padding: '3px 8px',
                 borderRadius: '4px',
               }}
             >
-              CRUD AKTIF
+              {isCruOnly ? 'CRU AKTIF (CREATE, READ, UPDATE)' : 'CRUD AKTIF (FULL ACCESS)'}
             </span>
           </div>
 
@@ -1442,13 +1487,17 @@ export default function AdminDataPage() {
             Pusat Pengendali Konten & Master Data (CMS)
           </h1>
           <p style={{ fontSize: '13.5px', color: '#cbd5e1', maxWidth: '720px', lineHeight: 1.5, margin: 0 }}>
-            Panel kendali penuh Super Administrator Sespimma Lemdiklat Polri: Kelola seluruh naskah ajar, buku perpustakaan, siklus penerbitan, dan hak akses pengguna secara real-time.
+            {isCruOnly
+              ? 'Panel kendali Administrator CRU Sespimma Lemdiklat Polri: Anda memiliki wewenang Create, Read, dan Update untuk seluruh naskah ajar dan buku perpustakaan. Hak Delete (Hapus) dikunci khusus untuk Superadmin CRUD (dennyboy).'
+              : 'Panel kendali penuh Super Administrator Sespimma Lemdiklat Polri: Kelola seluruh naskah ajar, buku perpustakaan, siklus penerbitan, dan hak akses pengguna secara real-time.'}
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: '12px', color: '#cbd5e1', backgroundColor: 'rgba(255,255,255,0.06)', padding: '8px 14px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)' }}>
-            ⚙️ Panel Aksi CRUD, Ekspor & Impor aktif pada masing-masing modul di bawah
+            {isCruOnly
+              ? '🔒 Mode CRU Aktif: Buat & Ubah diizinkan, Hapus dikunci untuk Superadmin'
+              : '⚙️ Panel Aksi CRUD, Ekspor & Impor aktif pada masing-masing modul di bawah'}
           </div>
         </div>
       </header>
@@ -2025,23 +2074,49 @@ export default function AdminDataPage() {
                             )}
 
                             {/* Delete / Archive */}
-                            <button
-                              type="button"
-                              onClick={() => handleOpenDeleteModal(item)}
-                              title="Hapus atau Arsipkan Naskah"
-                              style={{
-                                padding: '5px 8px',
-                                fontSize: '11.5px',
-                                fontWeight: 600,
-                                borderRadius: '4px',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                                color: '#dc2626',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              🗑️ Hapus
-                            </button>
+                            {isCruOnly ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  showNotification(
+                                    'Akses Ditolak: Akun Anda memiliki izin Admin CRU (Create, Read, Update). Tindakan Delete hanya dapat dilakukan oleh Superadmin CRUD (dennyboy).',
+                                    'error'
+                                  )
+                                }
+                                title="Izin Hapus Terkunci (Akun Admin CRU - Hubungi Superadmin dennyboy)"
+                                style={{
+                                  padding: '5px 8px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 600,
+                                  borderRadius: '4px',
+                                  border: '1px solid rgba(148, 163, 184, 0.3)',
+                                  backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                                  color: '#94a3b8',
+                                  cursor: 'not-allowed',
+                                  opacity: 0.7,
+                                }}
+                              >
+                                🔒 Hapus (CRU)
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenDeleteModal(item)}
+                                title="Hapus atau Arsipkan Naskah"
+                                style={{
+                                  padding: '5px 8px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 600,
+                                  borderRadius: '4px',
+                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                  backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                                  color: '#dc2626',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                🗑️ Hapus
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -2332,25 +2407,51 @@ export default function AdminDataPage() {
                             >
                               ✏️ Edit
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDeletingBook(b);
-                                setShowDeleteBookModal(true);
-                              }}
-                              style={{
-                                padding: '5px 8px',
-                                fontSize: '11.5px',
-                                fontWeight: 600,
-                                borderRadius: '4px',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                                color: '#dc2626',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              🗑️ Hapus
-                            </button>
+                            {isCruOnly ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  showNotification(
+                                    'Akses Ditolak: Akun Anda memiliki izin Admin CRU (Create, Read, Update). Tindakan Delete hanya dapat dilakukan oleh Superadmin CRUD (dennyboy).',
+                                    'error'
+                                  )
+                                }
+                                title="Izin Hapus Terkunci (Akun Admin CRU - Hubungi Superadmin dennyboy)"
+                                style={{
+                                  padding: '5px 8px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 600,
+                                  borderRadius: '4px',
+                                  border: '1px solid rgba(148, 163, 184, 0.3)',
+                                  backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                                  color: '#94a3b8',
+                                  cursor: 'not-allowed',
+                                  opacity: 0.7,
+                                }}
+                              >
+                                🔒 Hapus (CRU)
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeletingBook(b);
+                                  setShowDeleteBookModal(true);
+                                }}
+                                style={{
+                                  padding: '5px 8px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 600,
+                                  borderRadius: '4px',
+                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                  backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                                  color: '#dc2626',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                🗑️ Hapus
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

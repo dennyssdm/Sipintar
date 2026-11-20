@@ -13,6 +13,8 @@ export interface AuthSessionUser {
   email: string;
   role: string;
   role_name?: string;
+  can_delete?: boolean;
+  permission_scope?: 'CRUD' | 'CRU';
   phone_number?: string;
   avatar_url?: string;
   token?: string;
