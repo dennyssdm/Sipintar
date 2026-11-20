@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
 import { SearchBar } from './SearchBar';
 import { BrandLogo } from './BrandLogo';
@@ -17,6 +17,7 @@ interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState<UserRole>('Serdik');
   const [notifOpen, setNotifOpen] = useState(false);
@@ -265,9 +266,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     }
   };
 
-  if (pathname === '/login') {
-    return <>{children}</>;
-  }
+  const handleCloseLoginModal = () => {
+    setLoginModalOpen(false);
+    if (pathname === '/login') {
+      router.push('/');
+    }
+  };
 
   return (
     <div className="app-container">
@@ -741,8 +745,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
       {/* Interactive Login Modal */}
       <AuthLoginModal
-        isOpen={loginModalOpen}
-        onClose={() => setLoginModalOpen(false)}
+        isOpen={loginModalOpen || pathname === '/login'}
+        onClose={handleCloseLoginModal}
         onSuccess={handleLoginSuccess}
         onOpenRegister={() => {
           setLoginModalOpen(false);

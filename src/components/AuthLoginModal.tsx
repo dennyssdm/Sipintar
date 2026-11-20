@@ -73,24 +73,6 @@ export const AuthLoginModal: React.FC<AuthLoginModalProps> = ({
     }
   };
 
-  const handleQuickLogin = async (emailOrNrp: string) => {
-    setIdentifier(emailOrNrp);
-    setPassword('Password123!');
-    setErrorMsg(null);
-    try {
-      setIsLoading(true);
-      const res = await sipintarApi.auth.login(emailOrNrp, 'Password123!');
-      if (res?.user) {
-        onSuccess({ ...res.user, token: res.token });
-        handleClose();
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Gagal masuk akun pengujian.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div
       style={{
@@ -337,89 +319,9 @@ export const AuthLoginModal: React.FC<AuthLoginModalProps> = ({
             </button>
           </form>
 
-          {/* Quick Login Presets for Evaluator / Testing */}
-          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--color-border, #e2e8f0)' }}>
-            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted, #64748b)', marginBottom: '10px' }}>
-              Akses Cepat Pengujian (1-Klik):
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('80010001')}
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #bfdbfe',
-                  backgroundColor: '#eff6ff',
-                  color: '#1e40af',
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
-              >
-                👑 Admin (AKBP Dewi)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('85071234')}
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #e2e8f0',
-                  backgroundColor: '#f8fafc',
-                  color: '#334155',
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
-              >
-                🎓 Serdik (Kompol Arya)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('72010235')}
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #e2e8f0',
-                  backgroundColor: '#f8fafc',
-                  color: '#334155',
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
-              >
-                👨‍🏫 Gadik (Kombes Purwanto)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('75040112')}
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #e2e8f0',
-                  backgroundColor: '#f8fafc',
-                  color: '#334155',
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
-              >
-                ⚖️ Verifikator (AKBP Bambang)
-              </button>
-            </div>
-            <div style={{ marginTop: '8px', fontSize: '11px', color: '#94a3b8', textAlign: 'center' }}>
-              Sandi pengujian otomatis diisi: <code>Password123!</code>
-            </div>
-          </div>
-
           {/* Register Link */}
           {onOpenRegister && (
-            <div style={{ marginTop: '18px', textAlign: 'center', fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+            <div style={{ marginTop: '22px', textAlign: 'center', fontSize: '13px', color: 'var(--color-text-muted, #94a3b8)' }}>
               Belum memiliki akun terdaftar?{' '}
               <button
                 type="button"
@@ -430,7 +332,7 @@ export const AuthLoginModal: React.FC<AuthLoginModalProps> = ({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--color-primary, #1d4ed8)',
+                  color: 'var(--color-primary, #3b82f6)',
                   fontWeight: 700,
                   cursor: 'pointer',
                   padding: 0,
