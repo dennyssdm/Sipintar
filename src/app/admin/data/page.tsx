@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ResourceDetailModal } from '@/components/ResourceDetailModal';
 import { ResourceItem, LifecycleStatus, AccessClassification, ResourceCategory } from '@/types';
-import { sipintarApi, mapResourceToItem } from '@/lib/apiClient';
+import { sipintarApi, mapResourceToItem, resolveInfographicUrl } from '@/lib/apiClient';
 
 const CATEGORY_MAP: Record<string, number> = {
   'Gadik & Kompetensi': 1,
@@ -328,7 +328,7 @@ function mapCsvRowToPayload(row: Record<string, string>, entity: 'resources' | '
 }
 
 export default function AdminDataPage() {
-  const [activeTab, setActiveTab] = useState<'resources' | 'books' | 'users'>('resources');
+  const [activeTab, setActiveTab] = useState<'resources' | 'books' | 'users' | 'infographic'>('resources');
 
   // --- 1. RESOURCES STATE ---
   const [resources, setResources] = useState<ResourceItem[]>([]);
@@ -471,6 +471,126 @@ export default function AdminDataPage() {
   );
   const canDelete = isSuperAdmin && !isCruOnly;
 
+  // --- 4. INFOGRAPHIC STATE & HANDLERS ---
+  const [infographicData, setInfographicData] = useState<{
+    image_url: string;
+    image_full_url?: string;
+    title?: string;
+    caption?: string;
+    updated_at?: string;
+    updated_by_name?: string;
+  }>({
+    image_url: '/infografis-sipintar.jpg',
+    image_full_url: '/infografis-sipintar.png',
+    title: 'INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU',
+    caption: 'Visualisasi komprehensif arsitektur ekosistem sumber belajar terpadu Sespimma Lemdiklat Polri: Gadik & Kompetensi, Modul & Hanjar 720 JP, Perpustakaan, Kurikulum, dan SOP Layanan Presisi.',
+  });
+  const [isLoadingInfographic, setIsLoadingInfographic] = useState(false);
+  const [isSavingInfographic, setIsSavingInfographic] = useState(false);
+  const [newInfographicFile, setNewInfographicFile] = useState<File | null>(null);
+  const [newInfographicPreview, setNewInfographicPreview] = useState<string | null>(null);
+  const [editInfographicTitle, setEditInfographicTitle] = useState('INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU');
+  const [editInfographicCaption, setEditInfographicCaption] = useState('Visualisasi komprehensif arsitektur ekosistem sumber belajar terpadu Sespimma Lemdiklat Polri: Gadik & Kompetensi, Modul & Hanjar 720 JP, Perpustakaan, Kurikulum, dan SOP Layanan Presisi.');
+  const [showInfographicLightbox, setShowInfographicLightbox] = useState(false);
+  const infographicFileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchInfographic = async () => {
+    setIsLoadingInfographic(true);
+    try {
+      const data = await sipintarApi.getInfographic();
+      if (data) {
+        setInfographicData(data);
+        if (data.title) setEditInfographicTitle(data.title);
+        if (data.caption) setEditInfographicCaption(data.caption);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingInfographic(false);
+    }
+  };
+
+  const handleInfographicFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isCruOnly) {
+      showNotification('Akses ditolak: Akun Anda memiliki izin Admin CRU. Penggantian berkas infografis arsitektur hanya dapat dilakukan oleh Superadmin CRUD (dennyboy).', 'error');
+      return;
+    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showNotification('Berkas harus berupa gambar (JPG, PNG, WEBP, atau SVG)', 'error');
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      showNotification('Ukuran berkas gambar maksimal 20 MB', 'error');
+      return;
+    }
+
+    setNewInfographicFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setNewInfographicPreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveInfographic = async () => {
+    if (isCruOnly) {
+      showNotification('Akses ditolak: Akun Anda memiliki izin Admin CRU. Penggantian gambar hanya diizinkan untuk Superadmin CRUD (dennyboy).', 'error');
+      return;
+    }
+
+    setIsSavingInfographic(true);
+    try {
+      if (newInfographicFile) {
+        const formData = new FormData();
+        formData.append('image', newInfographicFile);
+        formData.append('title', editInfographicTitle.trim() || 'INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU');
+        formData.append('caption', editInfographicCaption.trim());
+        await sipintarApi.admin.updateInfographic(formData);
+      } else {
+        await sipintarApi.admin.updateInfographic({
+          title: editInfographicTitle.trim() || 'INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU',
+          caption: editInfographicCaption.trim()
+        });
+      }
+
+      showNotification('Gambar dan konfigurasi Infografis Arsitektur berhasil diperbarui!', 'success');
+      setNewInfographicFile(null);
+      setNewInfographicPreview(null);
+      await fetchInfographic();
+    } catch (err: any) {
+      showNotification(err.message || 'Gagal menyimpan perubahan infografis', 'error');
+    } finally {
+      setIsSavingInfographic(false);
+    }
+  };
+
+  const handleResetInfographic = async () => {
+    if (isCruOnly) {
+      showNotification('Akses ditolak: Hanya Superadmin CRUD yang dapat mereset infografis sistem.', 'error');
+      return;
+    }
+    if (!window.confirm('Kembalikan gambar infografis arsitektur ke berkas bawaan resmi Sespimma (/infografis-sipintar.jpg)?')) {
+      return;
+    }
+
+    setIsSavingInfographic(true);
+    try {
+      await sipintarApi.admin.updateInfographic({ action: 'reset' });
+      showNotification('Infografis berhasil dikembalikan ke gambar bawaan resmi Sespimma', 'success');
+      setNewInfographicFile(null);
+      setNewInfographicPreview(null);
+      await fetchInfographic();
+    } catch (err: any) {
+      showNotification(err.message || 'Gagal mereset infografis', 'error');
+    } finally {
+      setIsSavingInfographic(false);
+    }
+  };
+
   // --- EXPORT & IMPORT STATE ---
 
   const [isExporting, setIsExporting] = useState(false);
@@ -483,6 +603,7 @@ export default function AdminDataPage() {
   const importFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDownloadTemplate = () => {
+    if (activeTab === 'infographic') return;
     const tpl = TEMPLATES[activeTab];
     const headerLine = tpl.headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
     const sampleLines = tpl.samples.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(',')).join('\r\n');
@@ -492,6 +613,7 @@ export default function AdminDataPage() {
   };
 
   const handleExport = async (format: 'csv' | 'json') => {
+    if (activeTab === 'infographic') return;
     setIsExporting(true);
     try {
       const res = await sipintarApi.admin.exportData(activeTab);
@@ -570,7 +692,7 @@ export default function AdminDataPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || activeTab === 'infographic') return;
 
     setImportFile(file);
     setImportErrorDetails([]);
@@ -586,7 +708,7 @@ export default function AdminDataPage() {
           parsed = Array.isArray(raw) ? raw : [raw];
         } else {
           const rawRows = parseCsv(content);
-          parsed = rawRows.map(r => mapCsvRowToPayload(r, activeTab));
+          parsed = rawRows.map(r => mapCsvRowToPayload(r, activeTab as 'resources' | 'books' | 'users'));
         }
 
         const errors: string[] = [];
@@ -610,14 +732,14 @@ export default function AdminDataPage() {
   };
 
   const handleConfirmImport = async () => {
-    if (importParsedRows.length === 0) {
+    if (activeTab === 'infographic' || importParsedRows.length === 0) {
       showNotification('Tidak ada baris data valid yang siap diimpor', 'error');
       return;
     }
 
     setIsImporting(true);
     try {
-      const res = await sipintarApi.admin.importData(activeTab, importParsedRows);
+      const res = await sipintarApi.admin.importData(activeTab as 'resources' | 'books' | 'users', importParsedRows);
       const count = res.imported_count || 0;
       const skipped = res.skipped_count || 0;
 
@@ -695,6 +817,9 @@ export default function AdminDataPage() {
     }
     if (isSuperAdmin && activeTab === 'users' && users.length === 0) {
       fetchUsers();
+    }
+    if (isSuperAdmin && activeTab === 'infographic') {
+      fetchInfographic();
     }
   }, [isSuperAdmin, activeTab, books.length, users.length]);
 
@@ -1606,6 +1731,35 @@ export default function AdminDataPage() {
             </div>
           </>
         )}
+
+        {activeTab === 'infographic' && (
+          <>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Lokasi Penayangan</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#fbbf24', marginTop: '4px' }}>
+                Halaman Utama (/)
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Infografis</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#10b981', marginTop: '4px' }}>
+                Aktif & Tayang Live
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: canDelete ? '#3b82f6' : '#ef4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Wewenang Pengelolaan</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: canDelete ? '#3b82f6' : '#ef4444', marginTop: '4px' }}>
+                {canDelete ? 'Superadmin CRUD' : 'CRU (Read-Only)'}
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Format Rekomendasi</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-navy)', marginTop: '4px' }}>
+                16:9 Landscape (Maks 20MB)
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* CMS Module Tabs */}
@@ -1686,6 +1840,39 @@ export default function AdminDataPage() {
           <span>👥 Manajemen Pengguna</span>
           <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '10px', backgroundColor: 'var(--color-surface-hover)', border: '1px solid var(--color-border)' }}>
             {users.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('infographic')}
+          style={{
+            padding: '10px 18px',
+            fontSize: '13.5px',
+            fontWeight: 700,
+            color: activeTab === 'infographic' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            borderBottom: activeTab === 'infographic' ? '2.5px solid var(--color-primary)' : '2.5px solid transparent',
+            marginBottom: '-2px',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <span>🖼️ Infografis Ekosistem</span>
+          <span
+            style={{
+              fontSize: '11px',
+              padding: '2px 7px',
+              borderRadius: '10px',
+              backgroundColor: canDelete ? 'rgba(52, 211, 153, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: canDelete ? '#10b981' : '#ef4444',
+              fontWeight: 700,
+            }}
+          >
+            {canDelete ? 'CRUD' : 'CRU LOCK'}
           </span>
         </button>
       </div>
@@ -2780,6 +2967,437 @@ export default function AdminDataPage() {
               </div>
             )}
             {renderPagination(filteredUsers.length, totalUserPages)}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 4: INFOGRAPHIC MANAGEMENT (INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU) */}
+      {/* ========================================================================= */}
+      {activeTab === 'infographic' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Authority Banner */}
+          {canDelete ? (
+            <div
+              style={{
+                padding: '14px 18px',
+                borderRadius: 'var(--radius-md, 8px)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                color: '#10b981',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <span style={{ fontSize: '24px' }}>👑</span>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#10b981' }}>
+                  Wewenang Superadmin CRUD ({currentUser?.nama_lengkap || 'dennyboy'}) Aktif
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted, #94a3b8)', marginTop: '2px' }}>
+                  Anda memiliki wewenang penuh untuk mengganti secara manual berkas gambar Infografis Arsitektur Sumber Belajar Terpadu, mengubah judul & deskripsi, serta mereset ke gambar bawaan resmi Sespimma. Perubahan yang Anda simpan langsung tayang secara live pada halaman muka sistem.
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                padding: '14px 18px',
+                borderRadius: 'var(--radius-md, 8px)',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#f87171',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <span style={{ fontSize: '24px' }}>🔒</span>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#ef4444' }}>
+                  Akses Terbatas: Mode Pratinjau Admin CRU ({currentUser?.nama_lengkap || 'livi'})
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted, #94a3b8)', marginTop: '2px' }}>
+                  Berdasarkan tata kelola RBAC SIPINTAR (Decision D-64), berkas gambar infografis arsitektur sistem hanya dapat diperbarui atau diganti oleh Superadmin CRUD. Akun Anda saat ini hanya memiliki izin peninjauan (Read-Only).
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2-Column Grid: Preview on Left, Upload Form on Right */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            {/* Column 1: Live Display Card */}
+            <div
+              style={{
+                backgroundColor: 'var(--color-surface, #0f172a)',
+                border: '1px solid var(--color-border, #1e293b)',
+                borderRadius: 'var(--radius-lg, 12px)',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                boxShadow: 'var(--shadow-md, 0 4px 14px rgba(0,0,0,0.2))',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '16px' }}>📊</span>
+                  <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--color-navy, #f8fafc)' }}>
+                    Pratinjau Infografis Tayang Live
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '3px 9px',
+                    borderRadius: '20px',
+                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                    color: '#10b981',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  Aktif di Halaman Depan
+                </span>
+              </div>
+
+              {/* Image Frame */}
+              <div
+                style={{
+                  position: 'relative',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  backgroundColor: '#071731',
+                  border: '1px solid rgba(251, 191, 36, 0.25)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+                  cursor: 'zoom-in',
+                }}
+                onClick={() => setShowInfographicLightbox(true)}
+                title="Klik untuk memperbesar infografis"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={resolveInfographicUrl(infographicData.image_url)}
+                  alt={infographicData.title || 'Infografis Arsitektur'}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    transition: 'transform 0.3s ease',
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+                  onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowInfographicLightbox(true);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    backgroundColor: 'rgba(7, 23, 49, 0.85)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: '#93c5fd',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    backdropFilter: 'blur(4px)',
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    <line x1="11" y1="8" x2="11" y2="14" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </svg>
+                  <span>Perbesar</span>
+                </button>
+              </div>
+
+              {/* Metadata Panel */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  backgroundColor: 'var(--color-surface-hover, rgba(255, 255, 255, 0.03))',
+                  padding: '14px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  border: '1px solid var(--color-border, #1e293b)',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted, #94a3b8)', fontWeight: 700 }}>
+                    Judul Header Infografis:
+                  </div>
+                  <div style={{ fontWeight: 800, color: 'var(--color-text-main, #f8fafc)', marginTop: '2px' }}>
+                    {infographicData.title || 'INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU'}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted, #94a3b8)', fontWeight: 700 }}>
+                    Deskripsi / Caption Teks:
+                  </div>
+                  <div style={{ color: 'var(--color-text-muted, #cbd5e1)', marginTop: '2px', lineHeight: 1.45 }}>
+                    {infographicData.caption || '-'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingTop: '6px', borderTop: '1px solid var(--color-border-subtle, rgba(255,255,255,0.06))' }}>
+                  <div>
+                    <div style={{ fontSize: '10.5px', color: 'var(--color-text-muted, #94a3b8)' }}>Terakhir Diperbarui:</div>
+                    <div style={{ fontWeight: 700, color: 'var(--color-text-main, #e2e8f0)', fontSize: '11.5px' }}>
+                      {infographicData.updated_at ? new Date(infographicData.updated_at).toLocaleString('id-ID') : 'Berkas Asli Sespimma'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10.5px', color: 'var(--color-text-muted, #94a3b8)' }}>Diperbarui Oleh:</div>
+                    <div style={{ fontWeight: 700, color: '#38bdf8', fontSize: '11.5px' }}>
+                      {infographicData.updated_by_name || 'Superadmin Pusat'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Upload & Edit Form */}
+            <div
+              style={{
+                backgroundColor: 'var(--color-surface, #0f172a)',
+                border: '1px solid var(--color-border, #1e293b)',
+                borderRadius: 'var(--radius-lg, 12px)',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                boxShadow: 'var(--shadow-md, 0 4px 14px rgba(0,0,0,0.2))',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '16px' }}>🖼️</span>
+                <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--color-navy, #f8fafc)' }}>
+                  Form Penggantian Gambar Infografis Manual
+                </span>
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-muted, #94a3b8)', margin: 0 }}>
+                Pilih berkas gambar baru dari komputer untuk mengganti infografis arsitektur. Disarankan rasio 16:9 atau min. lebar 1200 piksel agar tampak tajam di semua resolusi layar.
+              </p>
+
+              {/* Hidden file input */}
+              <input
+                ref={infographicFileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/svg+xml,image/gif"
+                onChange={handleInfographicFileSelect}
+                style={{ display: 'none' }}
+                disabled={isCruOnly || isSavingInfographic}
+              />
+
+              {/* File Upload Drop Zone */}
+              <div
+                onClick={() => {
+                  if (!isCruOnly && !isSavingInfographic) {
+                    infographicFileInputRef.current?.click();
+                  }
+                }}
+                style={{
+                  border: newInfographicPreview ? '2px solid #10b981' : '2px dashed var(--color-border, #334155)',
+                  borderRadius: '10px',
+                  padding: '20px',
+                  textAlign: 'center',
+                  backgroundColor: newInfographicPreview ? 'rgba(16, 185, 129, 0.05)' : 'var(--color-surface-hover, rgba(255, 255, 255, 0.02))',
+                  cursor: isCruOnly ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {newInfographicPreview ? (
+                  <div>
+                    <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%', marginBottom: '12px' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={newInfographicPreview}
+                        alt="Pratinjau Gambar Baru"
+                        style={{
+                          maxHeight: '160px',
+                          maxWidth: '100%',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(16, 185, 129, 0.4)',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                        }}
+                      />
+                    </div>
+                    <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#10b981' }}>
+                      ✓ Berkas Gambar Baru Siap Diunggah
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-muted, #94a3b8)', marginTop: '2px' }}>
+                      {newInfographicFile?.name} ({(newInfographicFile?.size! / (1024 * 1024)).toFixed(2)} MB)
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNewInfographicFile(null);
+                        setNewInfographicPreview(null);
+                        if (infographicFileInputRef.current) infographicFileInputRef.current.value = '';
+                      }}
+                      style={{
+                        marginTop: '8px',
+                        padding: '4px 12px',
+                        fontSize: '11px',
+                        color: '#ef4444',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                      }}
+                    >
+                      ✕ Batalkan Pilihan Berkas
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>📤</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-main, #f8fafc)' }}>
+                      {isCruOnly ? 'Pengunggahan Berkas Terkunci (Hanya CRUD)' : 'Klik untuk Memilih Berkas Gambar Baru'}
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted, #94a3b8)', marginTop: '4px' }}>
+                      Format yang didukung: JPG, PNG, WEBP, SVG (Maksimal 20 MB)
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Title input */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main, #f8fafc)' }}>
+                  Judul Header Infografis:
+                </label>
+                <input
+                  type="text"
+                  value={editInfographicTitle}
+                  onChange={(e) => setEditInfographicTitle(e.target.value)}
+                  disabled={isCruOnly || isSavingInfographic}
+                  placeholder="Contoh: INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU"
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--color-border, #334155)',
+                    backgroundColor: 'var(--color-surface-hover, #1e293b)',
+                    color: 'var(--color-text-main, #f8fafc)',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Caption input */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main, #f8fafc)' }}>
+                  Deskripsi / Caption Infografis:
+                </label>
+                <textarea
+                  rows={3}
+                  value={editInfographicCaption}
+                  onChange={(e) => setEditInfographicCaption(e.target.value)}
+                  disabled={isCruOnly || isSavingInfographic}
+                  placeholder="Masukkan ringkasan atau keterangan infografis..."
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--color-border, #334155)',
+                    backgroundColor: 'var(--color-surface-hover, #1e293b)',
+                    color: 'var(--color-text-main, #f8fafc)',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  marginTop: '6px',
+                  paddingTop: '14px',
+                  borderTop: '1px solid var(--color-border, #1e293b)',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleResetInfographic}
+                  disabled={isCruOnly || isSavingInfographic}
+                  style={{
+                    padding: '9px 16px',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    border: '1px solid var(--color-border, #334155)',
+                    backgroundColor: 'transparent',
+                    color: isCruOnly ? 'var(--color-text-muted, #64748b)' : '#f59e0b',
+                    cursor: isCruOnly || isSavingInfographic ? 'not-allowed' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                  title="Kembalikan gambar ke berkas bawaan resmi institusi"
+                >
+                  <span>🔄</span>
+                  <span>Reset Bawaan Sistem</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSaveInfographic}
+                  disabled={isCruOnly || isSavingInfographic}
+                  style={{
+                    padding: '9px 20px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: isCruOnly ? '#475569' : '#2563eb',
+                    color: '#ffffff',
+                    cursor: isCruOnly || isSavingInfographic ? 'not-allowed' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: isCruOnly ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.35)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span>💾</span>
+                  <span>{isSavingInfographic ? 'Menyimpan...' : 'Simpan & Terapkan Gambar'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -4022,6 +4640,77 @@ export default function AdminDataPage() {
           resource={previewItem}
           onClose={() => setPreviewItem(null)}
         />
+      )}
+
+      {/* Lightbox Infographic Modal */}
+      {showInfographicLightbox && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.88)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+          }}
+          onClick={() => setShowInfographicLightbox(false)}
+        >
+          <div
+            style={{
+              maxWidth: '1200px',
+              width: '100%',
+              backgroundColor: '#071731',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              overflow: 'hidden',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 20px',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              }}
+            >
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#fbbf24' }}>📊</span>
+                <span>{infographicData.title || 'INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU'} — Pratinjau Resolusi Penuh</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInfographicLightbox(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#cbd5e1',
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ padding: '16px', maxHeight: '82vh', overflow: 'auto', textAlign: 'center' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={newInfographicPreview || resolveInfographicUrl(infographicData.image_full_url || infographicData.image_url)}
+                alt="Infografis Penuh"
+                style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', display: 'inline-block' }}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

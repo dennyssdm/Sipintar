@@ -36,6 +36,16 @@ export interface ApiError {
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1';
 
+export const BACKEND_SERVER_URL = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+
+export function resolveInfographicUrl(url?: string): string {
+  if (!url) return '/infografis-sipintar.jpg';
+  if (url.startsWith('/uploads')) {
+    return `${BACKEND_SERVER_URL}${url}`;
+  }
+  return url;
+}
+
 class SipintarApiClient {
   private baseUrl: string;
   private token: string | null = null;
@@ -392,6 +402,65 @@ class SipintarApiClient {
       const query = new URLSearchParams(params as any).toString();
       const res = await this.request<any[]>(`/admin/monitoring/logs${query ? `?${query}` : ''}`);
       return { items: res.data, meta: res.meta };
+    },
+    // System Branding & Infographic Management (Admin CRUD)
+    getInfographic: async () => {
+      const res = await this.request<{
+        image_url: string;
+        image_full_url?: string;
+        title?: string;
+        caption?: string;
+        updated_at?: string;
+        updated_by_name?: string;
+      }>('/admin/settings/infographic');
+      return res.data;
+    },
+    updateInfographic: async (data: FormData | { image_url?: string; image_data?: string; title?: string; caption?: string; action?: string }) => {
+      if (typeof window !== 'undefined' && data instanceof FormData) {
+        const token = localStorage.getItem('sipintar_auth_token') || this.getToken();
+        const res = await fetch(`${this.baseUrl}/admin/settings/infographic`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: data,
+        });
+        const json = await res.json();
+        if (!res.ok || json.success === false) {
+          throw new Error(json.error?.message || json.message || 'Gagal memperbarui infografis');
+        }
+        return json.data;
+      }
+      const res = await this.request<{
+        image_url: string;
+        image_full_url?: string;
+        title?: string;
+        caption?: string;
+      }>('/admin/settings/infographic', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return res.data;
+    }
+  };
+
+  // Public Settings
+  public getInfographic = async () => {
+    try {
+      const res = await this.request<{
+        image_url: string;
+        image_full_url?: string;
+        title?: string;
+        caption?: string;
+        updated_at?: string;
+        updated_by_name?: string;
+      }>('/settings/infographic');
+      return res.data;
+    } catch {
+      return {
+        image_url: '/infografis-sipintar.jpg',
+        image_full_url: '/infografis-sipintar.png',
+        title: 'INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU',
+        caption: 'Visualisasi komprehensif arsitektur ekosistem sumber belajar terpadu Sespimma Lemdiklat Polri: Gadik & Kompetensi, Modul & Hanjar 720 JP, Perpustakaan, Kurikulum, dan SOP Layanan Presisi.'
+      };
     }
   };
 }

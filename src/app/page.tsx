@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { sipintarApi } from '@/lib/apiClient';
+import { sipintarApi, resolveInfographicUrl } from '@/lib/apiClient';
 import { saveAuthSession, getAuthSession, AuthSessionUser } from '@/lib/session';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RoleRegistrationModal } from '@/components/RoleRegistrationModal';
@@ -20,6 +20,30 @@ function LoginForm() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [showInfographicModal, setShowInfographicModal] = useState(false);
+  const [infographic, setInfographic] = useState({
+    image_url: '/infografis-sipintar.jpg',
+    image_full_url: '/infografis-sipintar.png',
+    title: 'INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU',
+    caption: 'Arsitektur ekosistem pembelajaran terintegrasi: Gadik & Kompetensi, Modul & Hanjar, E-Library/Perpustakaan, Kurikulum 720 JP, SOP Sidang Taskap, dan Pusat Pengendali Administrator CMS.',
+  });
+
+  // Ambil pengaturan infografis terkini dari sistem/CMS
+  useEffect(() => {
+    sipintarApi
+      .getInfographic()
+      .then((info) => {
+        if (info && info.image_url) {
+          setInfographic((prev) => ({
+            ...prev,
+            image_url: info.image_url,
+            image_full_url: info.image_full_url || info.image_url,
+            title: info.title || prev.title,
+            caption: info.caption || prev.caption,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Cek apakah user sudah login & sesi masih berlaku (di bawah 6 jam)
   useEffect(() => {
@@ -364,7 +388,7 @@ function LoginForm() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', fontWeight: 700, color: '#f8fafc' }}>
                   <span style={{ color: '#fbbf24' }}>📊</span>
-                  <span>INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU</span>
+                  <span>{infographic.title}</span>
                 </div>
                 <button
                   type="button"
@@ -408,8 +432,8 @@ function LoginForm() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/infografis-sipintar.jpg"
-                  alt="Infografis SiPINTAR Sespimma - Platform Tata Kelola Sumber Belajar Terpadu"
+                  src={resolveInfographicUrl(infographic.image_url)}
+                  alt={infographic.title}
                   style={{
                     width: '100%',
                     height: 'auto',
@@ -432,7 +456,7 @@ function LoginForm() {
                   lineHeight: 1.45,
                 }}
               >
-                Arsitektur ekosistem pembelajaran terintegrasi: <strong>Gadik & Kompetensi</strong>, <strong>Modul & Hanjar</strong>, <strong>E-Library/Perpustakaan</strong>, <strong>Kurikulum 720 JP</strong>, <strong>SOP Sidang Taskap</strong>, dan <strong>Pusat Pengendali Administrator CMS</strong>.
+                {infographic.caption}
               </div>
             </div>
 
@@ -891,7 +915,7 @@ function LoginForm() {
             >
               <div style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ color: '#fbbf24' }}>📊</span>
-                <span>Infografis Arsitektur Platform SIPINTAR Sespimma Lemdiklat Polri</span>
+                <span>{infographic.title} — Ukuran Penuh</span>
               </div>
               <button
                 type="button"
@@ -916,8 +940,8 @@ function LoginForm() {
             <div style={{ padding: '12px', maxHeight: '82vh', overflow: 'auto', textAlign: 'center' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/infografis-sipintar.png"
-                alt="Infografis Penuh SiPINTAR Sespimma"
+                src={resolveInfographicUrl(infographic.image_full_url || infographic.image_url)}
+                alt={infographic.title}
                 style={{
                   maxWidth: '100%',
                   height: 'auto',
