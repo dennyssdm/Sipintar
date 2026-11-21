@@ -824,11 +824,11 @@ export const GadikDirectory: React.FC = () => {
               >
                 <th style={{ padding: '14px 14px', width: '45px', textAlign: 'center', color: '#fbbf24' }}>No</th>
                 <th style={{ padding: '14px 16px', minWidth: '220px', color: '#ffffff' }}>Nama Lengkap & Gelar</th>
-                <th style={{ padding: '14px 14px', minWidth: '150px', color: '#38bdf8' }}>Pangkat / NRP</th>
+                <th style={{ padding: '14px 14px', minWidth: '150px', color: '#38bdf8' }}>Pangkat & NRP</th>
                 <th style={{ padding: '14px 16px', minWidth: '220px', color: '#ffffff' }}>Jabatan Fungsional</th>
                 <th style={{ padding: '14px 12px', width: '80px', textAlign: 'center', color: '#e2e8f0' }}>Agama</th>
                 <th style={{ padding: '14px 12px', width: '90px', textAlign: 'center', color: '#e2e8f0' }}>Eselon</th>
-                <th style={{ padding: '14px 12px', width: '80px', textAlign: 'center', color: '#e2e8f0' }}>Golongan</th>
+                <th style={{ padding: '14px 12px', width: '95px', textAlign: 'center', color: '#fbbf24' }}>Gol. Ruang</th>
                 <th style={{ padding: '14px 16px', minWidth: '240px', color: '#ffffff' }}>Bidang Kepakaran Pengajaran</th>
                 <th style={{ padding: '14px 14px', width: '110px', textAlign: 'center', color: '#fbbf24' }}>Aksi</th>
               </tr>
@@ -1040,7 +1040,7 @@ export const GadikDirectory: React.FC = () => {
                     <span style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-hover)', border: '1px solid var(--color-border)' }}>
                       Eselon {member.eselon}
                     </span>
-                    <span style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-hover)', border: '1px solid var(--color-border)' }}>
+                    <span style={{ fontSize: '10.5px', padding: '2px 7px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(37, 99, 235, 0.12)', color: 'var(--color-primary)', border: '1px solid rgba(37, 99, 235, 0.25)', fontWeight: 700 }}>
                       Gol. {member.golongan}
                     </span>
                     <span style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-hover)', border: '1px solid var(--color-border)' }}>

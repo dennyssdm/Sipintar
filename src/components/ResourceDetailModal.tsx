@@ -997,10 +997,26 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
                   >
                     <div>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
-                        Pangkat & NRP
+                        Pangkat Kedinasan
                       </span>
                       <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-navy)', marginTop: '2px' }}>
-                        {resource.pangkat} / {resource.nrp}
+                        {resource.pangkat}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+                        Golongan / Ruang
+                      </span>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-primary)', marginTop: '2px' }}>
+                        Gol. {resource.golongan}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+                        NRP / NIP
+                      </span>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', marginTop: '2px', fontFamily: 'monospace' }}>
+                        {resource.nrp}
                       </div>
                     </div>
                     <div>
@@ -1013,10 +1029,10 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
                     </div>
                     <div>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
-                        Eselon & Golongan
+                        Eselon Kedinasan
                       </span>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-navy)', marginTop: '2px' }}>
-                        Eselon {resource.eselon} • Gol. {resource.golongan}
+                        Eselon {resource.eselon}
                       </div>
                     </div>
                     <div>

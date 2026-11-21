@@ -12,6 +12,7 @@ export interface AuthSessionUser {
   nrp_nip: string;
   email: string;
   pangkat?: string;
+  golongan?: string;
   pangkat_golongan?: string;
   jabatan?: string;
   pendidikan_umum_terakhir?: string;

@@ -213,7 +213,8 @@ Semua akun pengujian di bawah ini aktif dengan kata sandi seragam: **`Password12
       "nrp_nip": "dennyboy",
       "nama_lengkap": "Denny Chahyo Wiebowo (Superadmin CRUD)",
       "email": "dennyboy@sespimma.polri.go.id",
-      "pangkat": "Penata Tk. I (PNS)",
+      "pangkat": "KOMPOL",
+      "golongan": "IV-A",
       "pangkat_golongan": "KOMPOL / IV-A",
       "jabatan": "Super Administrator CRUD & Analis Sistem SIPINTAR",
       "pendidikan_umum_terakhir": "S2 Magister Teknologi Informasi (M.TI)",
@@ -263,7 +264,8 @@ Semua akun pengujian di bawah ini aktif dengan kata sandi seragam: **`Password12
 ```json
 {
   "nama_lengkap": "AKBP Dewi Susilo Pangestuti, S.Ak.",
-  "pangkat": "Ajun Komisaris Besar Polisi",
+  "pangkat": "AKBP",
+  "golongan": "IV-B",
   "pangkat_golongan": "AKBP / IV-B",
   "jabatan": "Gadik Madya Sespimma Lemdiklat Polri",
   "pendidikan_umum_terakhir": "S1 Akuntansi (S.Ak)",
@@ -287,7 +289,8 @@ Semua akun pengujian di bawah ini aktif dengan kata sandi seragam: **`Password12
     "id": 1,
     "nrp_nip": "80010001",
     "nama_lengkap": "AKBP Dewi Susilo Pangestuti, S.Ak.",
-    "pangkat": "Ajun Komisaris Besar Polisi",
+    "pangkat": "AKBP",
+    "golongan": "IV-B",
     "pangkat_golongan": "AKBP / IV-B",
     "jabatan": "Gadik Madya Sespimma Lemdiklat Polri",
     "pendidikan_umum_terakhir": "S1 Akuntansi (S.Ak)",
@@ -747,7 +750,9 @@ import { API_BASE_URL, ApiResponse } from '@/lib/apiClient';
 // 1. Contoh Pembaruan Profil Personel (8 Atribut)
 export async function updatePersonnelCareerProfile(data: {
   nama_lengkap: string;
-  pangkat_golongan: string;
+  pangkat?: string;
+  golongan?: string;
+  pangkat_golongan?: string;
   jabatan: string;
   pendidikan_umum_terakhir: string;
   pendidikan_kedinasan: string;

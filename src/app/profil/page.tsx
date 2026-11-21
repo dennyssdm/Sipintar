@@ -5,32 +5,69 @@ import Link from 'next/link';
 import { getAuthSession, saveAuthSession, AuthSessionUser } from '@/lib/session';
 import { sipintarApi } from '@/lib/apiClient';
 
-const PANGKAT_GOLONGAN_SUGGESTIONS = [
+const PANGKAT_SUGGESTIONS = [
   'Jenderal Polisi',
   'Komjen Pol',
   'Irjen Pol',
   'Brigjen Pol',
-  'Kombes Pol / IV-C',
-  'AKBP / IV-B',
-  'Kompol / IV-A',
-  'AKP / III-D',
-  'Iptu / III-C',
-  'Ipda / III-B',
-  'Aiptu / III-A',
-  'Aipda / II-D',
-  'Bripka / II-C',
-  'Brigpol / II-B',
-  'Briptu / II-A',
-  'Bripda / I-D',
-  'Pembina Utama (IV-E)',
-  'Pembina Utama Madya (IV-D)',
-  'Pembina Utama Muda (IV-C)',
-  'Pembina Tk. I (IV-B)',
-  'Pembina (IV-A)',
-  'Penata Tk. I (III-D)',
-  'Penata (III-C)',
-  'Pengatur Tk. I (II-D)',
-  'Pengatur (II-C)',
+  'Kombes Pol',
+  'AKBP',
+  'Kompol',
+  'AKP',
+  'Iptu',
+  'Ipda',
+  'Aiptu',
+  'Aipda',
+  'Bripka',
+  'Brigpol',
+  'Briptu',
+  'Bripda',
+  'Pembina Utama',
+  'Pembina Utama Madya',
+  'Pembina Utama Muda',
+  'Pembina Tk. I',
+  'Pembina',
+  'Penata Tk. I',
+  'Penata',
+  'Pengatur Tk. I',
+  'Pengatur',
+];
+
+const GOLONGAN_SUGGESTIONS = [
+  'IV-E',
+  'IV-D',
+  'IV-C',
+  'IV-B',
+  'IV-A',
+  'IV/e',
+  'IV/d',
+  'IV/c',
+  'IV/b',
+  'IV/a',
+  'III-D',
+  'III-C',
+  'III-B',
+  'III-A',
+  'III/d',
+  'III/c',
+  'III/b',
+  'III/a',
+  'II-D',
+  'II-C',
+  'II-B',
+  'II-A',
+  'II/d',
+  'II/c',
+  'II/b',
+  'II/a',
+  'I-D',
+  'I-C',
+  'I-B',
+  'I-A',
+  'I/d',
+  'I/c',
+  'I/b',
+  'I/a',
 ];
 
 export default function ProfilPenggunaPage() {
@@ -39,7 +76,8 @@ export default function ProfilPenggunaPage() {
 
   // Form Fields - Identitas & Jabatan
   const [namaLengkap, setNamaLengkap] = useState('');
-  const [pangkatGolongan, setPangkatGolongan] = useState('');
+  const [pangkat, setPangkat] = useState('');
+  const [golongan, setGolongan] = useState('');
   const [jabatan, setJabatan] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -77,10 +115,15 @@ export default function ProfilPenggunaPage() {
       if (user) {
         setCurrentUser(user);
         setNamaLengkap(user.nama_lengkap || '');
-        setPangkatGolongan(
-          user.pangkat_golongan ||
+        setPangkat(
           user.pangkat ||
-          (user.nrp_nip === 'dennyboy' ? 'KOMPOL / IV-A' : user.nrp_nip === 'livi' ? 'AKP / III-D' : 'AKBP / IV-B')
+          (user.pangkat_golongan?.split('/')[0]?.trim()) ||
+          (user.nrp_nip === 'dennyboy' ? 'KOMPOL' : user.nrp_nip === 'livi' ? 'AKP' : 'AKBP')
+        );
+        setGolongan(
+          user.golongan ||
+          (user.pangkat_golongan?.split('/')[1]?.trim()) ||
+          (user.nrp_nip === 'dennyboy' ? 'IV-A' : user.nrp_nip === 'livi' ? 'III-D' : 'IV-B')
         );
         setJabatan(
           user.jabatan ||
@@ -110,8 +153,11 @@ export default function ProfilPenggunaPage() {
           const fresh = await sipintarApi.auth.getMe();
           if (fresh) {
             setNamaLengkap(fresh.nama_lengkap || user.nama_lengkap || '');
-            if (fresh.pangkat_golongan || fresh.pangkat) {
-              setPangkatGolongan(fresh.pangkat_golongan || fresh.pangkat);
+            if (fresh.pangkat) setPangkat(fresh.pangkat);
+            if (fresh.golongan) {
+              setGolongan(fresh.golongan);
+            } else if (fresh.pangkat_golongan && fresh.pangkat_golongan.includes('/')) {
+              setGolongan(fresh.pangkat_golongan.split('/')[1].trim());
             }
             if (fresh.jabatan) setJabatan(fresh.jabatan);
             if (fresh.phone_number) setPhoneNumber(fresh.phone_number);
@@ -197,10 +243,12 @@ export default function ProfilPenggunaPage() {
     setIsSubmittingProfile(true);
     setProfileFeedback(null);
 
+    const synthesizedPangkatGolongan = pangkat && golongan ? `${pangkat} / ${golongan}` : (pangkat || golongan);
     const updatedData: Partial<AuthSessionUser> = {
       nama_lengkap: namaLengkap.trim(),
-      pangkat: pangkatGolongan.split('/')[0].trim() || pangkatGolongan.trim(),
-      pangkat_golongan: pangkatGolongan.trim(),
+      pangkat: pangkat.trim(),
+      golongan: golongan.trim(),
+      pangkat_golongan: synthesizedPangkatGolongan.trim(),
       jabatan: jabatan.trim(),
       pendidikan_umum_terakhir: pendidikanUmumTerakhir.trim(),
       pendidikan_kedinasan: pendidikanKedinasan.trim(),
@@ -387,7 +435,7 @@ export default function ProfilPenggunaPage() {
             Detail Data Pengguna & Pengaturan Akun
           </h1>
           <p style={{ fontSize: '13.5px', color: '#cbd5e1', maxWidth: '720px', lineHeight: 1.5, margin: 0 }}>
-            Kelola data identitas personel, pangkat/golongan, jabatan saat ini, riwayat pendidikan umum & kedinasan, sertifikasi, kompetensi utama & pendukung, serta keamanan akun portal SIPINTAR Sespimma Lemdiklat Polri.
+            Kelola data identitas personel, pangkat kedinasan, golongan/ruang, jabatan saat ini, riwayat pendidikan umum & kedinasan, sertifikasi, kompetensi utama & pendukung, serta keamanan akun portal SIPINTAR Sespimma Lemdiklat Polri.
           </p>
         </div>
 
@@ -474,9 +522,9 @@ export default function ProfilPenggunaPage() {
                 )}
               </div>
 
-              {/* User Rank & Name Tag */}
+              {/* User Rank, Golongan & Name Tag */}
               <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--color-text-main)', marginBottom: '2px' }}>
-                {pangkatGolongan ? `${pangkatGolongan} ` : ''}{namaLengkap || 'Personel Sespimma'}
+                {pangkat ? `${pangkat} ` : ''}{golongan ? `(Gol. ${golongan}) ` : ''}{namaLengkap || 'Personel Sespimma'}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '14px' }}>
                 NRP/NIP: <strong>{currentUser?.nrp_nip || '-'}</strong>
@@ -651,8 +699,8 @@ export default function ProfilPenggunaPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {/* Baris: NRP/NIP & Pangkat/Golongan */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                  {/* Baris: NRP/NIP, Pangkat Kedinasan & Golongan/Ruang */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
                         NRP / NIP (Kunci Akun)
@@ -678,14 +726,14 @@ export default function ProfilPenggunaPage() {
 
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                        Pangkat / Golongan
+                        Pangkat Kedinasan
                       </label>
                       <input
                         type="text"
                         list="pangkat-suggestions"
-                        value={pangkatGolongan}
-                        onChange={(e) => setPangkatGolongan(e.target.value)}
-                        placeholder="Contoh: AKBP / IV-B atau KOMPOL / IV-A"
+                        value={pangkat}
+                        onChange={(e) => setPangkat(e.target.value)}
+                        placeholder="Contoh: AKBP atau KOMPOL"
                         style={{
                           width: '100%',
                           padding: '9px 12px',
@@ -698,8 +746,36 @@ export default function ProfilPenggunaPage() {
                         }}
                       />
                       <datalist id="pangkat-suggestions">
-                        {PANGKAT_GOLONGAN_SUGGESTIONS.map((p) => (
+                        {PANGKAT_SUGGESTIONS.map((p) => (
                           <option key={p} value={p} />
+                        ))}
+                      </datalist>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                        Golongan / Ruang
+                      </label>
+                      <input
+                        type="text"
+                        list="golongan-suggestions"
+                        value={golongan}
+                        onChange={(e) => setGolongan(e.target.value)}
+                        placeholder="Contoh: IV-B atau IV/b"
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-text-main)',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                        }}
+                      />
+                      <datalist id="golongan-suggestions">
+                        {GOLONGAN_SUGGESTIONS.map((g) => (
+                          <option key={g} value={g} />
                         ))}
                       </datalist>
                     </div>

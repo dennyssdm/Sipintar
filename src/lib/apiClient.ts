@@ -125,6 +125,7 @@ class SipintarApiClient {
       email?: string;
       avatar_url?: string;
       pangkat?: string;
+      golongan?: string;
       pangkat_golongan?: string;
       jabatan?: string;
       pendidikan_umum_terakhir?: string;
