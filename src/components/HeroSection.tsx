@@ -236,7 +236,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* 4 Key Metrics Grid HUD */}
             <div className="hero-stat-grid">
-              <a href="#koleksi-terkini" className="hero-stat-tile hero-stat-tile-blue" title="Lihat semua sumber belajar">
+              <Link href="/modul" className="hero-stat-tile hero-stat-tile-blue" title="Lihat semua modul dan bahan ajar terverifikasi">
                 <div className="hero-stat-icon-wrap" style={{ color: '#60a5fa' }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -244,12 +244,25 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </svg>
                 </div>
                 <div>
-                  <div className="hero-stat-number">316</div>
-                  <div className="hero-stat-label">Sumber Belajar</div>
+                  <div className="hero-stat-number">183</div>
+                  <div className="hero-stat-label">Modul & Hanjar</div>
                 </div>
-              </a>
+              </Link>
 
-              <Link href="/gadik" className="hero-stat-tile hero-stat-tile-green" title="Lihat direktori tenaga pendidik">
+              <Link href="/library" className="hero-stat-tile hero-stat-tile-purple" title="Lihat katalog buku perpustakaan & naskah Taskap serdik">
+                <div className="hero-stat-icon-wrap" style={{ color: '#c084fc' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2l9 4.9V17L12 22 3 17V6.9z" />
+                    <path d="M12 22V12" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="hero-stat-number">2.863</div>
+                  <div className="hero-stat-label">Koleksi Pustaka</div>
+                </div>
+              </Link>
+
+              <Link href="/gadik" className="hero-stat-tile hero-stat-tile-green" title="Lihat direktori tenaga pendidik nominatif Polri">
                 <div className="hero-stat-icon-wrap" style={{ color: '#34d399' }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -259,35 +272,21 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </svg>
                 </div>
                 <div>
-                  <div className="hero-stat-number">28</div>
+                  <div className="hero-stat-number">16</div>
                   <div className="hero-stat-label">Tenaga Pendidik</div>
                 </div>
               </Link>
 
-              <Link href="/modul" className="hero-stat-tile hero-stat-tile-amber" title="Lihat modul dan bahan ajar">
+              <Link href="/kurikulum" className="hero-stat-tile hero-stat-tile-amber" title="Lihat standar alokasi kurikulum kepemimpinan">
                 <div className="hero-stat-icon-wrap" style={{ color: '#fbbf24' }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                    <line x1="8" y1="21" x2="16" y2="21" />
-                    <line x1="12" y1="17" x2="12" y2="21" />
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
                   </svg>
                 </div>
                 <div>
-                  <div className="hero-stat-number">78</div>
-                  <div className="hero-stat-label">Modul & Hanjar</div>
-                </div>
-              </Link>
-
-              <Link href="/library" className="hero-stat-tile hero-stat-tile-purple" title="Lihat koleksi perpustakaan & Taskap">
-                <div className="hero-stat-icon-wrap" style={{ color: '#c084fc' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2l9 4.9V17L12 22 3 17V6.9z" />
-                    <path d="M12 22V12" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="hero-stat-number">142</div>
-                  <div className="hero-stat-label">Koleksi Pustaka</div>
+                  <div className="hero-stat-number">720 JP</div>
+                  <div className="hero-stat-label">Kurikulum Sespimma</div>
                 </div>
               </Link>
             </div>
@@ -298,32 +297,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 <span className="hero-pillars-title">4 PILAR KEUNGGULAN (IN-T-A-R)</span>
               </div>
               <div className="hero-pillars-grid">
-                <div className="hero-pillar-item" title="Digitalisasi materi kepemimpinan modern">
-                  <span className="hero-pillar-code">IN</span>
+                <div className="hero-pillar-item" title="Transformasi digital kurikulum & bahan ajar interaktif">
+                  <span className="hero-pillar-code" style={{ backgroundColor: 'rgba(251, 191, 36, 0.2)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.4)' }}>IN</span>
                   <div>
-                    <div className="hero-pillar-name">INovatif</div>
-                    <div className="hero-pillar-desc">Digitalisasi materi kepemimpinan</div>
+                    <div className="hero-pillar-name" style={{ color: '#fbbf24' }}>INovatif</div>
+                    <div className="hero-pillar-desc">Transformasi digital kurikulum & hanjar</div>
                   </div>
                 </div>
-                <div className="hero-pillar-item" title="Integrasi 8 taksonomi sumber belajar">
-                  <span className="hero-pillar-code">T</span>
+                <div className="hero-pillar-item" title="Integrasi 8 taksonomi repositori ke dalam satu pintu">
+                  <span className="hero-pillar-code" style={{ backgroundColor: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.4)' }}>T</span>
                   <div>
-                    <div className="hero-pillar-name">Terpadu</div>
-                    <div className="hero-pillar-desc">Integrasi 8 taksonomi sumber</div>
+                    <div className="hero-pillar-name" style={{ color: '#38bdf8' }}>Terpadu</div>
+                    <div className="hero-pillar-desc">Integrasi 8 taksonomi repositori</div>
                   </div>
                 </div>
-                <div className="hero-pillar-item" title="Relevan menjawab tantangan pemolisian">
-                  <span className="hero-pillar-code">A</span>
+                <div className="hero-pillar-item" title="Relevan menjawab dinamika kepemimpinan Presisi">
+                  <span className="hero-pillar-code" style={{ backgroundColor: 'rgba(52, 211, 153, 0.2)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.4)' }}>A</span>
                   <div>
-                    <div className="hero-pillar-name">Adaptif</div>
-                    <div className="hero-pillar-desc">Relevan menjawab tantangan</div>
+                    <div className="hero-pillar-name" style={{ color: '#34d399' }}>Adaptif</div>
+                    <div className="hero-pillar-desc">Relevan menjawab tantangan Presisi</div>
                   </div>
                 </div>
-                <div className="hero-pillar-item" title="Akses cepat, transparan, dan akuntabel">
-                  <span className="hero-pillar-code">R</span>
+                <div className="hero-pillar-item" title="Kecepatan akses, penjaminan mutu & audit keamanan">
+                  <span className="hero-pillar-code" style={{ backgroundColor: 'rgba(192, 132, 252, 0.2)', color: '#c084fc', border: '1px solid rgba(192, 132, 252, 0.4)' }}>R</span>
                   <div>
-                    <div className="hero-pillar-name">Responsif</div>
-                    <div className="hero-pillar-desc">Akses cepat & akuntabel</div>
+                    <div className="hero-pillar-name" style={{ color: '#c084fc' }}>Responsif</div>
+                    <div className="hero-pillar-desc">Kecepatan akses & penjaminan mutu</div>
                   </div>
                 </div>
               </div>

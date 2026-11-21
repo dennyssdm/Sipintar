@@ -129,10 +129,10 @@ export const HomeInfographics: React.FC = () => {
             </div>
             <h3 className="cycle-card-title">Bahan Ajar & Pendidik</h3>
             <p className="cycle-card-desc">
-              Penyampaian 150 Modul & Naskah Hanjar Resmi oleh 16 Tenaga Pendidik (Gadik) fungsional Polri dan praktisi ahli.
+              Penyampaian 183 Modul & Naskah Hanjar Resmi oleh 16 Tenaga Pendidik (Gadik) fungsional Polri dan praktisi ahli.
             </p>
             <div className="cycle-pill-group">
-              <span className="cycle-tag">150 Modul/Hanjar</span>
+              <span className="cycle-tag">183 Modul/Hanjar</span>
               <span className="cycle-tag">16 Gadik Fungsional</span>
             </div>
             <Link href="/modul" className="cycle-card-link">
@@ -227,10 +227,10 @@ export const HomeInfographics: React.FC = () => {
               </div>
               <span className="stat-info-badge">100% Digital</span>
             </div>
-            <div className="stat-info-number">150</div>
+            <div className="stat-info-number">183</div>
             <div className="stat-info-label">Modul & Bahan Ajar</div>
             <p className="stat-info-subtext">
-              50 Modul Core Sespimma (Core 1–10) + Bahan Ajar Hanjar, naskah taktis kepolisian, dan kepemimpinan.
+              183 Modul & Bahan Ajar Hanjar resmi Sespimma Lemdiklat Polri mencakup modul core kurikulum, naskah taktis kepolisian, dan kepemimpinan.
             </p>
             <div className="stat-info-progress-wrap">
               <div className="stat-info-progress-bar" style={{ width: '100%', backgroundColor: '#3b82f6' }} />
