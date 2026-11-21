@@ -59,7 +59,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Anjak Madya',
     agama: 'ISLAM',
     eselon: 'II B3',
-    golongan: 'IV-C',
+    golongan: 'IV/c',
     bidangKepakaran: [
       'Analisis Kebijakan Strategis Polri',
       'Manajemen Strategik Organisasi Kepolisian',
@@ -83,7 +83,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Madya Tk. III',
     agama: 'ISLAM',
     eselon: 'II B3',
-    golongan: 'IV-C',
+    golongan: 'IV/c',
     bidangKepakaran: [
       'Kepemimpinan Strategis POLRI',
       'Manajemen Perubahan & Budaya Organisasi',
@@ -107,7 +107,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Madya Tk. III',
     agama: 'ISLAM',
     eselon: 'II B3',
-    golongan: 'IV-C',
+    golongan: 'IV/c',
     bidangKepakaran: [
       'Penegakan HAM, Hukum dan Keadilan',
       'Hukum Acara Pidana Khusus',
@@ -131,7 +131,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Madya Tk. III',
     agama: 'KRISTEN',
     eselon: 'II B3',
-    golongan: 'IV-C',
+    golongan: 'IV/c',
     bidangKepakaran: [
       'Manajemen Kehumasan Polri',
       'Komunikasi Publik & Manajemen Reputasi Media',
@@ -155,7 +155,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Madya Tk. III',
     agama: 'ISLAM',
     eselon: 'II B3',
-    golongan: 'IV-C',
+    golongan: 'IV/c',
     bidangKepakaran: [
       'Tindak Pidana Korupsi (TP Korupsi)',
       'Tindak Pidana Narkotika (TP Narkoba)',
@@ -179,7 +179,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Madya Tk. III',
     agama: 'ISLAM',
     eselon: 'II B3',
-    golongan: 'IV-C',
+    golongan: 'IV/c',
     bidangKepakaran: [
       'Manajemen & Standar Keberhasilan Fungsi Intelkam',
       'Analisis Intelijen Strategis & Kontinjensi',
@@ -203,7 +203,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Gadik Madya',
     agama: 'ISLAM',
     eselon: 'III A2',
-    golongan: 'IV-B',
+    golongan: 'IV/b',
     bidangKepakaran: [
       'Manajemen Sumber Daya Manusia Polri (SDM)',
       'Pembinaan Karier Berbasis Meritokrasi',
@@ -227,7 +227,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Gadik Madya',
     agama: 'ISLAM',
     eselon: 'III A2',
-    golongan: 'IV-B',
+    golongan: 'IV/b',
     bidangKepakaran: [
       'Manajemen Logistik dan Pengadaan Polri',
       'Manajemen Keuangan dan Akuntabilitas Anggaran',
@@ -251,7 +251,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Gadik Madya',
     agama: 'ISLAM',
     eselon: 'III A2',
-    golongan: 'IV-B',
+    golongan: 'IV/b',
     bidangKepakaran: [
       'Analisis SWOT dan Analytic Hierarchy Process (AHP)',
       'Problem Solving and Decision Making Strategis',
@@ -275,7 +275,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Muda Tk. I',
     agama: 'KRISTEN',
     eselon: 'III A2',
-    golongan: 'IV-A',
+    golongan: 'IV/a',
     bidangKepakaran: [
       'Hukum dan Perundang-undangan Kepolisian',
       'Pemberdayaan Polwan & Perlindungan Perempuan/Anak',
@@ -299,7 +299,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Muda Tk. I',
     agama: 'ISLAM',
     eselon: 'III A2',
-    golongan: 'IV-A',
+    golongan: 'IV/a',
     bidangKepakaran: [
       'Manajemen Keuangan & Logistik Polri',
       'Manajemen Sumber Daya Operasional',
@@ -323,7 +323,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Muda Tk. I',
     agama: 'ISLAM',
     eselon: 'III A2',
-    golongan: 'IV-A',
+    golongan: 'IV/a',
     bidangKepakaran: [
       'Penyidikan Tindak Pidana Siber & Khusus',
       'Hukum Acara Pidana Modern',
@@ -347,7 +347,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Muda Tk. I',
     agama: 'ISLAM',
     eselon: 'III A2',
-    golongan: 'IV-A',
+    golongan: 'IV/a',
     bidangKepakaran: [
       'Manusia dan Peradaban dalam Perspektif Kepolisian',
       'Sosiologi Hukum & Antropologi Budaya Nusantara',
@@ -371,7 +371,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Muda Tk. I',
     agama: 'ISLAM',
     eselon: 'III A2',
-    golongan: 'IV-A',
+    golongan: 'IV/a',
     bidangKepakaran: [
       'Komunikasi Publik & Manajemen Media Polri',
       'Kehumasan Strategis Kepolisian',
@@ -395,7 +395,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Muda Tk. I',
     agama: 'ISLAM',
     eselon: 'III B',
-    golongan: 'III-C',
+    golongan: 'III/c',
     bidangKepakaran: [
       'Hukum Kepolisian & Tata Usaha Negara',
       'Akuntabilitas Penyidikan dan Kode Etik Penegakan Hukum',
@@ -419,7 +419,7 @@ export const GADIK_NOMINATIF_MEMBERS: GadikMember[] = [
     kategoriJabatan: 'Widyaiswara Pratama Tk. I',
     agama: 'ISLAM',
     eselon: 'IV B',
-    golongan: 'III-B',
+    golongan: 'III/b',
     bidangKepakaran: [
       'Praktik Peradilan Pidana & Simulasi Sidang Semu',
       'Bantuan Hukum dan Advokasi Kepolisian',

@@ -58,7 +58,7 @@ export interface GadikMember {
   id: string;
   noUrut: number;
   nama: string;
-  pangkat: 'KOMBES POL' | 'AKBP' | 'KOMPOL' | 'IPTU';
+  pangkat: string;
   nrp: string;
   jabatan: string;
   kategoriJabatan:
@@ -69,7 +69,7 @@ export interface GadikMember {
     | 'Widyaiswara Pratama Tk. I';
   agama: 'ISLAM' | 'KRISTEN';
   eselon: 'II B3' | 'III A2' | 'III B' | 'IV B';
-  golongan: 'IV-C' | 'IV-B' | 'IV-A' | 'III-C' | 'III-B';
+  golongan: string;
   bidangKepakaran: string[];
   mataAjarHanjar: string[];
   status: 'Aktif Fungsional';

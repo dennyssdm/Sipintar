@@ -5,70 +5,198 @@ import Link from 'next/link';
 import { getAuthSession, saveAuthSession, AuthSessionUser } from '@/lib/session';
 import { sipintarApi } from '@/lib/apiClient';
 
-const PANGKAT_SUGGESTIONS = [
-  'Jenderal Polisi',
-  'Komjen Pol',
-  'Irjen Pol',
-  'Brigjen Pol',
-  'Kombes Pol',
-  'AKBP',
-  'Kompol',
-  'AKP',
-  'Iptu',
-  'Ipda',
-  'Aiptu',
-  'Aipda',
-  'Bripka',
-  'Brigpol',
-  'Briptu',
-  'Bripda',
-  'Pembina Utama',
-  'Pembina Utama Madya',
-  'Pembina Utama Muda',
-  'Pembina Tk. I',
-  'Pembina',
-  'Penata Tk. I',
-  'Penata',
-  'Pengatur Tk. I',
-  'Pengatur',
+// =========================================================================
+// 1. DAFTAR RESMI 22 PANGKAT POLRI (Perkapolri No. 3 Tahun 2016)
+// =========================================================================
+export const PANGKAT_POLRI_GROUPS = [
+  {
+    category: 'Perwira Tinggi (Pati) Polri',
+    icon: '⭐⭐⭐',
+    items: [
+      { code: 'Jenderal Polisi', name: 'Jenderal Polisi', desc: 'Perwira Tinggi (Tertinggi)', kesetaraan: 'IV/e' },
+      { code: 'Komjen Pol', name: 'Komisaris Jenderal Polisi (Komjen Pol)', desc: 'Perwira Tinggi', kesetaraan: 'IV/e' },
+      { code: 'Irjen Pol', name: 'Inspektur Jenderal Polisi (Irjen Pol)', desc: 'Perwira Tinggi', kesetaraan: 'IV/d' },
+      { code: 'Brigjen Pol', name: 'Brigadir Jenderal Polisi (Brigjen Pol)', desc: 'Perwira Tinggi', kesetaraan: 'IV/c' },
+    ],
+  },
+  {
+    category: 'Perwira Menengah (Pamen) Polri',
+    icon: '⭐⭐',
+    items: [
+      { code: 'Kombes Pol', name: 'Komisaris Besar Polisi (Kombes Pol)', desc: 'Perwira Menengah', kesetaraan: 'IV/c' },
+      { code: 'AKBP', name: 'Ajun Komisaris Besar Polisi (AKBP)', desc: 'Perwira Menengah', kesetaraan: 'IV/b' },
+      { code: 'Kompol', name: 'Komisaris Polisi (Kompol)', desc: 'Perwira Menengah', kesetaraan: 'IV/a' },
+    ],
+  },
+  {
+    category: 'Perwira Pertama (Pama) Polri',
+    icon: '⭐',
+    items: [
+      { code: 'AKP', name: 'Ajun Komisaris Polisi (AKP)', desc: 'Perwira Pertama', kesetaraan: 'III/d' },
+      { code: 'Iptu', name: 'Inspektur Polisi Satu (Iptu)', desc: 'Perwira Pertama', kesetaraan: 'III/c' },
+      { code: 'Ipda', name: 'Inspektur Polisi Dua (Ipda)', desc: 'Perwira Pertama', kesetaraan: 'III/b' },
+    ],
+  },
+  {
+    category: 'Bintara Polri',
+    icon: '🔷',
+    items: [
+      { code: 'Aiptu', name: 'Ajun Inspektur Polisi Satu (Aiptu)', desc: 'Bintara Tinggi', kesetaraan: 'II/d' },
+      { code: 'Aipda', name: 'Ajun Inspektur Polisi Dua (Aipda)', desc: 'Bintara Tinggi', kesetaraan: 'II/c' },
+      { code: 'Bripka', name: 'Brigadir Polisi Kepala (Bripka)', desc: 'Bintara', kesetaraan: 'II/c' },
+      { code: 'Brigpol', name: 'Brigadir Polisi (Brigpol)', desc: 'Bintara', kesetaraan: 'II/b' },
+      { code: 'Briptu', name: 'Brigadir Polisi Satu (Briptu)', desc: 'Bintara', kesetaraan: 'II/a' },
+      { code: 'Bripda', name: 'Brigadir Polisi Dua (Bripda)', desc: 'Bintara', kesetaraan: 'II/a' },
+    ],
+  },
+  {
+    category: 'Tamtama Polri (Terendah)',
+    icon: '🔶',
+    items: [
+      { code: 'Abrip', name: 'Ajun Brigadir Polisi (Abrip)', desc: 'Tamtama', kesetaraan: 'I/d' },
+      { code: 'Abriptu', name: 'Ajun Brigadir Polisi Satu (Abriptu)', desc: 'Tamtama', kesetaraan: 'I/d' },
+      { code: 'Abripda', name: 'Ajun Brigadir Polisi Dua (Abripda)', desc: 'Tamtama', kesetaraan: 'I/c' },
+      { code: 'Bharaka', name: 'Bhayangkara Kepala (Bharaka)', desc: 'Tamtama', kesetaraan: 'I/b' },
+      { code: 'Bharatu', name: 'Bhayangkara Satu (Bharatu)', desc: 'Tamtama', kesetaraan: 'I/b' },
+      { code: 'Bharada', name: 'Bhayangkara Dua (Bharada)', desc: 'Tamtama (Terendah)', kesetaraan: 'I/a' },
+    ],
+  },
 ];
 
-const GOLONGAN_SUGGESTIONS = [
-  'IV-E',
-  'IV-D',
-  'IV-C',
-  'IV-B',
-  'IV-A',
-  'IV/e',
-  'IV/d',
-  'IV/c',
-  'IV/b',
-  'IV/a',
-  'III-D',
-  'III-C',
-  'III-B',
-  'III-A',
-  'III/d',
-  'III/c',
-  'III/b',
-  'III/a',
-  'II-D',
-  'II-C',
-  'II-B',
-  'II-A',
-  'II/d',
-  'II/c',
-  'II/b',
-  'II/a',
-  'I-D',
-  'I-C',
-  'I-B',
-  'I-A',
-  'I/d',
-  'I/c',
-  'I/b',
-  'I/a',
+// =========================================================================
+// 2. DAFTAR RESMI 17 PANGKAT PNS DI LINGKUNGAN POLRI
+// =========================================================================
+export const PANGKAT_PNS_POLRI_GROUPS = [
+  {
+    category: 'Golongan IV PNS (Pembina)',
+    icon: '👔',
+    items: [
+      { code: 'Pembina Utama', name: 'Pembina Utama (PNS Gol. IV/e)', desc: 'Setara Jenderal / Komjen Pol', kesetaraan: 'IV/e' },
+      { code: 'Pembina Utama Madya', name: 'Pembina Utama Madya (PNS Gol. IV/d)', desc: 'Setara Irjen Pol', kesetaraan: 'IV/d' },
+      { code: 'Pembina Utama Muda', name: 'Pembina Utama Muda (PNS Gol. IV/c)', desc: 'Setara Brigjen / Kombes Pol', kesetaraan: 'IV/c' },
+      { code: 'Pembina Tingkat I', name: 'Pembina Tingkat I (PNS Gol. IV/b)', desc: 'Setara AKBP', kesetaraan: 'IV/b' },
+      { code: 'Pembina', name: 'Pembina (PNS Gol. IV/a)', desc: 'Setara Kompol', kesetaraan: 'IV/a' },
+    ],
+  },
+  {
+    category: 'Golongan III PNS (Penata)',
+    icon: '👔',
+    items: [
+      { code: 'Penata Tingkat I', name: 'Penata Tingkat I (PNS Gol. III/d)', desc: 'Setara AKP', kesetaraan: 'III/d' },
+      { code: 'Penata', name: 'Penata (PNS Gol. III/c)', desc: 'Setara Iptu', kesetaraan: 'III/c' },
+      { code: 'Penata Muda Tingkat I', name: 'Penata Muda Tingkat I (PNS Gol. III/b)', desc: 'Setara Ipda', kesetaraan: 'III/b' },
+      { code: 'Penata Muda', name: 'Penata Muda (PNS Gol. III/a)', desc: 'Calon Perwira', kesetaraan: 'III/a' },
+    ],
+  },
+  {
+    category: 'Golongan II PNS (Pengatur)',
+    icon: '👔',
+    items: [
+      { code: 'Pengatur Tingkat I', name: 'Pengatur Tingkat I (PNS Gol. II/d)', desc: 'Setara Aiptu', kesetaraan: 'II/d' },
+      { code: 'Pengatur', name: 'Pengatur (PNS Gol. II/c)', desc: 'Setara Aipda / Bripka', kesetaraan: 'II/c' },
+      { code: 'Pengatur Muda Tingkat I', name: 'Pengatur Muda Tingkat I (PNS Gol. II/b)', desc: 'Setara Brigpol', kesetaraan: 'II/b' },
+      { code: 'Pengatur Muda', name: 'Pengatur Muda (PNS Gol. II/a)', desc: 'Setara Briptu / Bripda', kesetaraan: 'II/a' },
+    ],
+  },
+  {
+    category: 'Golongan I PNS (Juru)',
+    icon: '👔',
+    items: [
+      { code: 'Juru Tingkat I', name: 'Juru Tingkat I (PNS Gol. I/d)', desc: 'Setara Abrip / Abriptu', kesetaraan: 'I/d' },
+      { code: 'Juru', name: 'Juru (PNS Gol. I/c)', desc: 'Setara Abripda', kesetaraan: 'I/c' },
+      { code: 'Juru Muda Tingkat I', name: 'Juru Muda Tingkat I (PNS Gol. I/b)', desc: 'Setara Bharaka / Bharatu', kesetaraan: 'I/b' },
+      { code: 'Juru Muda', name: 'Juru Muda (PNS Gol. I/a)', desc: 'Setara Bharada', kesetaraan: 'I/a' },
+    ],
+  },
 ];
+
+// =========================================================================
+// 3. DAFTAR RESMI 17 GOLONGAN RUANG PNS POLRI (I/a s.d IV/e) & KESETARAAN
+// =========================================================================
+export const GOLONGAN_PNS_OPTIONS = [
+  {
+    group: 'Golongan IV (Pembina / Setara Pamen - Pati Polri)',
+    options: [
+      { code: 'IV/e', label: 'IV/e – Pembina Utama (Setara Jenderal / Komjen Pol)' },
+      { code: 'IV/d', label: 'IV/d – Pembina Utama Madya (Setara Irjen Pol)' },
+      { code: 'IV/c', label: 'IV/c – Pembina Utama Muda (Setara Brigjen / Kombes Pol)' },
+      { code: 'IV/b', label: 'IV/b – Pembina Tingkat I (Setara AKBP)' },
+      { code: 'IV/a', label: 'IV/a – Pembina (Setara Kompol)' },
+    ],
+  },
+  {
+    group: 'Golongan III (Penata / Setara Pama Polri)',
+    options: [
+      { code: 'III/d', label: 'III/d – Penata Tingkat I (Setara AKP)' },
+      { code: 'III/c', label: 'III/c – Penata (Setara Iptu)' },
+      { code: 'III/b', label: 'III/b – Penata Muda Tingkat I (Setara Ipda)' },
+      { code: 'III/a', label: 'III/a – Penata Muda' },
+    ],
+  },
+  {
+    group: 'Golongan II (Pengatur / Setara Bintara Polri)',
+    options: [
+      { code: 'II/d', label: 'II/d – Pengatur Tingkat I (Setara Aiptu)' },
+      { code: 'II/c', label: 'II/c – Pengatur (Setara Aipda / Bripka)' },
+      { code: 'II/b', label: 'II/b – Pengatur Muda Tingkat I (Setara Brigpol)' },
+      { code: 'II/a', label: 'II/a – Pengatur Muda (Setara Briptu / Bripda)' },
+    ],
+  },
+  {
+    group: 'Golongan I (Juru / Setara Tamtama Polri)',
+    options: [
+      { code: 'I/d', label: 'I/d – Juru Tingkat I (Setara Abrip / Abriptu)' },
+      { code: 'I/c', label: 'I/c – Juru (Setara Abripda)' },
+      { code: 'I/b', label: 'I/b – Juru Muda Tingkat I (Setara Bharaka / Bharatu)' },
+      { code: 'I/a', label: 'I/a – Juru Muda (Setara Bharada)' },
+    ],
+  },
+];
+
+// Helper mapping: Pangkat -> Kesetaraan Golongan Otomatis
+export const MAP_PANGKAT_TO_GOLONGAN: Record<string, string> = {
+  // Polri
+  'Jenderal Polisi': 'IV/e',
+  'Komjen Pol': 'IV/e',
+  'Irjen Pol': 'IV/d',
+  'Brigjen Pol': 'IV/c',
+  'Kombes Pol': 'IV/c',
+  'AKBP': 'IV/b',
+  'Kompol': 'IV/a',
+  'AKP': 'III/d',
+  'Iptu': 'III/c',
+  'Ipda': 'III/b',
+  'Aiptu': 'II/d',
+  'Aipda': 'II/c',
+  'Bripka': 'II/c',
+  'Brigpol': 'II/b',
+  'Briptu': 'II/a',
+  'Bripda': 'II/a',
+  'Abrip': 'I/d',
+  'Abriptu': 'I/d',
+  'Abripda': 'I/c',
+  'Bharaka': 'I/b',
+  'Bharatu': 'I/b',
+  'Bharada': 'I/a',
+  // PNS Polri
+  'Pembina Utama': 'IV/e',
+  'Pembina Utama Madya': 'IV/d',
+  'Pembina Utama Muda': 'IV/c',
+  'Pembina Tingkat I': 'IV/b',
+  'Pembina': 'IV/a',
+  'Penata Tingkat I': 'III/d',
+  'Penata': 'III/c',
+  'Penata Muda Tingkat I': 'III/b',
+  'Penata Muda': 'III/a',
+  'Pengatur Tingkat I': 'II/d',
+  'Pengatur': 'II/c',
+  'Pengatur Muda Tingkat I': 'II/b',
+  'Pengatur Muda': 'II/a',
+  'Juru Tingkat I': 'I/d',
+  'Juru': 'I/c',
+  'Juru Muda Tingkat I': 'I/b',
+  'Juru Muda': 'I/a',
+};
 
 export default function ProfilPenggunaPage() {
   const [currentUser, setCurrentUser] = useState<AuthSessionUser | null>(null);
@@ -107,6 +235,21 @@ export default function ProfilPenggunaPage() {
   const [profileFeedback, setProfileFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [passwordFeedback, setPasswordFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Filter & Helper Pangkat POLRI / PNS
+  const [filterPangkatType, setFilterPangkatType] = useState<'all' | 'polri' | 'pns'>('all');
+
+  const isPnsPangkat = (p: string) => {
+    return PANGKAT_PNS_POLRI_GROUPS.some((g) => g.items.some((i) => i.code.toLowerCase() === p.toLowerCase()));
+  };
+
+  const handlePangkatSelect = (val: string) => {
+    setPangkat(val);
+    const autoGol = MAP_PANGKAT_TO_GOLONGAN[val];
+    if (autoGol) {
+      setGolongan(autoGol);
+    }
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -123,7 +266,7 @@ export default function ProfilPenggunaPage() {
         setGolongan(
           user.golongan ||
           (user.pangkat_golongan?.split('/')[1]?.trim()) ||
-          (user.nrp_nip === 'dennyboy' ? 'IV-A' : user.nrp_nip === 'livi' ? 'III-D' : 'IV-B')
+          (user.nrp_nip === 'dennyboy' ? 'IV/a' : user.nrp_nip === 'livi' ? 'III/d' : 'IV/b')
         );
         setJabatan(
           user.jabatan ||
@@ -724,44 +867,107 @@ export default function ProfilPenggunaPage() {
                       <span style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>Identitas resmi kedinasan (terkunci)</span>
                     </div>
 
+                    {/* Input Pangkat Kedinasan */}
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                        Pangkat Kedinasan
-                      </label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                          Pangkat Kedinasan
+                        </label>
+                        <span style={{ fontSize: '10.5px', color: 'var(--color-primary)', fontWeight: 700 }}>
+                          {isPnsPangkat(pangkat) ? '👔 PNS POLRI' : '👮‍♂️ POLRI (Perkap 3/2016)'}
+                        </span>
+                      </div>
+
+                      {/* Dropdown 22 Pangkat POLRI / 17 Pangkat PNS */}
+                      <select
+                        value={pangkat}
+                        onChange={(e) => handlePangkatSelect(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-text-main)',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          marginBottom: '6px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option value="">-- Pilih Pangkat Resmi --</option>
+                        {/* Jika pangkat tersimpan di database belum ada di daftar, render opsi khusus */}
+                        {pangkat &&
+                          !PANGKAT_POLRI_GROUPS.some((g) => g.items.some((i) => i.code === pangkat)) &&
+                          !PANGKAT_PNS_POLRI_GROUPS.some((g) => g.items.some((i) => i.code === pangkat)) && (
+                            <option value={pangkat}>{pangkat} (Tersimpan)</option>
+                          )}
+
+                        {/* Kelompok Pangkat POLRI (22 Tingkatan - Perkapolri No. 3/2016) */}
+                        {(filterPangkatType === 'all' || filterPangkatType === 'polri') && (
+                          <>
+                            {PANGKAT_POLRI_GROUPS.map((grp) => (
+                              <optgroup key={grp.category} label={`👮‍♂️ ${grp.category.toUpperCase()}`}>
+                                {grp.items.map((item) => (
+                                  <option key={item.code} value={item.code}>
+                                    {item.name} ({item.desc})
+                                  </option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </>
+                        )}
+
+                        {/* Kelompok Pangkat PNS POLRI (17 Jenjang - Gol. I s.d IV) */}
+                        {(filterPangkatType === 'all' || filterPangkatType === 'pns') && (
+                          <>
+                            {PANGKAT_PNS_POLRI_GROUPS.map((grp) => (
+                              <optgroup key={grp.category} label={`👔 ${grp.category.toUpperCase()}`}>
+                                {grp.items.map((item) => (
+                                  <option key={item.code} value={item.code}>
+                                    {item.name}
+                                  </option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </>
+                        )}
+                      </select>
+
+                      {/* Input teks pendukung untuk fleksibilitas */}
                       <input
                         type="text"
-                        list="pangkat-suggestions"
                         value={pangkat}
                         onChange={(e) => setPangkat(e.target.value)}
-                        placeholder="Contoh: AKBP atau KOMPOL"
+                        placeholder="Ketik atau pilih pangkat resmi..."
                         style={{
                           width: '100%',
-                          padding: '9px 12px',
+                          padding: '7px 10px',
                           borderRadius: '6px',
-                          border: '1px solid var(--color-border)',
-                          backgroundColor: 'var(--color-surface)',
+                          border: '1px solid var(--color-border-subtle)',
+                          backgroundColor: 'var(--color-surface-hover)',
                           color: 'var(--color-text-main)',
-                          fontSize: '13px',
+                          fontSize: '12px',
                           fontWeight: 600,
                         }}
                       />
-                      <datalist id="pangkat-suggestions">
-                        {PANGKAT_SUGGESTIONS.map((p) => (
-                          <option key={p} value={p} />
-                        ))}
-                      </datalist>
                     </div>
 
+                    {/* Input Golongan / Ruang PNS POLRI */}
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                        Golongan / Ruang
-                      </label>
-                      <input
-                        type="text"
-                        list="golongan-suggestions"
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                          Golongan / Ruang PNS
+                        </label>
+                        <span style={{ fontSize: '10.5px', color: '#f59e0b', fontWeight: 700 }}>
+                          Jenjang I/a s.d IV/e
+                        </span>
+                      </div>
+
+                      {/* Dropdown 17 Golongan Ruang PNS */}
+                      <select
                         value={golongan}
                         onChange={(e) => setGolongan(e.target.value)}
-                        placeholder="Contoh: IV-B atau IV/b"
                         style={{
                           width: '100%',
                           padding: '9px 12px',
@@ -770,14 +976,149 @@ export default function ProfilPenggunaPage() {
                           backgroundColor: 'var(--color-surface)',
                           color: 'var(--color-text-main)',
                           fontSize: '13px',
+                          fontWeight: 700,
+                          marginBottom: '6px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option value="">-- Pilih Golongan / Ruang --</option>
+                        {/* Jika golongan tersimpan (misal IV-B) belum di format slash, tetap tampilkan */}
+                        {golongan &&
+                          !GOLONGAN_PNS_OPTIONS.some((g) => g.options.some((o) => o.code === golongan)) && (
+                            <option value={golongan}>{golongan} (Tersimpan)</option>
+                          )}
+
+                        {GOLONGAN_PNS_OPTIONS.map((grp) => (
+                          <optgroup key={grp.group} label={`👔 ${grp.group.toUpperCase()}`}>
+                            {grp.options.map((opt) => (
+                              <option key={opt.code} value={opt.code}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+
+                      {/* Input teks pendukung untuk fleksibilitas */}
+                      <input
+                        type="text"
+                        value={golongan}
+                        onChange={(e) => setGolongan(e.target.value)}
+                        placeholder="Contoh: IV/b atau IV/a"
+                        style={{
+                          width: '100%',
+                          padding: '7px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--color-border-subtle)',
+                          backgroundColor: 'var(--color-surface-hover)',
+                          color: 'var(--color-text-main)',
+                          fontSize: '12px',
                           fontWeight: 600,
                         }}
                       />
-                      <datalist id="golongan-suggestions">
-                        {GOLONGAN_SUGGESTIONS.map((g) => (
-                          <option key={g} value={g} />
-                        ))}
-                      </datalist>
+                    </div>
+                  </div>
+
+                  {/* Filter Cepat Tipe Kepangkatan */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '-4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)' }}>
+                      Tampilkan Opsi:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setFilterPangkatType('all')}
+                      style={{
+                        padding: '3px 9px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: filterPangkatType === 'all' ? 'var(--color-primary)' : 'var(--color-border)',
+                        backgroundColor: filterPangkatType === 'all' ? 'var(--color-primary)' : 'transparent',
+                        color: filterPangkatType === 'all' ? '#ffffff' : 'var(--color-text-muted)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Semua (39 Pangkat)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterPangkatType('polri')}
+                      style={{
+                        padding: '3px 9px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: filterPangkatType === 'polri' ? '#2563eb' : 'var(--color-border)',
+                        backgroundColor: filterPangkatType === 'polri' ? 'rgba(37, 99, 235, 0.15)' : 'transparent',
+                        color: filterPangkatType === 'polri' ? '#2563eb' : 'var(--color-text-muted)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      👮‍♂️ 22 Pangkat POLRI (Perkap 3/2016)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterPangkatType('pns')}
+                      style={{
+                        padding: '3px 9px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        border: '1px solid',
+                        borderColor: filterPangkatType === 'pns' ? '#0284c7' : 'var(--color-border)',
+                        backgroundColor: filterPangkatType === 'pns' ? 'rgba(2, 132, 199, 0.15)' : 'transparent',
+                        color: filterPangkatType === 'pns' ? '#0284c7' : 'var(--color-text-muted)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      👔 17 Pangkat PNS POLRI
+                    </button>
+                  </div>
+
+                  {/* Kotak Pedoman Resmi Kepangkatan & Golongan Ruang */}
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--color-surface-hover)',
+                      border: '1px solid var(--color-border)',
+                      fontSize: '11.5px',
+                      lineHeight: 1.5,
+                      color: 'var(--color-text-muted)',
+                      marginTop: '4px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '6px' }}>
+                      <span>⚖️ Pedoman Resmi Kepangkatan POLRI & Golongan Ruang PNS POLRI:</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
+                      <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--color-border-subtle)' }}>
+                        <strong style={{ color: 'var(--color-text-main)', display: 'block', marginBottom: '3px' }}>
+                          👮‍♂️ Pangkat POLRI (22 Tingkatan - Perkapolri No. 3/2016):
+                        </strong>
+                        <div style={{ fontSize: '11px', lineHeight: 1.45 }}>
+                          • <strong>Tamtama:</strong> Bharada, Bharatu, Bharaka, Abripda, Abriptu, Abrip.<br />
+                          • <strong>Bintara:</strong> Bripda, Briptu, Brigpol, Bripka, Aipda, Aiptu.<br />
+                          • <strong>Pama:</strong> Ipda, Iptu, AKP.<br />
+                          • <strong>Pamen:</strong> Kompol, AKBP, Kombes Pol.<br />
+                          • <strong>Pati:</strong> Brigjen Pol, Irjen Pol, Komjen Pol, Jenderal Polisi.
+                        </div>
+                      </div>
+
+                      <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--color-border-subtle)' }}>
+                        <strong style={{ color: 'var(--color-text-main)', display: 'block', marginBottom: '3px' }}>
+                          👔 Golongan Ruang PNS POLRI (I/a s.d IV/e):
+                        </strong>
+                        <div style={{ fontSize: '11px', lineHeight: 1.45 }}>
+                          • <strong>Golongan I (Juru):</strong> I/a (Juru Muda) s.d I/d (Juru Tk. I).<br />
+                          • <strong>Golongan II (Pengatur):</strong> II/a (Pengatur Muda) s.d II/d (Pengatur Tk. I).<br />
+                          • <strong>Golongan III (Penata):</strong> III/a (Penata Muda) s.d III/d (Penata Tk. I).<br />
+                          • <strong>Golongan IV (Pembina):</strong> IV/a (Pembina) s.d IV/e (Pembina Utama).<br />
+                          <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>* Disetarakan dengan jenjang kepangkatan Polri untuk administrasi dinas.</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
