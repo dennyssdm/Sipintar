@@ -1077,51 +1077,6 @@ export default function ProfilPenggunaPage() {
                     </button>
                   </div>
 
-                  {/* Kotak Pedoman Resmi Kepangkatan & Golongan Ruang */}
-                  <div
-                    style={{
-                      padding: '12px 16px',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--color-surface-hover)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '11.5px',
-                      lineHeight: 1.5,
-                      color: 'var(--color-text-muted)',
-                      marginTop: '4px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '6px' }}>
-                      <span>⚖️ Pedoman Resmi Kepangkatan POLRI & Golongan Ruang PNS POLRI:</span>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
-                      <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--color-border-subtle)' }}>
-                        <strong style={{ color: 'var(--color-text-main)', display: 'block', marginBottom: '3px' }}>
-                          👮‍♂️ Pangkat POLRI (22 Tingkatan - Perkapolri No. 3/2016):
-                        </strong>
-                        <div style={{ fontSize: '11px', lineHeight: 1.45 }}>
-                          • <strong>Tamtama:</strong> Bharada, Bharatu, Bharaka, Abripda, Abriptu, Abrip.<br />
-                          • <strong>Bintara:</strong> Bripda, Briptu, Brigpol, Bripka, Aipda, Aiptu.<br />
-                          • <strong>Pama:</strong> Ipda, Iptu, AKP.<br />
-                          • <strong>Pamen:</strong> Kompol, AKBP, Kombes Pol.<br />
-                          • <strong>Pati:</strong> Brigjen Pol, Irjen Pol, Komjen Pol, Jenderal Polisi.
-                        </div>
-                      </div>
-
-                      <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--color-border-subtle)' }}>
-                        <strong style={{ color: 'var(--color-text-main)', display: 'block', marginBottom: '3px' }}>
-                          👔 Golongan Ruang PNS POLRI (I/a s.d IV/e):
-                        </strong>
-                        <div style={{ fontSize: '11px', lineHeight: 1.45 }}>
-                          • <strong>Golongan I (Juru):</strong> I/a (Juru Muda) s.d I/d (Juru Tk. I).<br />
-                          • <strong>Golongan II (Pengatur):</strong> II/a (Pengatur Muda) s.d II/d (Pengatur Tk. I).<br />
-                          • <strong>Golongan III (Penata):</strong> III/a (Penata Muda) s.d III/d (Penata Tk. I).<br />
-                          • <strong>Golongan IV (Pembina):</strong> IV/a (Pembina) s.d IV/e (Pembina Utama).<br />
-                          <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>* Disetarakan dengan jenjang kepangkatan Polri untuk administrasi dinas.</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Baris: Nama Lengkap */}
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
