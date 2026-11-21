@@ -1,20 +1,62 @@
 # Panduan Integrasi RESTful API SIPINTAR Sespimma Lemdiklat Polri
 **Sistem Informasi Pembelajaran INovatif Terpadu, Adaptif, dan Responsif**  
-*Sespimma Sespim Lemdiklat Polri — Proyek Perubahan PKN Tingkat II Angkatan XXIX Nawasena TA 2026*
+*Sespimma Sespim Lemdiklat Polri — Proyek Perubahan PKN Tingkat II Angkatan XXIX Nawasena TA 2026*  
+**Versi Dokumen:** v2.3.0 (November 2026 - Production Ready)
 
 ---
 
 ## 1. Ikhtisar Arsitektur & Konvensi Komunikasi
 
-Dokumen ini disusun sebagai **buku panduan integrasi resmi** bagi pengembang antarmuka **Frontend (Next.js / TypeScript)** untuk berkomunikasi dengan **Backend RESTful API** (`sipintarsespimmaAPI`).
+Dokumen ini disusun sebagai **buku panduan integrasi resmi** bagi pengembang antarmuka **Frontend (Next.js 16 App Router / TypeScript)** untuk berkomunikasi dengan **Backend RESTful API** (`sipintarsespimmaAPI`).
+
+```mermaid
+flowchart TD
+    subgraph Frontend["Frontend Client (Next.js 16 App Router / TypeScript)"]
+        UI["Antarmuka Pengguna & Dasbor"]
+        SDK["SipintarApiClient SDK (src/lib/apiClient.ts)"]
+        AUTH_SES["Session Manager 6-Jam (src/lib/session.ts)"]
+    end
+
+    subgraph Gateway["Express 4 Gateway (Port 5001)"]
+        CORS["CORS & Helmet Security"]
+        LIMITER["Express Rate Limiter"]
+        AUTH_MW["JWT Authentication Middleware"]
+        RBAC_MW["RBAC & CRUD/CRU Guard (authorizeDeleteAction)"]
+    end
+
+    subgraph ServiceLayer["Layanan Bisnis Terpadu"]
+        AUTH_SVC["Auth & Profile Service (8 Atribut Profesional)"]
+        RES_SVC["Resource & Hanjar Service (183 Berkas)"]
+        LIB_SVC["E-Library & Taskap Service (2.863 Pustaka)"]
+        GADIK_SVC["Gadik Service (16 Personel Nominatif)"]
+        SEARCH_SVC["Unified Full-Text Search Engine"]
+        ADMIN_SVC["CMS CRUD & Batch Import/Export"]
+        AUDIT_SVC["Multi-Stream Audit Trail Logging"]
+        BRAND_SVC["Branding & Infografis Ekosistem"]
+    end
+
+    subgraph Storage["Penyimpanan Data & Berkas"]
+        DB[("MySQL 8.0 sipintar_db")]
+        FS["Direktori Berkas (/uploads)"]
+    end
+
+    UI --> SDK
+    AUTH_SES --> UI
+    SDK -->|"Bearer JWT / JSON / Multipart"| Gateway
+    Gateway --> ServiceLayer
+    ServiceLayer --> Storage
+```
+
+---
 
 ### A. Informasi Dasar Server
 - **Base URL API:** `http://localhost:5001/api/v1`
 - **Interactive Swagger UI (Browser):** `http://localhost:5001/docs` atau `http://localhost:5001/api/docs`
 - **Spesifikasi OpenAPI 3.0 (JSON):** `http://localhost:5001/openapi.json`
-- **Koleksi Postman Resmi:** `collection.json` (v2.1.0, 33 Request)
-- **Format Pertukaran Data:** JSON (`Content-Type: application/json; charset=utf-8`) atau `multipart/form-data` (untuk unggah naskah/buku/foto).
-- **Protokol Keamanan:** Helmet HTTP Security Headers, Express Brute-force & Rate Limiting, CORS terisolasi, JWT Bearer Token, dan Audit Trail Logging pada MySQL 8.0.
+- **Koleksi Postman Resmi:** `collection.json` (v2.2.0, 35 Request Teruji)
+- **Format Pertukaran Data:** JSON (`Content-Type: application/json; charset=utf-8`) atau `multipart/form-data` (untuk unggah naskah/buku/foto profil/infografis).
+- **Protokol Keamanan:** Helmet HTTP Security Headers, Express Brute-force & Rate Limiting, CORS terisolasi, JWT Bearer Token, dan Audit Trail Logging pada MySQL 8.0 (`activity_logs`, `search_logs`, `verification_logs`).
+- **Masa Berlaku Sesi:** 6 Jam (`SESSION_MAX_AGE_MS = 21.600.000 ms`) dengan otomatisasi logout latar belakang secara senyap (*silent background security enforcement*).
 
 ---
 
@@ -27,7 +69,7 @@ Accept: application/json
 ```
 > [!IMPORTANT]
 > **Catatan Khusus Pengiriman Berkas (`multipart/form-data`):**
-> Saat mengirim `FormData` menggunakan `fetch` atau `axios` di browser, **JANGAN** menyetel header `Content-Type` secara manual. Browser akan secara otomatis menetapkan `multipart/form-data; boundary=----WebKitFormBoundary...`.
+> Saat mengirim `FormData` menggunakan `fetch` atau `axios` di browser untuk unggah naskah, foto avatar, atau infografis, **JANGAN** menyetel header `Content-Type` secara manual. Browser akan secara otomatis menetapkan `multipart/form-data; boundary=----WebKitFormBoundary...`.
 
 ---
 
@@ -66,30 +108,48 @@ Accept: application/json
 ---
 
 ### D. Akun Pengujian Kedinasan Resmi (*Seed Accounts*)
-Semua akun pengujian di bawah ini aktif dengan kata sandi bawaan: **`Password123!`**
+Semua akun pengujian di bawah ini aktif dengan kata sandi seragam: **`Password123!`**
 
-| No | Peran (*Role*) | NRP / NIP | Nama Lengkap & Gelar | Email Kedinasan | Hak Akses Utama |
+| No | Peran (*Role*) | NRP / Username | Nama Lengkap & Gelar | Email Kedinasan | Wewenang Utama & Cakupan RBAC |
 |---|---|---|---|---|---|
-| 1 | **Superadmin / Admin** | `99999999` | Super Administrator SIPINTAR | `superadmin@sespimma.polri.go.id` | CRUD Penuh, Kelola Pengguna, Ekspor/Impor, Log Audit |
-| 2 | **Admin Sistem** | `85071534` | KOMPOL Arya Wicaksana, S.I.K., M.Si. | `arya.wicaksana@sespimma.polri.go.id` | Konfigurasi sistem, manajemen naskah, monitoring |
-| 3 | **Tim Verifikator** | `78100412` | KBP Bambang Tejo, S.H., M.M. | `bambang.tejo@sespimma.polri.go.id` | Persetujuan/Penolakan/Revisi antrean naskah Bag Jarlat |
-| 4 | **Tenaga Pendidik (Gadik)**| `72040311` | AKBP Dr. Hendro Prasetyo, M.Hum. | `hendro.prasetyo@sespimma.polri.go.id` | Unggah naskah draf, kelola materi ajar mandiri |
-| 5 | **Pengelola Pustaka** | `198506152010121002` | Dra. Sulastri, M.Lib. | `sulastri.pustaka@sespimma.polri.go.id` | Kelola katalog buku fisik, e-book, dan naskah Taskap |
-| 6 | **Peserta Didik (Serdik)** | `89031201` | AKP Denny Setiawan, S.T. | `denny.setiawan@serdik.sespimma.polri.go.id` | Membaca & streaming naskah publikasi resmi |
-| 7 | **Pimpinan Sespimma** | `68010214` | BRIGJEN POL Raden Mas Daryono | `kasespimma@sespimma.polri.go.id` | Dasbor pemantauan eksekutif & agregasi data |
+| 1 | **Superadmin CRUD** | `dennyboy` | Denny Chahyo Wiebowo (Superadmin CRUD) | `dennyboy@sespimma.polri.go.id` | **CRUD Penuh** (`can_delete: 1`), Kelola Pengguna, Hapus Data, Ganti Infografis, Ekspor/Impor, Audit Trail |
+| 2 | **Admin CRU** | `livi` | Livi (Admin CRU) | `livi@sespimma.polri.go.id` | **CRU Saja** (`can_delete: 0`), Tambah & Edit Data Naskah/Buku, **Dilarang Hapus Data (Delete Blocked 403)**, Mode Peninjau Infografis |
+| 3 | **Gadik Madya / Pokja** | `80010001` | AKBP Dewi Susilo Pangestuti, S.Ak. | `dewi.susilo@sespimma.lemdiklat.polri.go.id` | Wewenang Pokja Kurikulum, Akses Naskah Terbatas, Evaluasi Hanjar, Asesor Kompetensi BNSP |
+| 4 | **Admin Sistem** | `85071534` | KOMPOL Arya Wicaksana, S.I.K., M.Si. | `arya.wicaksana@sespimma.polri.go.id` | Konfigurasi sistem, manajemen naskah, monitoring aktivitas |
+| 5 | **Tim Verifikator** | `78100412` | KBP Bambang Tejo, S.H., M.M. | `bambang.tejo@sespimma.polri.go.id` | Penilaian antrean verifikasi mutu Bag Jarlat (Approve, Revision, Reject) |
+| 6 | **Tenaga Pendidik (Gadik)**| `72040311` | AKBP Dr. Hendro Prasetyo, M.Hum. | `hendro.prasetyo@sespimma.polri.go.id` | Unggah naskah draf, kelola materi ajar mandiri |
+| 7 | **Pengelola Pustaka** | `198506152010121002` | Dra. Sulastri, M.Lib. | `sulastri.pustaka@sespimma.polri.go.id` | Kelola katalog buku fisik, e-book, dan naskah Taskap |
+| 8 | **Peserta Didik (Serdik)** | `89031201` | AKP Hendra Wicaksono, S.T. | `hendra.wicaksono@serdik.sespimma.polri.go.id` | Membaca & streaming naskah publikasi resmi, unduh materi hanjar |
+| 9 | **Pimpinan Sespimma** | `68010214` | BRIGJEN POL Raden Mas Daryono | `kasespimma@sespimma.polri.go.id` | Dasbor pemantauan eksekutif & audit oversight naskah draf |
+
+*(Catatan: Tersedia 16 personel Gadik Fungsional dari dokumen resmi NOMINATIF POLRI OKTOBER 2026 yang seluruhnya dapat login menggunakan nomor NRP masing-masing dan kata sandi `Password123!`)*.
 
 ---
 
-### E. 4 Klasifikasi Hak Akses Naskah (*Access Classifications*)
+### E. Matriks Otorisasi Granular: Superadmin CRUD vs Admin CRU
+
+| Aksi / Modul | Endpoint | Superadmin CRUD (`dennyboy`) | Admin CRU (`livi`) |
+|---|---|---|---|
+| Tambah Naskah / Buku | `POST /admin/resources`, `POST /admin/books` | ✅ Diizinkan (201 Created) | ✅ Diizinkan (201 Created) |
+| Baca / Tinjau Data CMS | `GET /admin/*` | ✅ Diizinkan (200 OK) | ✅ Diizinkan (200 OK) |
+| Ubah Metadata Naskah/Buku | `PUT /admin/resources/:id`, `PUT /admin/books/:id` | ✅ Diizinkan (200 OK) | ✅ Diizinkan (200 OK) |
+| Ubah Status / Arsip | `PATCH /admin/resources/:id/status`, `/archive` | ✅ Diizinkan (200 OK) | ✅ Diizinkan (200 OK) |
+| **Hapus Naskah / Buku** | `DELETE /admin/resources/:id`, `DELETE /admin/books/:id` | ✅ **Diizinkan (200 OK)** | ❌ **Ditolak (403 FORBIDDEN)** |
+| **Ganti Infografis Manual** | `PUT/POST /admin/settings/infographic` | ✅ **Diizinkan (200 OK)** | ❌ **Ditolak (403 FORBIDDEN)** |
+| **Reset Infografis Sistem** | `PUT /admin/settings/infographic` (`action: reset`) | ✅ **Diizinkan (200 OK)** | ❌ **Ditolak (403 FORBIDDEN)** |
+
+---
+
+### F. 4 Klasifikasi Hak Akses Dokumen (*Access Classifications*)
 1. `Terbuka`: Naskah dapat dibaca dan diunduh oleh publik/seluruh pengguna yang telah terotentikasi.
 2. `Internal`: Terbatas hanya untuk sivitas akademika resmi Sespimma (Serdik aktif, Gadik, dan Staf).
-3. `Terbatas`: Hanya dapat diakses oleh Pokja Kurikulum, Gadik pengampu mata ajaran terkait, Verifikator, dan Administrator.
-4. `Metadata Saja`: Hanya judul, abstrak/sinopsis, penulis, dan metadata yang dapat ditampilkan di antarmuka. **Pengunduhan dokumen PDF/digital DILARANG KERAS** oleh sistem (berlaku wajib untuk naskah Taskap siswa dan buku fisik koleksi perpustakaan).
+3. `Terbatas`: Dokumen khusus doktrin/intelijen. Hanya dapat diakses oleh Pokja Kurikulum, Gadik pengampu mata ajaran, Verifikator, dan Administrator. (Serdik otomatis menerima HTTP 403 Forbidden).
+4. `Metadata Saja`: Hanya judul, sinopsis, penulis, nomor panggil rak, dan metadata yang ditampilkan. **Pengunduhan berkas fisik digital DILARANG KERAS** oleh sistem (berlaku wajib untuk naskah Taskap perorangan siswa dan koleksi buku fisik perpustakaan).
 
 ---
 
-### F. 5 Status Siklus Hidup Naskah (*Lifecycle State Machine*)
-1. `Draft`: Naskah baru diunggah oleh Gadik/Pokja, belum diverifikasi. Hanya dapat dilihat pemilik dan verifikator.
+### G. 5 Status Siklus Hidup Naskah (*Lifecycle State Machine*)
+1. `Draft`: Naskah baru diunggah oleh Gadik/Pokja, belum diverifikasi. Hanya dapat dilihat pemilik, Pokja, dan verifikator.
 2. `Diverifikasi`: Naskah telah ditinjau dan sedang menunggu validasi akhir Bag Jarlat.
 3. `Dipublikasikan`: Naskah resmi telah disetujui (*Approve*) dan aktif dapat diakses sesuai klasifikasi hak akses.
 4. `Tidak Aktif`: Naskah ditolak (*Reject*) atau ditarik sementara dari sirkulasi akademik.
@@ -97,21 +157,7 @@ Semua akun pengujian di bawah ini aktif dengan kata sandi bawaan: **`Password123
 
 ---
 
-## 2. Katalog Endpoint Terperinci & Contoh Payload
-
-```mermaid
-flowchart LR
-    A["Frontend Client (Next.js)"] -->|"Bearer JWT / Multipart"| B["Express Gateway (Port 5001)"]
-    B --> C["Auth & RBAC Middleware"]
-    C --> D["Resource Service"]
-    C --> E["Library Service"]
-    C --> F["Admin & CMS Service"]
-    C --> G["Search & Audit Service"]
-    D --> H[("MySQL 8.0 sipintar_db")]
-    E --> H
-    F --> H
-    G --> H
-```
+## 2. Katalog Endpoint Terperinci (14 Modul API)
 
 ---
 
@@ -125,70 +171,80 @@ flowchart LR
 ```json
 {
   "success": true,
-  "message": "SIPINTAR REST API beroperasi normal",
+  "message": "SIPINTAR API service is healthy and connected to MySQL",
   "data": {
-    "status": "UP",
-    "timestamp": "2026-11-18T01:50:00.123Z",
-    "uptime_seconds": 12450.45,
-    "database": {
-      "status": "CONNECTED",
-      "host": "localhost",
-      "port": 3306,
-      "database": "sipintar_db"
-    },
-    "version": "1.0.0"
+    "status": "healthy",
+    "database": "connected",
+    "databaseName": "sipintar_db",
+    "dbTimestamp": "2026-11-21T06:09:12.000Z",
+    "serverTimestamp": "2026-11-21T06:09:12.644Z",
+    "uptime": 512,
+    "environment": "development"
   }
 }
 ```
 
 ---
 
-### Modul 2: Autentikasi & Akun Pengguna
+### Modul 2: Autentikasi, Akun & Profil Personel
 
 #### 2.1 Masuk Akun (*Login*)
 - **Endpoint:** `POST /api/v1/auth/login`
-- **Akses:** Publik (Dilindungi Rate Limiter 10 req/15 mnt)
+- **Akses:** Publik
 - **Headers:** `Content-Type: application/json`
 - **Request Body:**
 ```json
 {
-  "identifier": "superadmin@sespimma.polri.go.id",
+  "identifier": "dennyboy",
   "password": "Password123!"
 }
 ```
-*(Catatan: Field `identifier` dapat berupa alamat **Email** kedinasan maupun nomor **NRP / NIP**).*
+*(Catatan: Field `identifier` dapat berupa nomor **NRP / NIP** maupun alamat **Email** kedinasan).*
+
 - **Response Success (HTTP 200 OK):**
 ```json
 {
   "success": true,
   "message": "Autentikasi berhasil",
   "data": {
+    "user": {
+      "id": 90,
+      "uuid": "usr-superadmin-dennyboy",
+      "nrp_nip": "dennyboy",
+      "nama_lengkap": "Denny Chahyo Wiebowo (Superadmin CRUD)",
+      "email": "dennyboy@sespimma.polri.go.id",
+      "pangkat": "Penata Tk. I (PNS)",
+      "pangkat_golongan": "KOMPOL / IV-A",
+      "jabatan": "Super Administrator CRUD & Analis Sistem SIPINTAR",
+      "pendidikan_umum_terakhir": "S2 Magister Teknologi Informasi (M.TI)",
+      "pendidikan_kedinasan": "Sespimma Lemdiklat Polri, Akpol 2008, Dikjur Cyber Crime",
+      "sertifikasi": "Certified Information Systems Security Professional (CISSP), Asesor BNSP",
+      "kompetensi_utama": "Arsitektur Sistem Informasi Kepolisian, Keamanan Siber & Basis Data",
+      "kompetensi": "Manajemen Infrastruktur IT, Analisis Kebutuhan Sistem, Integrasi REST API",
+      "kompetensi_pendukung": "Audit IT Forensik, Manajemen Proyek Perangkat Lunak, Data Science",
+      "role": "admin",
+      "role_name": "Superadmin CRUD",
+      "can_delete": true,
+      "permission_scope": "CRUD",
+      "phone_number": "081973001974",
+      "avatar_url": null,
+      "last_login_at": "2026-11-21T05:50:08.760Z"
+    },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "token_type": "Bearer",
-    "expires_in": "24h",
-    "user": {
-      "id": 1,
-      "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "nrp_nip": "99999999",
-      "nama_lengkap": "Super Administrator SIPINTAR",
-      "email": "superadmin@sespimma.polri.go.id",
-      "role": "admin",
-      "role_code": "admin",
-      "role_name": "Administrator Sistem",
-      "phone_number": "081299999999",
-      "is_active": 1,
-      "last_login_at": "2026-11-18T01:45:12.000Z"
-    }
+    "expires_in": "24h"
   }
 }
 ```
+
 - **Response Error (HTTP 401 Unauthorized):**
 ```json
 {
   "success": false,
   "error": {
     "code": "UNAUTHORIZED",
-    "message": "Kredensial tidak valid: NRP/Email atau kata sandi salah"
+    "message": "Kredensial tidak valid: NRP/NIP/Email atau kata sandi salah",
+    "details": []
   }
 }
 ```
@@ -197,30 +253,87 @@ flowchart LR
 - **Endpoint:** `GET /api/v1/auth/me`
 - **Akses:** Terproteksi (Semua Pengguna Terotentikasi)
 - **Headers:** `Authorization: Bearer <token>`
+- **Response Success (HTTP 200 OK):** Mengembalikan objek profil pengguna yang lengkap dengan 8 kolom rekam jejak profesional kedinasan.
+
+#### 2.3 Pembaruan Profil Personel & Foto Avatar (*Update Profile*)
+- **Endpoint:** `PUT /api/v1/auth/profile`
+- **Akses:** Terproteksi (Pengguna Memperbarui Profil Mandiri)
+- **Headers:** `Authorization: Bearer <token>`, `Content-Type: application/json`
+- **Request Body:**
+```json
+{
+  "nama_lengkap": "AKBP Dewi Susilo Pangestuti, S.Ak.",
+  "pangkat": "Ajun Komisaris Besar Polisi",
+  "pangkat_golongan": "AKBP / IV-B",
+  "jabatan": "Gadik Madya Sespimma Lemdiklat Polri",
+  "pendidikan_umum_terakhir": "S1 Akuntansi (S.Ak)",
+  "pendidikan_kedinasan": "PKN Tingkat II Angkatan XXIX Nawasena TA 2026, Sespimma Lemdiklat Polri",
+  "sertifikasi": "Sertifikasi Asesor Kompetensi BNSP, Pendidik Vokasi Kepolisian",
+  "kompetensi_utama": "Manajemen Keuangan Negara & Polri, Tata Kelola Akuntansi Pemerintahan Presisi",
+  "kompetensi": "Pemeriksaan Keuangan Internal, Penganggaran Berbasis Kinerja, Evaluasi Hanjar",
+  "kompetensi_pendukung": "Analisis Laporan Keuangan, Kepemimpinan Strategis Sespimma, Regulasi Keuangan Negara",
+  "phone_number": "081234567890",
+  "avatar_url": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+}
+```
+*(Catatan: Field `avatar_url` mendukung URL gambar statis atau string Base64 Data URL berukuran wajar).*
+
 - **Response Success (HTTP 200 OK):**
 ```json
 {
   "success": true,
-  "message": "Profil pengguna berhasil dimuat",
+  "message": "Profil berhasil diperbarui",
   "data": {
-    "user": {
-      "id": 1,
-      "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "nrp_nip": "99999999",
-      "nama_lengkap": "Super Administrator SIPINTAR",
-      "email": "superadmin@sespimma.polri.go.id",
-      "role": "admin",
-      "role_code": "admin",
-      "role_name": "Administrator Sistem",
-      "permissions": ["all_access", "manage_users", "verify_content", "export_import"]
-    }
+    "id": 1,
+    "nrp_nip": "80010001",
+    "nama_lengkap": "AKBP Dewi Susilo Pangestuti, S.Ak.",
+    "pangkat": "Ajun Komisaris Besar Polisi",
+    "pangkat_golongan": "AKBP / IV-B",
+    "jabatan": "Gadik Madya Sespimma Lemdiklat Polri",
+    "pendidikan_umum_terakhir": "S1 Akuntansi (S.Ak)",
+    "pendidikan_kedinasan": "PKN Tingkat II Angkatan XXIX Nawasena TA 2026, Sespimma Lemdiklat Polri",
+    "sertifikasi": "Sertifikasi Asesor Kompetensi BNSP, Pendidik Vokasi Kepolisian",
+    "kompetensi_utama": "Manajemen Keuangan Negara & Polri, Tata Kelola Akuntansi Pemerintahan Presisi",
+    "kompetensi": "Pemeriksaan Keuangan Internal, Penganggaran Berbasis Kinerja, Evaluasi Hanjar",
+    "kompetensi_pendukung": "Analisis Laporan Keuangan, Kepemimpinan Strategis Sespimma, Regulasi Keuangan Negara",
+    "phone_number": "081234567890",
+    "avatar_url": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
   }
 }
 ```
 
-#### 2.3 Pendaftaran Mandiri Pengguna (*Register*)
+#### 2.4 Ganti Kata Sandi Mandiri (*Change Password*)
+- **Endpoint:** `POST /api/v1/auth/change-password`
+- **Akses:** Terproteksi (Pengguna Terotentikasi)
+- **Headers:** `Authorization: Bearer <token>`, `Content-Type: application/json`
+- **Request Body:**
+```json
+{
+  "current_password": "Password123!",
+  "new_password": "PasswordBaru2026!"
+}
+```
+- **Response Success (HTTP 200 OK):**
+```json
+{
+  "success": true,
+  "message": "Kata sandi berhasil diubah. Silakan gunakan kata sandi baru pada sesi login berikutnya."
+}
+```
+- **Response Error (HTTP 400 Bad Request):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_PASSWORD",
+    "message": "Kata sandi saat ini tidak sesuai."
+  }
+}
+```
+
+#### 2.5 Pendaftaran Mandiri Anggota Baru (*Register*)
 - **Endpoint:** `POST /api/v1/auth/register`
-- **Akses:** Publik (Serdik / Gadik Baru)
+- **Akses:** Publik (Serdik Baru)
 - **Request Body:**
 ```json
 {
@@ -229,9 +342,6 @@ flowchart LR
   "email": "bambang.tri@serdik.sespimma.polri.go.id",
   "password": "Password123!",
   "role_id": 1,
-  "pangkat_korps": "AKP",
-  "jabatan": "Peserta Didik Sespimma Angkatan 71",
-  "satker": "Polda Metro Jaya",
   "phone_number": "081234567890"
 }
 ```
@@ -241,7 +351,7 @@ flowchart LR
   "success": true,
   "message": "Pendaftaran akun berhasil diproses",
   "data": {
-    "user_id": 15,
+    "user_id": 95,
     "nrp_nip": "89050612",
     "nama_lengkap": "AKP Bambang Triatmojo, S.H.",
     "role": "serdik",
@@ -254,340 +364,158 @@ flowchart LR
 
 ### Modul 3: Taksonomi Kategori & Subkategori
 
-#### 3.1 Daftar 8 Kategori Resmi Sespimma
+#### 3.1 Daftar Seluruh Kategori Taksonomi
 - **Endpoint:** `GET /api/v1/categories`
-- **Akses:** Publik / Terbuka
+- **Akses:** Publik
 - **Response Success (HTTP 200 OK):**
 ```json
 {
   "success": true,
-  "message": "Daftar kategori resmi Sespimma berhasil diambil",
+  "message": "Daftar kategori berhasil dimuat",
   "data": [
-    {
-      "id": 1,
-      "name": "Gadik & Kompetensi",
-      "slug": "gadik",
-      "description": "Profil tenaga pendidik kepolisian, widyaiswara, dan modul kompetensi",
-      "icon": "academic-cap",
-      "display_order": 1,
-      "total_resources": 12
-    },
-    {
-      "id": 2,
-      "name": "Modul & Hanjar",
-      "slug": "modul",
-      "description": "Bahan ajar inti, modul core kepemimpinan, dan naskah latihan",
-      "icon": "book-open",
-      "display_order": 2,
-      "total_resources": 48
-    },
-    {
-      "id": 3,
-      "name": "E-Library/Perpustakaan",
-      "slug": "library",
-      "description": "Koleksi buku fisik, e-book, naskah Taskap perwira, dan jurnal kepolisian",
-      "icon": "library",
-      "display_order": 3,
-      "total_resources": 35
-    },
-    {
-      "id": 4,
-      "name": "Kurikulum & Standar Layanan",
-      "slug": "kurikulum",
-      "description": "Struktur kurikulum pendidikan Sespimma dan pedoman mutu layanan",
-      "icon": "clipboard-list",
-      "display_order": 4,
-      "total_resources": 8
-    },
-    {
-      "id": 5,
-      "name": "SOP",
-      "slug": "sop",
-      "description": "Standar Operasional Prosedur penyelenggaraan pembelajaran dan logistik",
-      "icon": "document-check",
-      "display_order": 5,
-      "total_resources": 14
-    },
-    {
-      "id": 6,
-      "name": "Pedoman",
-      "slug": "pedoman",
-      "description": "Petunjuk teknis kedinasan, juklak, dan tata tertib pendidikan",
-      "icon": "bookmark",
-      "display_order": 6,
-      "total_resources": 9
-    },
-    {
-      "id": 7,
-      "name": "Manual Book",
-      "slug": "manual",
-      "description": "Panduan teknis sistem informasi, aplikasi, dan instruksi kerja operasional",
-      "icon": "cog",
-      "display_order": 7,
-      "total_resources": 7
-    },
-    {
-      "id": 8,
-      "name": "Pencarian Terpadu",
-      "slug": "search",
-      "description": "Fitur pencarian terintegrasi lintas seluruh repositori materi",
-      "icon": "search",
-      "display_order": 8,
-      "total_resources": 0
-    }
+    { "id": 1, "name": "Gadik & Kompetensi", "slug": "gadik-kompetensi", "description": "Profil tenaga pendidik dan sebaran keahlian instruktur", "icon": "GraduationCap", "display_order": 1, "total_resources": 16 },
+    { "id": 2, "name": "Modul & Hanjar", "slug": "modul-hanjar", "description": "Bahan ajar kurikulum 720 JP, handout, dan materi paparan", "icon": "BookOpen", "display_order": 2, "total_resources": 77 },
+    { "id": 3, "name": "E-Library/Perpustakaan", "slug": "e-library", "description": "Buku fisik, e-book, jurnal kedinasan, dan karya ilmiah Taskap", "icon": "Library", "display_order": 3, "total_resources": 2863 },
+    { "id": 4, "name": "Kurikulum & Standar Layanan", "slug": "kurikulum-standar", "description": "Standar kompetensi kelulusan dan perangkat mata pelajaran", "icon": "Award", "display_order": 4, "total_resources": 12 },
+    { "id": 5, "name": "SOP", "slug": "sop", "description": "Standar Operasional Prosedur pengajaran dan ujian", "icon": "CheckSquare", "display_order": 5, "total_resources": 7 },
+    { "id": 6, "name": "Pedoman", "slug": "pedoman", "description": "Pedoman akademik, petunjuk administrasi, dan etika profesi", "icon": "FileText", "display_order": 6, "total_resources": 8 },
+    { "id": 7, "name": "Manual Book", "slug": "manual-book", "description": "Panduan tata kelola dan operasional sistem SIPINTAR", "icon": "HelpCircle", "display_order": 7, "total_resources": 5 },
+    { "id": 8, "name": "Pencarian Terpadu", "slug": "pencarian-terpadu", "description": "Indeks katalog seluruh sumber belajar lintas kategori", "icon": "Search", "display_order": 8, "total_resources": 3051 }
   ]
 }
 ```
 
-#### 3.2 Daftar Subkategori berdasarkan Kategori
-- **Endpoint:** `GET /api/v1/categories/:id/subcategories`
-- **Parameter URL:** `:id` (Numeric ID Kategori, misal `2` untuk Modul & Hanjar)
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Daftar subkategori berhasil diambil",
-  "data": [
-    { "id": 1, "category_id": 2, "name": "Modul Core Sespimma", "slug": "modul-core" },
-    { "id": 2, "category_id": 2, "name": "Bahan Tayang (Slide PPT)", "slug": "bahan-tayang" },
-    { "id": 3, "category_id": 2, "name": "Bahan Bacaan Pelengkap", "slug": "bacaan-pelengkap" },
-    { "id": 4, "category_id": 2, "name": "Panduan Lembar Kerja Latihan", "slug": "lembar-kerja" }
-  ]
-}
-```
+#### 3.2 Subkategori Berdasarkan Kategori
+- **Endpoint:** `GET /api/v1/categories/:idOrSlug/subcategories`
+- **Akses:** Publik
 
 ---
 
-### Modul 4: Katalog Sumber Belajar (*Resources*)
+### Modul 4: Katalog Sumber Belajar & Naskah Digital (Resources)
 
-#### 4.1 Mendapatkan Daftar Naskah / Dokumen
+#### 4.1 Daftar Katalog Sumber Belajar
 - **Endpoint:** `GET /api/v1/resources`
-- **Akses:** Publik / Terotentikasi Opsional (Filter otomatis menyaring naskah dengan status `Dipublikasikan` untuk non-admin).
+- **Akses:** Terproteksi (Sesuai Role Pengguna)
 - **Query Parameters:**
-  - `page` (Integer, default: 1): Halaman data.
-  - `limit` (Integer, default: 10, max: 100): Jumlah item per halaman.
-  - `category_id` (Integer): Filter berdasarkan ID kategori.
-  - `category_slug` (String): Filter berdasarkan slug kategori (misal: `modul`, `sop`, `pedoman`, `kurikulum`).
-  - `search` (String): Kata kunci pencarian judul, penyusun, atau deskripsi.
-  - `lifecycle_status` (String, Khusus Admin): `Draft`, `Diverifikasi`, `Dipublikasikan`, `Arsip`.
-  - `access_classification` (String): `Terbuka`, `Internal`, `Terbatas`, `Metadata Saja`.
+  - `category` (opsional): Slug atau ID kategori (e.g. `modul-hanjar` atau `2`)
+  - `status` (opsional): `Dipublikasikan` (default), `Draft`, `Arsip`, atau `all`
+  - `access` (opsional): `Terbuka`, `Internal`, `Terbatas`, `Metadata Saja`
+  - `search` (opsional): Kata kunci judul atau penulis
+  - `tag` (opsional): Tag taksonomi (e.g. `Pangan`, `Manajemen`)
+  - `page` (default: 1), `limit` (default: 12)
 - **Response Success (HTTP 200 OK):**
 ```json
 {
   "success": true,
-  "message": "Daftar sumber belajar berhasil diambil",
+  "message": "Katalog sumber belajar berhasil dimuat",
   "data": [
     {
-      "id": 155,
-      "uuid": "f8c2b53a-4421-4821-bc7e-29219c011e40",
-      "title": "MODUL CORE 2 SESPIMMA PENGGALANGAN INTELIJEN KEAMANAN",
+      "id": 1,
+      "uuid": "res-uuid-hanjar-001",
+      "title": "1. HANJAR SESPIMMA 2025 PERAN POLRI DALAM OPTIMALISASI SEKTOR PANGAN.pdf",
+      "category_id": 2,
       "category_name": "Modul & Hanjar",
-      "category_slug": "modul",
-      "sub_category_name": "Modul Core Sespimma",
-      "author_or_instructor": "Kombes Pol. Dr. Hendro Prasetyo, M.Hum.",
-      "unit_or_source": "Pokja Kurikulum & Gadik Sespimma",
+      "sub_category_name": "Manajemen Fungsi Operasional",
+      "author_or_instructor": "Kombes Pol Dr. Asep Suryana, S.I.K.",
+      "unit_or_source": "Pokja Hanjar Bag Jarlat Sespimma",
       "access_classification": "Internal",
       "lifecycle_status": "Dipublikasikan",
-      "file_format": "PDF",
-      "file_size_formatted": "3.8 MB",
-      "view_count": 142,
-      "download_count": 38,
-      "created_at": "2026-11-15T08:30:00.000Z"
+      "file_path": "/uploads/1. HANJAR SESPIMMA 2025 PERAN POLRI DALAM OPTIMALISASI SEKTOR PANGAN.pdf",
+      "file_size": 2411724,
+      "file_type": "pdf",
+      "has_digital_file": 1,
+      "views_count": 142,
+      "downloads_count": 38,
+      "created_at": "2026-11-17T15:32:00.000Z",
+      "tags": ["Pangan", "Ketahanan Nasional", "Binmas"]
     }
   ],
-  "meta": {
-    "page": 1,
-    "limit": 10,
-    "total": 96,
-    "totalPages": 10
-  }
+  "meta": { "page": 1, "limit": 12, "total": 77, "totalPages": 7 }
 }
 ```
 
-#### 4.2 Rincian Detail Naskah
-- **Endpoint:** `GET /api/v1/resources/:id`
-- **Parameter URL:** `:id` (Numeric ID atau String UUID)
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Detail naskah berhasil diambil",
-  "data": {
-    "id": 155,
-    "uuid": "f8c2b53a-4421-4821-bc7e-29219c011e40",
-    "title": "MODUL CORE 2 SESPIMMA PENGGALANGAN INTELIJEN KEAMANAN",
-    "category_id": 2,
-    "category_name": "Modul & Hanjar",
-    "sub_category_text": "Modul Core Sespimma",
-    "description": "Bahan ajar manajemen intelijen terintegrasi bagi perwira menengah Polri dalam deteksi dini hybrid threats.",
-    "author_or_instructor": "Kombes Pol. Dr. Hendro Prasetyo, M.Hum.",
-    "unit_or_source": "Pokja Kurikulum & Gadik Sespimma",
-    "access_classification": "Internal",
-    "lifecycle_status": "Dipublikasikan",
-    "file_url": "/api/v1/resources/155/file",
-    "file_format": "PDF",
-    "file_size_bytes": 3984580,
-    "can_download": true,
-    "created_at": "2026-11-15T08:30:00.000Z"
-  }
-}
-```
+#### 4.2 Detail Sumber Belajar
+- **Endpoint:** `GET /api/v1/resources/:idOrUuid`
+- **Akses:** Terproteksi
 
-#### 4.3 Streaming Berkas Naskah PDF In-App (*In-App Document Reader*)
+#### 4.3 Streaming Berkas Digital In-App Reader
 - **Endpoint:** `GET /api/v1/resources/:id/file`
-- **Akses:** Terproteksi Hak Akses (Otomatis memeriksa klasifikasi dan peran)
-- **Headers:** `Authorization: Bearer <token>`
-- **Response Success (HTTP 200 OK):**
-  - `Content-Type: application/pdf` (atau format berkas terkait).
-  - `Content-Disposition: inline; filename="naskah_sespimma_155.pdf"`
-- **Response Blocked (HTTP 403 Forbidden):**
-```json
-{
-  "success": false,
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "Naskah berklasifikasi 'Metadata Saja'. Pengunduhan berkas digital tidak diizinkan sesuai ketetapan tata kelola Sespimma."
-  }
-}
-```
+- **Akses:** Terproteksi (Token via Header `Authorization` atau Query `?token=<jwt_token>`)
+- **Query Parameter:**
+  - `download` (opsional): `true` untuk memicu unduhan fisik attachment (`Content-Disposition: attachment; filename=...`), default `false` untuk streaming inline (`Content-Disposition: inline`).
+- **Penjagaan Keamanan Ketat (*Security Guards*):**
+  - Jika dokumen berklasifikasi **`Metadata Saja`**: Server secara ketat menolak dengan **HTTP 403 FORBIDDEN** (`DOKUMEN_METADATA_SAJA: Dokumen berklasifikasi 'Metadata Saja' tidak memiliki berkas digital yang dapat diunduh`).
+  - Jika dokumen berklasifikasi **`Terbatas`** dan diakses oleh **Serdik**: Server menolak dengan **HTTP 403 FORBIDDEN** (`AKSES_TERBATAS: Dokumen ini memerlukan otorisasi khusus Pokja/Pimpinan`).
+
+#### 4.4 Rekomendasi Naskah Terkait
+- **Endpoint:** `GET /api/v1/resources/:id/related?limit=4`
+- **Akses:** Terproteksi
 
 ---
 
-### Modul 5: Direktori Tenaga Pendidik (*Gadik*)
+### Modul 5: Direktori Tenaga Pendidik & Gadik Fungsional
 
-#### 5.1 Mendapatkan Daftar Tenaga Pendidik
+#### 5.1 Direktori Personel Tenaga Pendidik
 - **Endpoint:** `GET /api/v1/gadik`
-- **Akses:** Publik / Terbuka
-- **Query Parameters:** `search`, `page`, `limit`
+- **Akses:** Publik / Terotentikasi
+- **Response Success (HTTP 200 OK):** Mengembalikan daftar seluruh 16 personel Gadik Fungsional nominatif resmi Sespimma lengkap dengan pangkat, jabatan, NRP, bidang kepakaran, dan daftar kompetensi.
+
+#### 5.2 Rincian Profil & Naskah Binaan Gadik
+- **Endpoint:** `GET /api/v1/gadik/:idOrNrp`
+- **Akses:** Publik / Terotentikasi
+
+---
+
+### Modul 6: E-Library & Katalog Perpustakaan (Buku Fisik, E-Book, Taskap, Jurnal)
+
+#### 6.1 Kategori Perpustakaan
+- **Endpoint:** `GET /api/v1/library/categories`
+- **Akses:** Publik
+- **Data Kategori:** `1: Buku Fisik Koleksi Perpustakaan`, `2: E-Book Digital Kedinasan`, `3: Naskah Taskap Siswa Sespimma`, `4: Jurnal & Terbitan Berkala Ilmiah`.
+
+#### 6.2 Katalog Koleksi Perpustakaan & Taskap
+- **Endpoint:** `GET /api/v1/library/books`
+- **Akses:** Terproteksi
+- **Query Parameters:**
+  - `category_id` (opsional): `1`, `2`, `3`, `4`, atau `all`
+  - `category` (opsional): `buku-fisik`, `ebook`, `taskap`, `jurnal`
+  - `search` (opsional): Kata kunci judul, penulis, nomor panggil rak, angkatan siswa
+  - `page` (default 1), `limit` (default 20)
+- **Sanitasi Khusus Naskah 'Metadata Saja':**
+  Seluruh koleksi Buku Fisik dan Taskap Siswa disanitasi: atribut `file_path`, `preview_file_path`, dan `file_url` dihapus dari respons JSON serta `has_digital_file` disetel `0` untuk menjamin kepatuhan zero-leakage.
+
+#### 6.3 Detail Koleksi Buku / Naskah Taskap
+- **Endpoint:** `GET /api/v1/library/books/:id`
+- **Akses:** Terproteksi
+
+---
+
+### Modul 7: Pencarian Terpadu Ekosistem (Unified Search Engine)
+
+#### 7.1 Pencarian Multi-Entitas Lintas Sistem
+- **Endpoint:** `GET /api/v1/search`
+- **Akses:** Terproteksi
+- **Query Parameters:**
+  - `q` (wajib): Kata kunci pencarian (e.g. `Kepemimpinan`, `Hukum`, `Pangan`, `Polri`)
+  - `category` (opsional): Slug kategori atau `all`
+  - `page` (default 1), `limit` (default 20)
 - **Response Success (HTTP 200 OK):**
 ```json
 {
   "success": true,
-  "message": "Daftar Tenaga Pendidik berhasil diambil",
+  "message": "Pencarian terpadu selesai",
   "data": [
     {
       "id": 1,
-      "nrp_nip": "72040311",
-      "nama_lengkap": "AKBP Dr. Hendro Prasetyo, M.Hum.",
-      "pangkat_korps": "AKBP",
-      "jabatan": "Widyaiswara Madya Sespimma",
-      "satker": "Bag Jarlat Sespimma",
-      "bidang_keahlian": "Manajemen Intelijen & Kontra Radikalisme",
-      "email": "hendro.prasetyo@sespimma.polri.go.id",
-      "foto_url": "/uploads/gadik/hendro.jpg",
-      "total_modul_diampu": 6
+      "type": "resource",
+      "title": "1. HANJAR SESPIMMA 2025 PERAN POLRI DALAM OPTIMALISASI SEKTOR PANGAN.pdf",
+      "category": "Modul & Hanjar",
+      "author": "Kombes Pol Dr. Asep Suryana, S.I.K.",
+      "access_classification": "Internal",
+      "relevance_score": 100
     }
   ],
-  "meta": { "page": 1, "limit": 10, "total": 24, "totalPages": 3 }
-}
-```
-
-#### 5.2 Rincian Profil Gadik & Modul yang Diampu
-- **Endpoint:** `GET /api/v1/gadik/:id`
-- **Response Success (HTTP 200 OK):** Mengembalikan profil lengkap Gadik beserta daftar materi yang ditugaskan kepada Gadik tersebut.
-
----
-
-### Modul 6: Perpustakaan & E-Library (Buku Fisik, E-Book, Taskap, Jurnal)
-
-#### 6.1 Daftar Kategori Perpustakaan
-- **Endpoint:** `GET /api/v1/library/categories`
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    { "id": "buku-fisik", "name": "Buku Fisik", "description": "Koleksi buku cetak di gedung perpustakaan Sespimma" },
-    { "id": "ebook", "name": "E-Book Digital", "description": "Buku elektronik berformat PDF/EPUB" },
-    { "id": "taskap", "name": "Karya Tulis Akhir (Taskap)", "description": "Tesis dan naskah karya ilmiah perwira peserta didik" },
-    { "id": "jurnal", "name": "Jurnal Kepolisian", "description": "Publikasi berkala ilmiah kepolisian dan kamtibmas" }
-  ]
-}
-```
-
-#### 6.2 Daftar Koleksi Buku & Naskah Ilmiah
-- **Endpoint:** `GET /api/v1/library/books`
-- **Query Parameters:**
-  - `category` (String): `buku-fisik`, `ebook`, `taskap`, `jurnal`, atau `Semua`.
-  - `search` (String): Kata kunci pencarian judul, penulis, penerbit, nomor panggil.
-  - `page` (Integer), `limit` (Integer).
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Daftar koleksi perpustakaan berhasil diambil",
-  "data": [
-    {
-      "id": 101,
-      "uuid": "c9201941-8412-4211-bc91-294029410492",
-      "title": "Analisis Kriminologi Terhadap Kejahatan Siber Modern",
-      "author": "Prof. Dr. Tb. Ronny Nitibaskara",
-      "publisher": "Pustaka Sespim Polri",
-      "published_year": 2024,
-      "isbn": "978-602-1234-56-7",
-      "library_category_id": "buku-fisik",
-      "sub_category": "Hukum & Kriminologi",
-      "call_number": "364.1 NIT a",
-      "physical_location": "Rak Referensi A-04, Lantai 2",
-      "stock_total": 4,
-      "stock_available": 3,
-      "access_classification": "Metadata Saja",
-      "lifecycle_status": "Dipublikasikan",
-      "cover_image_url": "/uploads/covers/kriminologi.jpg"
-    }
-  ],
-  "meta": { "page": 1, "limit": 10, "total": 65, "totalPages": 7 }
-}
-```
-
-#### 6.3 Pratinjau Terbatas Sampel Buku (*Book Preview*)
-- **Endpoint:** `GET /api/v1/library/books/:id/preview`
-- **Akses:** Terbuka (Mengembalikan berkas sampel 5-10 halaman pertama naskah).
-
----
-
-### Modul 7: Pencarian Terpadu (*Unified Fulltext Search*)
-
-- **Endpoint:** `GET /api/v1/search`
-- **Akses:** Publik / Terotentikasi
-- **Query Parameters:**
-  - `q` (String, Wajib, min 2 karakter): Frasa pencarian.
-  - `type` (String, default: `all`): `all`, `resources`, `books`, `gadik`.
-  - `page` (Integer), `limit` (Integer).
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Pencarian terpadu berhasil dieksekusi",
-  "data": {
-    "query": "intelijen",
-    "total_results": 14,
-    "resources": [
-      {
-        "id": 155,
-        "title": "MODUL CORE 2 SESPIMMA PENGGALANGAN INTELIJEN KEAMANAN",
-        "category": "Modul & Hanjar",
-        "snippet": "...konsep dasar <b>intelijen</b> taktis serta teknik penggalangan kepolisian...",
-        "relevance_score": 9.85
-      }
-    ],
-    "books": [
-      {
-        "id": 88,
-        "title": "Doktrin Intelijen Kepolisian Masa Depan",
-        "author": "Kombes Pol. Drs. Suryanto",
-        "call_number": "355.343 SUR d",
-        "relevance_score": 8.12
-      }
-    ],
-    "gadik": [
-      {
-        "id": 1,
-        "nama_lengkap": "AKBP Dr. Hendro Prasetyo, M.Hum.",
-        "bidang_keahlian": "Manajemen Intelijen & Kontra Radikalisme"
-      }
-    ]
-  }
+  "meta": { "total": 1, "page": 1, "limit": 20 }
 }
 ```
 
@@ -595,554 +523,332 @@ flowchart LR
 
 ### Modul 8: Tata Kelola Naskah Admin & Gadik (CMS Dokumen)
 
-#### 8.1 Tambah Naskah Baru (*Create Resource*)
+#### 8.1 Pembuatan Naskah Baru / Draf
 - **Endpoint:** `POST /api/v1/admin/resources`
-- **Akses:** `admin`, `pengelola`, `gadik`
-- **Headers:** `Authorization: Bearer <token>`
-- **Request Body (`multipart/form-data`):**
-  - `title` (Text, Wajib): Judul lengkap dokumen materi.
-  - `category_id` (Integer, Wajib): ID kategori (1 s.d. 7).
-  - `sub_category_text` (Text, Opsional): Nama subkategori.
-  - `description` (Text): Abstrak atau ringkasan isi naskah.
-  - `author_or_instructor` (Text, Wajib): Nama penulis/penyusun.
-  - `unit_or_source` (Text, Wajib): Satker/Pokja pengusul materi.
-  - `access_classification` (Text, Wajib): `Terbuka` | `Internal` | `Terbatas` | `Metadata Saja`.
-  - `file` (Binary File, Opsional): Berkas PDF/DOCX/PPTX (Maks 50 MB).
-- **Response Success (HTTP 201 Created):**
-```json
-{
-  "success": true,
-  "message": "Sumber belajar berhasil dibuat sebagai draf",
-  "data": {
-    "id": 172,
-    "uuid": "7a8b9c0d-1e2f-3456-abcd-9876543210fe",
-    "title": "Rancangan Standar Operasional Prosedur Olah TKP Siber",
-    "lifecycle_status": "Draft",
-    "access_classification": "Internal",
-    "file_url": "/api/v1/resources/172/file"
-  }
-}
-```
+- **Akses:** Admin, Verifikator, Gadik
+- **Payload:** `multipart/form-data`
+  - `title` (string, wajib)
+  - `category_id` (number, wajib)
+  - `sub_category_text` (string)
+  - `author_or_instructor` (string)
+  - `unit_or_source` (string)
+  - `access_classification` (`Terbuka` | `Internal` | `Terbatas` | `Metadata Saja`)
+  - `file` (berkas biner, opsional: PDF, DOCX, PPTX)
 
-#### 8.2 Perbarui Metadata Naskah (*Update Resource*)
+#### 8.2 Pembaruan Metadata & Berkas Pengganti
 - **Endpoint:** `PUT /api/v1/admin/resources/:id`
-- **Akses:** `admin`, `pengelola`, `gadik`
-- **Headers:** `Authorization: Bearer <token>`
-- **Request Body (`multipart/form-data` atau `application/json`):**
-  - Seluruh field sama dengan endpoint pembuatan naskah di atas. Berkas `file` bersifat opsional (hanya dikirim jika ingin mengganti file yang ada).
+- **Akses:** Admin, Gadik Pemilik
 
-#### 8.3 Ubah Status Siklus Hidup Secara Langsung (*Patch Status*)
+#### 8.3 Pembaruan Status Siklus Naskah Langsung
 - **Endpoint:** `PATCH /api/v1/admin/resources/:id/status`
-- **Akses:** `admin`, `verifikator`
-- **Request Body:**
-```json
-{
-  "status": "Dipublikasikan"
-}
-```
-*(Nilai status yang valid: `Draft`, `Diverifikasi`, `Dipublikasikan`, `Tidak Aktif`, `Arsip`).*
+- **Akses:** Admin, Verifikator
+- **Request Body:** `{ "status": "Dipublikasikan" }`
 
-#### 8.4 Arsipkan Naskah (*Archive Resource*)
+#### 8.4 Pengarsipan Naskah (*Soft Delete*)
 - **Endpoint:** `PATCH /api/v1/admin/resources/:id/archive`
-- **Akses:** `admin`, `verifikator`
-- **Deskripsi:** Mengubah status naskah menjadi `Arsip` untuk menghentikan sirkulasi tanpa menghapus rekam jejak akademik.
+- **Akses:** Admin, Verifikator
 
-#### 8.5 Hapus Naskah (*Delete Resource*)
+#### 8.5 Penghapusan Naskah Permanen (*Hard Delete - CRUD Only*)
 - **Endpoint:** `DELETE /api/v1/admin/resources/:id`
-- **Akses:** `admin`
-- **Query Parameter:** `hard=true` (Opsional, untuk penghapusan permanen dari basis data; default adalah soft-delete).
+- **Akses:** **Hanya Superadmin CRUD (`dennyboy`)**
+- **Penjagaan RBAC:** Akun Admin CRU (`livi`) ditolak dengan **HTTP 403 FORBIDDEN**.
 
 ---
 
 ### Modul 9: Tata Kelola Koleksi Perpustakaan (CMS Buku & Taskap)
 
-#### 9.1 Tambah Buku / Koleksi Baru (*Create Book*)
+#### 9.1 Tambah Koleksi Buku / Naskah Taskap Baru
 - **Endpoint:** `POST /api/v1/admin/books`
-- **Akses:** `admin`, `pengelola`
-- **Headers:** `Authorization: Bearer <token>`
-- **Request Body (`multipart/form-data` atau `application/json`):**
-```json
-{
-  "title": "Manajemen Taktis Penanganan Konflik Komunal",
-  "author": "Kombes Pol. Drs. Ahmad Fauzi, M.Hum.",
-  "publisher": "Pustaka Sespimma Lemdiklat Polri",
-  "published_year": 2026,
-  "library_category_id": "buku-fisik",
-  "sub_category": "Taktik Kepolisian",
-  "isbn": "978-602-9988-11-2",
-  "call_number": "355.43 FAU m",
-  "physical_location": "Rak Taktik B-02",
-  "stock_total": 5,
-  "stock_available": 5,
-  "access_classification": "Internal",
-  "lifecycle_status": "Dipublikasikan",
-  "synopsis": "Kajian komprehensif penanganan kerusuhan massa berbasis kearifan lokal."
-}
-```
-- **Response Success (HTTP 201 Created):**
-```json
-{
-  "success": true,
-  "message": "Buku perpustakaan berhasil ditambahkan",
-  "data": {
-    "id": 89,
-    "uuid": "4e5f6a7b-8c9d-0123-ef45-678901234567",
-    "title": "Manajemen Taktis Penanganan Konflik Komunal",
-    "library_category_id": "buku-fisik"
-  }
-}
-```
+- **Akses:** Admin, Pengelola Pustaka
+- **Payload:** `multipart/form-data` atau `application/json`
 
-#### 9.2 Perbarui Data Buku (*Update Book*)
+#### 9.2 Pembaruan Metadata Buku & Berkas Digital
 - **Endpoint:** `PUT /api/v1/admin/books/:id`
-- **Akses:** `admin`, `pengelola`
+- **Akses:** Admin, Pengelola Pustaka
 
-#### 9.3 Hapus Koleksi Buku (*Delete Book*)
+#### 9.3 Penghapusan Koleksi Pustaka (*CRUD Only*)
 - **Endpoint:** `DELETE /api/v1/admin/books/:id`
-- **Akses:** `admin`, `pengelola`
+- **Akses:** **Hanya Superadmin CRUD (`dennyboy`)**
+- **Penjagaan RBAC:** Akun Admin CRU (`livi`) ditolak dengan **HTTP 403 FORBIDDEN**.
 
 ---
 
-### Modul 10: Verifikasi Mutu Pokja Bag Jarlat
+### Modul 10: Antrean Verifikasi Mutu Pembelajaran (Bag Jarlat & Pokja)
 
-#### 10.1 Antrean Naskah Verifikasi (*Verification Queue*)
+#### 10.1 Antrean Verifikasi Penelaahan Naskah
 - **Endpoint:** `GET /api/v1/admin/verification/queue`
-- **Akses:** `admin`, `verifikator`
-- **Headers:** `Authorization: Bearer <token>`
-- **Query Parameters:** `page`, `limit`, `category_id`
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Antrean verifikasi naskah ajar berhasil diambil",
-  "data": [
-    {
-      "id": 160,
-      "uuid": "3f2e1d0c-ba98-7654-3210-fedcba987654",
-      "title": "Rancangan Modul Penanggulangan Serangan Ransomware pada Infrastruktur Pelayanan Publik Polri",
-      "lifecycle_status": "Draft",
-      "access_classification": "Terbatas",
-      "author_or_instructor": "Pokja Keamanan Sistem Sespimma",
-      "unit_or_source": "Div TIK Polri / Sespimma",
-      "category_name": "Modul & Hanjar",
-      "category_slug": "modul",
-      "creator_name": "AKBP Dr. Hendro Prasetyo, M.Hum.",
-      "days_in_queue": 2,
-      "created_at": "2026-11-16T10:15:00.000Z"
-    }
-  ],
-  "meta": { "page": 1, "limit": 10, "total": 3, "totalPages": 1 }
-}
-```
+- **Akses:** Admin, Verifikator
 
-#### 10.2 Eksekusi Keputusan Verifikasi (*Review Resource*)
+#### 10.2 Keputusan Penilaian Mutu / Review
 - **Endpoint:** `POST /api/v1/admin/verification/:id/review`
-- **Akses:** `admin`, `verifikator`
-- **Headers:** `Authorization: Bearer <token>`
+- **Akses:** Admin, Verifikator
 - **Request Body:**
 ```json
 {
   "decision": "approve",
-  "notes": "Materi telah memenuhi standar kurikulum Sespimma TA 2026 dan siap diterbitkan."
+  "notes": "Naskah telah memenuhi kaidah kurikulum dan siap diterbitkan ke peserta didik"
 }
 ```
-> [!NOTE]
-> Nilai `decision` yang didukung:
-> - `"approve"` / `"disetujui"` $\rightarrow$ Naskah bertransisi ke status `Dipublikasikan` (aktif di sirkulasi).
-> - `"revision"` / `"revisi"` $\rightarrow$ Naskah dikembalikan ke status `Draft` agar Gadik pengusul memperbaiki isi.
-> - `"reject"` / `"ditolak"` $\rightarrow$ Naskah ditolak dan masuk ke status `Tidak Aktif`.
-
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Verifikasi naskah berhasil diproses: Disetujui",
-  "data": {
-    "resource_id": 160,
-    "title": "Rancangan Modul Penanggulangan Serangan Ransomware...",
-    "status_before": "Draft",
-    "status_after": "Dipublikasikan",
-    "action_result": "Disetujui",
-    "verifier_name": "KBP Bambang Tejo, S.H., M.M.",
-    "reviewed_at": "2026-11-18T01:52:00.000Z"
-  }
-}
-```
+*(Nilai `decision`: `approve`, `revision`, `reject`).*
 
 ---
 
 ### Modul 11: Manajemen Pengguna & Hak Akses (User CMS)
 
-#### 11.1 Daftar Seluruh Pengguna
+#### 11.1 Daftar Akun Pengguna Terdaftar
 - **Endpoint:** `GET /api/v1/admin/users`
-- **Akses:** `admin`
-- **Query Parameters:** `search`, `role`, `status` (`1` untuk aktif, `0` untuk nonaktif), `page`, `limit`
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Daftar pengguna berhasil diambil",
-  "data": [
-    {
-      "id": 1,
-      "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "nrp_nip": "99999999",
-      "nama_lengkap": "Super Administrator SIPINTAR",
-      "email": "superadmin@sespimma.polri.go.id",
-      "role_code": "admin",
-      "role_name": "Administrator Sistem",
-      "is_active": 1,
-      "last_login_at": "2026-11-18T01:45:12.000Z",
-      "created_at": "2026-10-01T00:00:00.000Z"
-    }
-  ],
-  "meta": { "page": 1, "limit": 10, "total": 42, "totalPages": 5 }
-}
-```
+- **Akses:** Admin
 
-#### 11.2 Tambah Akun Pengguna Baru (*Create User*)
+#### 11.2 Pendaftaran Pengguna Baru oleh Admin
 - **Endpoint:** `POST /api/v1/admin/users`
-- **Akses:** `admin`
-- **Request Body:**
-```json
-{
-  "nrp_nip": "88091244",
-  "nama_lengkap": "KOMPOL Rian Anggoro, S.I.K.",
-  "email": "rian.anggoro@sespimma.polri.go.id",
-  "password": "Password123!",
-  "role_id": 2,
-  "phone_number": "081345678912"
-}
-```
-*(Catatan: `role_id`: 1=Serdik, 2=Gadik, 3=Pengelola Pustaka, 4=Verifikator, 5=Admin, 6=Pimpinan).*
-- **Response Success (HTTP 201 Created):**
-```json
-{
-  "success": true,
-  "message": "Pengguna baru berhasil didaftarkan",
-  "data": {
-    "id": 43,
-    "uuid": "2a3b4c5d-6e7f-8901-abcd-ef0123456789",
-    "nrp_nip": "88091244",
-    "nama_lengkap": "KOMPOL Rian Anggoro, S.I.K.",
-    "email": "rian.anggoro@sespimma.polri.go.id",
-    "role_id": 2
-  }
-}
-```
+- **Akses:** Admin
 
-#### 11.3 Perbarui Peran Pengguna (*Update Role*)
+#### 11.3 Pembaruan Peran (*Role*) Pengguna
 - **Endpoint:** `PATCH /api/v1/admin/users/:id/role`
-- **Akses:** `admin`
-- **Request Body:**
-```json
-{
-  "role": "verifikator"
-}
-```
+- **Akses:** Admin
+- **Request Body:** `{ "role_id": 2 }`
 
-#### 11.4 Aktifkan / Nonaktifkan Akun Pengguna (*Update Status*)
+#### 11.4 Pembaruan Status Keaktifan Akun
 - **Endpoint:** `PATCH /api/v1/admin/users/:id/status`
-- **Akses:** `admin`
-- **Request Body:**
-```json
-{
-  "is_active": false
-}
-```
+- **Akses:** Admin
+- **Request Body:** `{ "is_active": 1 }`
 
 ---
 
 ### Modul 12: Ekspor Data & Impor Massal (Excel / CSV / JSON)
 
-#### 12.1 Ekspor Data (*Export Data*)
+#### 12.1 Ekspor Data Entitas Sistem
 - **Endpoint:** `GET /api/v1/admin/export/:entity`
-- **Parameter URL:** `:entity` (`resources` | `books` | `users`)
-- **Akses:** `admin`, `pengelola`
-- **Headers:** `Authorization: Bearer <token>`
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Data resources berhasil diekspor",
-  "data": [
-    {
-      "id": 155,
-      "judul": "MODUL CORE 2 SESPIMMA PENGGALANGAN INTELIJEN KEAMANAN",
-      "kategori": "Modul & Hanjar",
-      "sub_kategori": "Modul Core Sespimma",
-      "deskripsi": "Bahan ajar materi intelijen kepolisian...",
-      "penulis_penyusun": "Kombes Pol. Dr. Hendro Prasetyo, M.Hum.",
-      "unit_sumber": "Pokja Kurikulum & Gadik Sespimma",
-      "klasifikasi_akses": "Internal",
-      "status": "Dipublikasikan",
-      "format_berkas": "PDF",
-      "lokasi_fisik": "Lemari Modul A-01",
-      "dibuat_pada": "2026-11-15T08:30:00.000Z"
-    }
-  ],
-  "meta": {
-    "total": 100
-  }
-}
-```
+- **Akses:** Admin, Pengelola
+- **Parameter `:entity`:** `resources`, `books`, `users`
 
-#### 12.2 Impor Massal Data (*Batch Import Data*)
+#### 12.2 Impor Massal Data Multi-Baris
 - **Endpoint:** `POST /api/v1/admin/import/:entity`
-- **Parameter URL:** `:entity` (`resources` | `books` | `users`)
-- **Akses:** `admin`, `pengelola`
-- **Headers:** `Authorization: Bearer <token>`, `Content-Type: application/json`
-- **Request Body Format Resources:**
-```json
-{
-  "items": [
-    {
-      "judul": "Modul Pengamanan Pemilu dan Kontijensi Wilayah",
-      "kategori": "Modul & Hanjar",
-      "sub_kategori": "Operasi Kepolisian",
-      "deskripsi": "Panduan taktis pengamanan pemilu serentak bagi kapolres.",
-      "penulis_penyusun": "Tim Pokja Sespimma Lemdiklat Polri",
-      "unit_sumber": "Bag Jarlat Sespimma",
-      "status": "Dipublikasikan",
-      "klasifikasi_akses": "Internal",
-      "format_berkas": "PDF"
-    }
-  ]
-}
-```
-- **Request Body Format Books:**
-```json
-{
-  "items": [
-    {
-      "judul": "Kriminologi Terapan & Forensik Digital",
-      "penulis": "AKBP Bambang Wijaya, S.T., M.Si.",
-      "penerbit": "Sespimma Lemdiklat Polri",
-      "tahun_terbit": 2026,
-      "kategori": "buku-fisik",
-      "nomor_panggil": "364.1 BAM k",
-      "lokasi_rak": "Rak Siber Lantai 1",
-      "stok_total": 3,
-      "stok_tersedia": 3,
-      "klasifikasi_akses": "Internal",
-      "status": "Dipublikasikan"
-    }
-  ]
-}
-```
-- **Request Body Format Users:**
-```json
-{
-  "items": [
-    {
-      "nrp_nip": "91020304",
-      "nama_lengkap": "AKP Dian Permana, S.H.",
-      "email": "dian.permana@serdik.sespimma.polri.go.id",
-      "peran": "serdik",
-      "no_telepon": "081298765432",
-      "status_akun": "Aktif",
-      "kata_sandi": "Sespimma@2026!"
-    }
-  ]
-}
-```
-- **Response Success (HTTP 200 OK):**
-```json
-{
-  "success": true,
-  "message": "Import data resources selesai diproses",
-  "data": {
-    "imported_count": 1,
-    "total_received": 1,
-    "errors": []
-  }
-}
-```
+- **Akses:** Admin, Pengelola
+- **Request Body:** `{ "items": [ { ... }, { ... } ] }`
 
 ---
 
-### Modul 13: Dasbor Pemantauan & Jejak Audit (*Audit Trail*)
+### Modul 13: Dasbor Pemantauan & Jejak Audit (Monitoring & Audit Logs)
 
-#### 13.1 Statistik Agregasi Sistem Real-Time
+#### 13.1 Metrik Agregasi & Statistik Sistem
 - **Endpoint:** `GET /api/v1/admin/monitoring/stats`
-- **Akses:** `admin`, `pimpinan`
-- **Headers:** `Authorization: Bearer <token>`
+- **Akses:** Admin, Pimpinan
+
+#### 13.2 Jejak Audit Aktivitas, Pencarian & Verifikasi
+- **Endpoint:** `GET /api/v1/admin/monitoring/logs`
+- **Akses:** Admin, Pimpinan
+- **Query Parameter:** `type=activity` | `type=search` | `type=verification`
+
+---
+
+### Modul 14: Pengaturan Branding Sistem & Infografis Arsitektur Ekosistem
+
+#### 14.1 Informasi Infografis Arsitektur Aktif (*Publik*)
+- **Endpoint:** `GET /api/v1/settings/infographic`
+- **Akses:** Publik (Tanpa Token)
+- **Deskripsi:** Mengambil gambar dan metadata infografis arsitektur ekosistem aktif untuk ditampilkan pada halaman muka/login SIPINTAR (`/`).
 - **Response Success (HTTP 200 OK):**
 ```json
 {
   "success": true,
-  "message": "Statistik monitoring sistem berhasil diambil",
+  "message": "Pengaturan infografis arsitektur sistem berhasil diambil",
   "data": {
-    "summary": {
-      "total_resources": 100,
-      "published_resources": 96,
-      "draft_resources": 3,
-      "archived_resources": 1,
-      "total_books": 65,
-      "total_users": 42,
-      "active_users": 41
-    },
-    "by_category": [
-      { "category_name": "Modul & Hanjar", "count": 48 },
-      { "category_name": "E-Library/Perpustakaan", "count": 35 },
-      { "category_name": "SOP", "count": 14 }
-    ],
-    "verification_funnel": {
-      "in_review": 3,
-      "approved_this_month": 18,
-      "revisions_requested": 2
-    }
+    "image_url": "/infografis-sipintar.jpg",
+    "image_full_url": "/infografis-sipintar.png",
+    "title": "INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU",
+    "caption": "Visualisasi komprehensif arsitektur ekosistem sumber belajar terpadu Sespimma Lemdiklat Polri: Gadik & Kompetensi, Modul & Hanjar 720 JP, Perpustakaan, Kurikulum, dan SOP Layanan Presisi.",
+    "updated_at": "2026-11-21T06:08:13.000Z",
+    "updated_by_name": "Denny Chahyo Wiebowo (Superadmin CRUD)"
   }
 }
 ```
 
-#### 13.2 Rekam Jejak Audit (*Activity Logs*)
-- **Endpoint:** `GET /api/v1/admin/monitoring/logs`
-- **Akses:** `admin`, `pimpinan`
-- **Query Parameters:** `type`, `role`, `search`, `page`, `limit`
+#### 14.2 Pembaruan Metadata atau Reset Infografis (*Admin CRUD Only*)
+- **Endpoint:** `PUT /api/v1/admin/settings/infographic`
+- **Akses:** **Hanya Superadmin CRUD (`dennyboy`)**
+- **Headers:** `Authorization: Bearer <crud_token>`, `Content-Type: application/json`
+- **Request Body (Update Metadata / URL):**
+```json
+{
+  "title": "INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU",
+  "caption": "Keterangan infografis hasil pemutakhiran manual admin CRUD.",
+  "image_url": "/uploads/infografis_custom.jpg"
+}
+```
+- **Request Body (Reset ke Bawaan Resmi Sespimma):**
+```json
+{
+  "action": "reset"
+}
+```
 - **Response Success (HTTP 200 OK):**
 ```json
 {
   "success": true,
-  "message": "Log audit sistem berhasil diambil",
-  "data": [
-    {
-      "id": 512,
-      "user_name": "Super Administrator SIPINTAR",
-      "role": "admin",
-      "action_type": "IMPORT_RESOURCES",
-      "entity_type": "resources",
-      "description": "Administrator Super Administrator SIPINTAR melakukan import massal: 1 naskah berhasil",
-      "ip_address": "::1",
-      "created_at": "2026-11-18T01:54:10.000Z"
-    }
-  ],
-  "meta": { "page": 1, "limit": 20, "total": 512, "totalPages": 26 }
+  "message": "Gambar dan konfigurasi infografis arsitektur sistem berhasil diperbarui",
+  "data": {
+    "image_url": "/infografis-sipintar.jpg",
+    "image_full_url": "/infografis-sipintar.png",
+    "title": "INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU",
+    "caption": "Visualisasi komprehensif arsitektur ekosistem sumber belajar terpadu Sespimma Lemdiklat Polri: Gadik & Kompetensi, Modul & Hanjar 720 JP, Perpustakaan, Kurikulum, dan SOP Layanan Presisi.",
+    "updated_at": "2026-11-21T06:08:13.000Z",
+    "updated_by_name": "Denny Chahyo Wiebowo (Superadmin CRUD)"
+  }
+}
+```
+- **Response Rejection (HTTP 403 Forbidden - Saat Dipanggil oleh Admin CRU `livi`):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Akses ditolak: Akun Anda memiliki wewenang Admin CRU (Create, Read, Update). Tindakan Delete (Hapus) hanya dapat dilakukan oleh Superadmin CRUD (dennyboy).",
+    "details": [
+      "Izin akun: CRU Saja (Dilarang Hapus Data)"
+    ]
+  }
+}
+```
+
+#### 14.3 Unggah Berkas Gambar Infografis Baru (*Multipart / Admin CRUD Only*)
+- **Endpoint:** `POST /api/v1/admin/settings/infographic`
+- **Akses:** **Hanya Superadmin CRUD (`dennyboy`)**
+- **Headers:** `Authorization: Bearer <crud_token>`
+- **Payload:** `multipart/form-data`
+  - `image` atau `file`: Berkas biner gambar (JPG, JPEG, PNG, WEBP, SVG maksimal 20 MB).
+  - `title`: String judul header infografis (opsional).
+  - `caption`: String deskripsi/caption infografis (opsional).
+- **Response Success (HTTP 200 OK):**
+```json
+{
+  "success": true,
+  "message": "Gambar dan konfigurasi infografis arsitektur sistem berhasil diperbarui",
+  "data": {
+    "image_url": "/uploads/infografis_1795241282167_e135e16d.webp",
+    "image_full_url": "/uploads/infografis_1795241282167_e135e16d.webp",
+    "title": "INFOGRAFIS ARSITEKTUR SUMBER BELAJAR TERPADU",
+    "caption": "Arsitektur ekosistem terpadu Sespimma Lemdiklat Polri versi pembaruan manual Superadmin CRUD",
+    "updated_at": "2026-11-21T06:08:02.000Z",
+    "updated_by_name": "Denny Chahyo Wiebowo (Superadmin CRUD)"
+  }
 }
 ```
 
 ---
 
-## 3. Contoh Implementasi Klien Frontend (TypeScript / Next.js)
+## 3. Contoh Integrasi Frontend (TypeScript SDK & Next.js)
 
-Berikut adalah contoh modul klien API sentral yang siap pakai untuk proyek frontend:
-
-### A. Klien Sentral Terotentikasi (`src/lib/apiClient.ts`)
+Berikut adalah implementasi SDK `SipintarApiClient` pada `src/lib/apiClient.ts` untuk mempermudah pemanggilan dari komponen UI Next.js:
 
 ```typescript
-// src/lib/apiClient.ts
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1';
+import { API_BASE_URL, ApiResponse } from '@/lib/apiClient';
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data: T;
-  meta?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export async function apiRequest<T = any>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  // Ambil token JWT dari localStorage atau cookies
-  const token = typeof window !== 'undefined' ? localStorage.getItem('sipintar_token') : null;
-
-  const headers: Record<string, string> = {
-    Accept: 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  // Jika body BUKAN FormData, pasang header application/json
-  if (options.body && !(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-  }
-
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
+// 1. Contoh Pembaruan Profil Personel (8 Atribut)
+export async function updatePersonnelCareerProfile(data: {
+  nama_lengkap: string;
+  pangkat_golongan: string;
+  jabatan: string;
+  pendidikan_umum_terakhir: string;
+  pendidikan_kedinasan: string;
+  sertifikasi: string;
+  kompetensi_utama: string;
+  kompetensi: string;
+  kompetensi_pendukung: string;
+  phone_number?: string;
+  avatar_url?: string;
+}) {
+  const token = localStorage.getItem('sipintar_auth_token');
+  const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
   });
 
-  const json = await response.json();
-
-  if (!response.ok || json.success === false) {
-    const errorMsg = json?.error?.message || json?.message || 'Terjadi kesalahan pada server';
-    throw new Error(errorMsg);
+  const result: ApiResponse = await response.json();
+  if (!response.ok || !result.success) {
+    throw new Error(result.error?.message || 'Gagal memperbarui profil personel');
   }
-
-  return json;
+  return result.data;
 }
-```
 
-### B. Contoh Pengiriman Draf Naskah dengan Berkas (`FormData`)
-
-```typescript
-// Contoh fungsi simpan draf naskah ajar di Next.js
-export async function uploadNaskahBaru(data: {
-  title: string;
-  categoryId: number;
-  author: string;
-  unit: string;
-  classification: string;
-  description: string;
-  file?: File;
-}) {
+// 2. Contoh Penggantian Manual Gambar Infografis pada CMS (Admin CRUD)
+export async function uploadNewInfographicImage(file: File, title?: string, caption?: string) {
+  const token = localStorage.getItem('sipintar_auth_token');
   const formData = new FormData();
-  formData.append('title', data.title);
-  formData.append('category_id', String(data.categoryId));
-  formData.append('author_or_instructor', data.author);
-  formData.append('unit_or_source', data.unit);
-  formData.append('access_classification', data.classification);
-  formData.append('description', data.description);
+  formData.append('image', file);
+  if (title) formData.append('title', title);
+  if (caption) formData.append('caption', caption);
 
-  if (data.file) {
-    formData.append('file', data.file);
-  }
-
-  return await apiRequest('/admin/resources', {
+  const response = await fetch(`${API_BASE_URL}/admin/settings/infographic`, {
     method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      // Jangan set Content-Type manual untuk FormData
+    },
     body: formData,
   });
-}
-```
 
-### C. Contoh Penanganan Unduh Naskah 'Metadata Saja'
-
-```typescript
-export function handleUnduhBerkas(resource: { id: number; access_classification: string }) {
-  if (resource.access_classification === 'Metadata Saja') {
-    alert(
-      'Perhatian: Naskah ini berstatus "Metadata Saja". File digital tidak dapat diunduh untuk menjaga orisinalitas karya tulis kepolisian.'
-    );
-    return;
+  const result: ApiResponse = await response.json();
+  if (!response.ok || !result.success) {
+    throw new Error(result.error?.message || 'Gagal mengunggah infografis baru');
   }
-
-  const token = localStorage.getItem('sipintar_token');
-  window.open(`http://localhost:5001/api/v1/resources/${resource.id}/file?token=${token}`, '_blank');
+  return result.data;
 }
 ```
 
 ---
 
-## 4. Panduan Penanganan Error (*Error Handling Reference*)
+## 4. Ringkasan Kelulusan Suite Uji Integrasi (35 Skenario Uji)
 
-| HTTP Status | Error Code | Penyebab Umum | Tindakan Frontend yang Dianjurkan |
-|---|---|---|---|
-| **400** | `VALIDATION_ERROR` | Format body JSON salah / field wajib kosong | Tampilkan pesan spesifik dari array `error.details` di form input terkait. |
-| **401** | `UNAUTHORIZED` | Token JWT tidak ada, kadaluwarsa, atau salah | Hapus token lokal (`localStorage.removeItem`), arahkan pengguna ke modal Login. |
-| **403** | `FORBIDDEN` | Peran pengguna tidak diizinkan / Hak akses 'Metadata Saja' | Tampilkan modal peringatan hak akses dan sembunyikan tombol aksi. |
-| **404** | `NOT_FOUND` | Dokumen, buku, atau pengguna ID tidak ditemukan | Arahkan ke halaman 404 atau tampilkan pesan "Data tidak ditemukan". |
-| **409** | `DUPLICATE_ENTRY` | NRP/NIP atau Email sudah terdaftar di sistem | Minta pengguna memeriksa kembali nomor NRP/NIP yang dimasukkan. |
-| **429** | `RATE_LIMIT_EXCEEDED`| Terlalu banyak percobaan login gagal (>10x dlm 15 mnt) | Tampilkan waktu jeda hitung mundur sebelum pengguna boleh mencoba login kembali. |
-| **500** | `INTERNAL_ERROR` | Kesalahan internal server atau MySQL terputus | Tampilkan pemberitahuan ramah "Sedang terjadi gangguan koneksi ke server Sespimma". |
+Seluruh endpoint pada dokumentasi ini telah diverifikasi melalui pengujian integrasi otomatis end-to-end (`test/api.test.js`) dengan hasil kelulusan **100% (35/35 Passed — Zero Defect)**:
 
----
-*Dokumen ini diterbitkan oleh Tim Pengembang Backend SIPINTAR Sespimma Lemdiklat Polri TA 2026.*
+```text
+============================================================
+  SIPINTAR Sespimma REST API — Integration Test Runner
+  Target URL: http://localhost:5001/api/v1
+============================================================
+
+  ✔ PASS: 1. System Health Check (/health)
+  ✔ PASS: 2. Admin Login with Email & Password (/auth/login)
+  ✔ PASS: 3. Serdik Login with NRP (/auth/login)
+  ✔ PASS: 4. Rejection of Invalid Password (401 UNAUTHORIZED)
+  ✔ PASS: 5. Get Authenticated User Profile (/auth/me)
+  ✔ PASS: 6. RBAC Role Verification (Admin 200 vs Serdik 403)
+  ✔ PASS: 7. Category & Subcategory Taxonomy (/categories)
+  ✔ PASS: 8. Resources Catalog & Pagination (/resources)
+  ✔ PASS: 9. Resource Detail & Attached Tags (/resources/:id)
+  ✔ PASS: 10. Gadik Fungsional List & Competencies (/gadik)
+  ✔ PASS: 11. Library Categories & Physical Book Catalogue (/library/books)
+  ✔ PASS: 12. Full-Text Unified Search with Relevance Score (/search)
+  ✔ PASS: 13. Security Guard on "Metadata Saja" Documents (Strict 403 FORBIDDEN)
+  ✔ PASS: 14. Document File Streaming & Auth Gate (/resources/:id/file)
+  ✔ PASS: 15. Verification Queue for Jarlat (/admin/verification/queue)
+  ✔ PASS: 16. Monitoring Dashboard Aggregated Metrics (/admin/monitoring/stats)
+  ✔ PASS: 17. User Account Management & Role Filtering (/admin/users)
+  ✔ PASS: 18. Multi-Stream Audit Logs Trail: Activity, Search & Verification (/admin/monitoring/logs)
+  ✔ PASS: 19. Dynamic Taxonomy Tag Filtering on Resources (/resources?tag=...)
+  ✔ PASS: 20. Self-Registration of New Serdik Account (/auth/register)
+  ✔ PASS: 21. Related Resources Recommendation Algorithm (/resources/:id/related)
+  ✔ PASS: 22. Pimpinan Executive Oversight RBAC (Full Draft Audit Access)
+  ✔ PASS: 23. Detail Koleksi Buku & Eksemplar Perpustakaan (/library/books/:id)
+  ✔ PASS: 24. Siklus Tata Kelola Lengkap: Buat Draf, Ubah Metadata, Verifikasi & Arsip (/admin/resources)
+  ✔ PASS: 25. Perlindungan Sampel & Sanitasi Berkas "Metadata Saja" (Strict 403 & No Leaked Paths)
+  ✔ PASS: 26. User Status Management & Self-Deactivation Guard (/admin/users/:id/status)
+  ✔ PASS: 27. User Role Updating & RBAC Assignment (/admin/users/:id/role)
+  ✔ PASS: 28. Interactive Swagger UI & OpenAPI 3.0 Documentation Specification (/docs & /openapi.json)
+  ✔ PASS: 29. Flexible Category Slug Filtering & Comprehensive Lifecycle Status Handling (/resources?category=...&status=all)
+  ✔ PASS: 30. Detail Profil Tenaga Pendidik & Materi Ajar Binaan (/gadik/:id)
+  ✔ PASS: 31. Security Gate on "Terbatas" Classified Documents (Serdik 403 vs Admin 200)
+  ✔ PASS: 32. Global 404 Route Handler & Malformed JSON Body Parsing Resilience (404 NOT_FOUND & 400 VALIDATION_ERROR)
+  ✔ PASS: 33. Granular RBAC: Superadmin CRUD (dennyboy) vs Admin CRU (livi) with Strict Delete Enforcement
+  ✔ PASS: 34. User Profile Details & Self-Password Security (/auth/profile & /auth/change-password)
+  ✔ PASS: 35. Infographic Settings Management & RBAC Guard (/settings/infographic & /admin/settings/infographic)
+
+------------------------------------------------------------
+  Test Summary: 35 Passed, 0 Failed out of 35 Tests
+------------------------------------------------------------
+```
