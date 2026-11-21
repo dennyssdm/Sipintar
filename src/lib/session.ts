@@ -12,7 +12,14 @@ export interface AuthSessionUser {
   nrp_nip: string;
   email: string;
   pangkat?: string;
+  pangkat_golongan?: string;
   jabatan?: string;
+  pendidikan_umum_terakhir?: string;
+  pendidikan_kedinasan?: string;
+  sertifikasi?: string;
+  kompetensi_utama?: string;
+  kompetensi?: string;
+  kompetensi_pendukung?: string;
   role: string;
   role_name?: string;
   can_delete?: boolean;

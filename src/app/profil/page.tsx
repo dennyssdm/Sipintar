@@ -2,47 +2,58 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { getAuthSession, saveAuthSession, AuthSessionUser, getRemainingSessionMs } from '@/lib/session';
+import { getAuthSession, saveAuthSession, AuthSessionUser } from '@/lib/session';
 import { sipintarApi } from '@/lib/apiClient';
 
-const PANGKAT_OPTIONS = [
+const PANGKAT_GOLONGAN_SUGGESTIONS = [
   'Jenderal Polisi',
   'Komjen Pol',
   'Irjen Pol',
   'Brigjen Pol',
-  'Kombes Pol',
-  'AKBP',
-  'Kompol',
-  'AKP',
-  'Iptu',
-  'Ipda',
-  'Aiptu',
-  'Aipda',
-  'Bripka',
-  'Brigpol',
-  'Briptu',
-  'Bripda',
-  'Pembina Utama (PNS)',
-  'Pembina Tk. I (PNS)',
-  'Pembina (PNS)',
-  'Penata Tk. I (PNS)',
-  'Penata (PNS)',
-  'Pengatur Tk. I (PNS)',
-  'Pengatur (PNS)',
-  'Lainnya / Fungsional',
+  'Kombes Pol / IV-C',
+  'AKBP / IV-B',
+  'Kompol / IV-A',
+  'AKP / III-D',
+  'Iptu / III-C',
+  'Ipda / III-B',
+  'Aiptu / III-A',
+  'Aipda / II-D',
+  'Bripka / II-C',
+  'Brigpol / II-B',
+  'Briptu / II-A',
+  'Bripda / I-D',
+  'Pembina Utama (IV-E)',
+  'Pembina Utama Madya (IV-D)',
+  'Pembina Utama Muda (IV-C)',
+  'Pembina Tk. I (IV-B)',
+  'Pembina (IV-A)',
+  'Penata Tk. I (III-D)',
+  'Penata (III-C)',
+  'Pengatur Tk. I (II-D)',
+  'Pengatur (II-C)',
 ];
 
 export default function ProfilPenggunaPage() {
   const [currentUser, setCurrentUser] = useState<AuthSessionUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Form Fields
+  // Form Fields - Identitas & Jabatan
   const [namaLengkap, setNamaLengkap] = useState('');
-  const [pangkat, setPangkat] = useState('');
+  const [pangkatGolongan, setPangkatGolongan] = useState('');
   const [jabatan, setJabatan] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+
+  // Form Fields - Pendidikan & Sertifikasi
+  const [pendidikanUmumTerakhir, setPendidikanUmumTerakhir] = useState('');
+  const [pendidikanKedinasan, setPendidikanKedinasan] = useState('');
+  const [sertifikasi, setSertifikasi] = useState('');
+
+  // Form Fields - Kompetensi
+  const [kompetensiUtama, setKompetensiUtama] = useState('');
+  const [kompetensi, setKompetensi] = useState('');
+  const [kompetensiPendukung, setKompetensiPendukung] = useState('');
 
   // Password Fields
   const [currentPassword, setCurrentPassword] = useState('');
@@ -57,49 +68,76 @@ export default function ProfilPenggunaPage() {
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [passwordFeedback, setPasswordFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [remainingSession, setRemainingSession] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const { user } = getAuthSession();
-    if (user) {
-      setCurrentUser(user);
-      setNamaLengkap(user.nama_lengkap || '');
-      setPangkat(user.pangkat || (user.nrp_nip === 'dennyboy' ? 'KOMPOL' : user.nrp_nip === 'livi' ? 'AKP' : 'AKBP'));
-      setJabatan(
-        user.jabatan ||
-        (user.nrp_nip === 'dennyboy'
-          ? 'Super Administrator CRUD & Analis Sistem SIPINTAR'
-          : user.nrp_nip === 'livi'
-          ? 'Administrator CRU & Verifikator Konten SIPINTAR'
-          : user.role === 'gadik'
-          ? 'Tenaga Pendidik (Gadik Madya)'
-          : user.role === 'serdik'
-          ? 'Peserta Didik (Serdik Sespimma)'
-          : 'Personel Sespimma Lemdiklat Polri')
-      );
-      setPhoneNumber(user.phone_number || '');
-      setEmail(user.email || '');
-      setAvatarUrl(user.avatar_url || '');
-    }
-    setIsLoading(false);
+    const initProfile = async () => {
+      const { user } = getAuthSession();
+      if (user) {
+        setCurrentUser(user);
+        setNamaLengkap(user.nama_lengkap || '');
+        setPangkatGolongan(
+          user.pangkat_golongan ||
+          user.pangkat ||
+          (user.nrp_nip === 'dennyboy' ? 'KOMPOL / IV-A' : user.nrp_nip === 'livi' ? 'AKP / III-D' : 'AKBP / IV-B')
+        );
+        setJabatan(
+          user.jabatan ||
+          (user.nrp_nip === 'dennyboy'
+            ? 'Super Administrator CRUD & Analis Sistem SIPINTAR'
+            : user.nrp_nip === 'livi'
+            ? 'Administrator CRU & Verifikator Konten SIPINTAR'
+            : user.role === 'gadik'
+            ? 'Gadik Madya Sespimma Lemdiklat Polri'
+            : user.role === 'serdik'
+            ? 'Peserta Didik (Serdik Sespimma)'
+            : 'Personel Sespimma Lemdiklat Polri')
+        );
+        setPhoneNumber(user.phone_number || '');
+        setEmail(user.email || '');
+        setAvatarUrl(user.avatar_url || '');
 
-    // Format remaining session time
-    const updateCountdown = () => {
-      const ms = getRemainingSessionMs();
-      if (ms <= 0) {
-        setRemainingSession('Kedaluwarsa');
-        return;
+        setPendidikanUmumTerakhir(user.pendidikan_umum_terakhir || '');
+        setPendidikanKedinasan(user.pendidikan_kedinasan || '');
+        setSertifikasi(user.sertifikasi || '');
+        setKompetensiUtama(user.kompetensi_utama || '');
+        setKompetensi(user.kompetensi || '');
+        setKompetensiPendukung(user.kompetensi_pendukung || '');
+
+        // Fetch fresh profile data from backend API
+        try {
+          const fresh = await sipintarApi.auth.getMe();
+          if (fresh) {
+            setNamaLengkap(fresh.nama_lengkap || user.nama_lengkap || '');
+            if (fresh.pangkat_golongan || fresh.pangkat) {
+              setPangkatGolongan(fresh.pangkat_golongan || fresh.pangkat);
+            }
+            if (fresh.jabatan) setJabatan(fresh.jabatan);
+            if (fresh.phone_number) setPhoneNumber(fresh.phone_number);
+            if (fresh.email) setEmail(fresh.email);
+            if (fresh.avatar_url) setAvatarUrl(fresh.avatar_url);
+
+            if (fresh.pendidikan_umum_terakhir) setPendidikanUmumTerakhir(fresh.pendidikan_umum_terakhir);
+            if (fresh.pendidikan_kedinasan) setPendidikanKedinasan(fresh.pendidikan_kedinasan);
+            if (fresh.sertifikasi) setSertifikasi(fresh.sertifikasi);
+            if (fresh.kompetensi_utama) setKompetensiUtama(fresh.kompetensi_utama);
+            if (fresh.kompetensi) setKompetensi(fresh.kompetensi);
+            if (fresh.kompetensi_pendukung) setKompetensiPendukung(fresh.kompetensi_pendukung);
+
+            // Update session cache
+            const merged = { ...user, ...fresh };
+            saveAuthSession(merged);
+            setCurrentUser(merged);
+          }
+        } catch {
+          // ignore error if offline or using mock
+        }
       }
-      const hours = Math.floor(ms / (1000 * 60 * 60));
-      const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-      setRemainingSession(`${hours} jam ${minutes} menit`);
+      setIsLoading(false);
     };
 
-    updateCountdown();
-    const timer = setInterval(updateCountdown, 60000);
-    return () => clearInterval(timer);
+    initProfile();
   }, []);
 
   // --- PHOTO UPLOAD & REMOVE HANDLERS ---
@@ -161,8 +199,15 @@ export default function ProfilPenggunaPage() {
 
     const updatedData: Partial<AuthSessionUser> = {
       nama_lengkap: namaLengkap.trim(),
-      pangkat: pangkat.trim(),
+      pangkat: pangkatGolongan.split('/')[0].trim() || pangkatGolongan.trim(),
+      pangkat_golongan: pangkatGolongan.trim(),
       jabatan: jabatan.trim(),
+      pendidikan_umum_terakhir: pendidikanUmumTerakhir.trim(),
+      pendidikan_kedinasan: pendidikanKedinasan.trim(),
+      sertifikasi: sertifikasi.trim(),
+      kompetensi_utama: kompetensiUtama.trim(),
+      kompetensi: kompetensi.trim(),
+      kompetensi_pendukung: kompetensiPendukung.trim(),
       phone_number: phoneNumber.trim(),
       email: email.trim(),
       avatar_url: avatarUrl || undefined,
@@ -170,13 +215,14 @@ export default function ProfilPenggunaPage() {
 
     try {
       // 1. Send update to Backend API
-      await sipintarApi.auth.updateProfile(updatedData);
+      const res = await sipintarApi.auth.updateProfile(updatedData);
 
       // 2. Update local storage session
       if (currentUser) {
         const newSessionUser: AuthSessionUser = {
           ...currentUser,
           ...updatedData,
+          ...(res?.data || res || {}),
         };
         saveAuthSession(newSessionUser);
         setCurrentUser(newSessionUser);
@@ -187,9 +233,9 @@ export default function ProfilPenggunaPage() {
 
       setProfileFeedback({
         type: 'success',
-        message: 'Data pengguna dan foto profil berhasil diperbarui secara permanen!',
+        message: 'Data profil pengguna dan rincian kompetensi berhasil diperbarui secara permanen!',
       });
-    } catch (err: any) {
+    } catch {
       // Graceful fallback: persist locally if API encounters network issue
       if (currentUser) {
         const newSessionUser: AuthSessionUser = {
@@ -341,7 +387,7 @@ export default function ProfilPenggunaPage() {
             Detail Data Pengguna & Pengaturan Akun
           </h1>
           <p style={{ fontSize: '13.5px', color: '#cbd5e1', maxWidth: '720px', lineHeight: 1.5, margin: 0 }}>
-            Kelola data identitas personel, pangkat, jabatan kedinasan, nomor kontak resmi, foto profil, serta keamanan kata sandi portal SIPINTAR Sespimma Lemdiklat Polri.
+            Kelola data identitas personel, pangkat/golongan, jabatan saat ini, riwayat pendidikan umum & kedinasan, sertifikasi, kompetensi utama & pendukung, serta keamanan akun portal SIPINTAR Sespimma Lemdiklat Polri.
           </p>
         </div>
 
@@ -359,8 +405,8 @@ export default function ProfilPenggunaPage() {
               gap: '3px',
             }}
           >
-            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Masa Aktif Sesi:</div>
-            <div style={{ fontWeight: 700, color: '#fbbf24' }}>⏱️ {remainingSession || '6 Jam Kedinasan'}</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Status Personel:</div>
+            <div style={{ fontWeight: 700, color: '#34d399' }}>✓ Aktif Terverifikasi Sespimma</div>
           </div>
         </div>
       </header>
@@ -375,7 +421,7 @@ export default function ProfilPenggunaPage() {
         }}
       >
         {/* ========================================================================= */}
-        {/* LEFT COLUMN: RUANG FOTO & RINGKASAN AKUN */}
+        {/* LEFT COLUMN: RUANG FOTO & STATUS HAK AKSES */}
         {/* ========================================================================= */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Card: Ruang Foto Profil */}
@@ -430,7 +476,7 @@ export default function ProfilPenggunaPage() {
 
               {/* User Rank & Name Tag */}
               <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--color-text-main)', marginBottom: '2px' }}>
-                {pangkat ? `${pangkat} ` : ''}{namaLengkap || 'Personel Sespimma'}
+                {pangkatGolongan ? `${pangkatGolongan} ` : ''}{namaLengkap || 'Personel Sespimma'}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '14px' }}>
                 NRP/NIP: <strong>{currentUser?.nrp_nip || '-'}</strong>
@@ -501,7 +547,7 @@ export default function ProfilPenggunaPage() {
             </div>
           </section>
 
-          {/* Card: Status Hak Akses & Keamanan Sesi */}
+          {/* Card: Status Hak Akses Sistem */}
           <section
             style={{
               backgroundColor: 'var(--color-surface)',
@@ -551,23 +597,18 @@ export default function ProfilPenggunaPage() {
                 <span style={{ color: 'var(--color-text-muted)', display: 'block', fontSize: '11.5px', marginBottom: '2px' }}>Status Akun:</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: 700 }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#16a34a' }} />
-                  Aktif & Terverifikasi
+                  Aktif & Terverifikasi Kedinasan
                 </span>
-              </div>
-
-              <div>
-                <span style={{ color: 'var(--color-text-muted)', display: 'block', fontSize: '11.5px', marginBottom: '2px' }}>Batas Sesi Keamanan:</span>
-                <span style={{ color: 'var(--color-text-main)' }}>Maksimal 6 Jam per login kedinasan</span>
               </div>
             </div>
           </section>
         </div>
 
         {/* ========================================================================= */}
-        {/* RIGHT COLUMN: DETAIL DATA PENGGUNA & FORM GANTI PASSWORD */}
+        {/* RIGHT COLUMN: DETAIL DATA PENGGUNA, PENDIDIKAN, KOMPETENSI, & PASSWORD */}
         {/* ========================================================================= */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Card: Form Detail Identitas Pengguna */}
+          {/* Card: Form Detail Identitas, Pendidikan & Kompetensi */}
           <section
             style={{
               backgroundColor: 'var(--color-surface)',
@@ -580,7 +621,7 @@ export default function ProfilPenggunaPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
               <span style={{ fontSize: '18px' }}>👤</span>
               <h2 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--color-text-main)' }}>
-                Detail Data Pengguna
+                Detail Data Pengguna & Kompetensi
               </h2>
             </div>
 
@@ -601,157 +642,332 @@ export default function ProfilPenggunaPage() {
               </div>
             )}
 
-            <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Baris 1: NRP / NIP (Read-only) & Pangkat */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                    NRP / NIP (Kunci Akun)
-                  </label>
-                  <input
-                    type="text"
-                    value={currentUser?.nrp_nip || ''}
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-surface-hover)',
-                      color: 'var(--color-text-muted)',
-                      fontSize: '13px',
-                      cursor: 'not-allowed',
-                      fontWeight: 600,
-                    }}
-                  />
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Identitas kedinasan unik (terkunci)</span>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                    Pangkat Personel
-                  </label>
-                  <select
-                    value={pangkat}
-                    onChange={(e) => setPangkat(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-surface)',
-                      color: 'var(--color-text-main)',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <option value="">Pilih Pangkat</option>
-                    {PANGKAT_OPTIONS.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Baris 2: Nama Lengkap */}
+            <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* --- KELOMPOK 1: IDENTITAS KEDINASAN & JABATAN --- */}
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                  Nama Lengkap Beserta Gelar
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={namaLengkap}
-                  onChange={(e) => setNamaLengkap(e.target.value)}
-                  placeholder="Contoh: Denny Prasetyo, S.I.K., M.Si."
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-surface)',
-                    color: 'var(--color-text-main)',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                  }}
-                />
-              </div>
-
-              {/* Baris 3: Jabatan Kedinasan */}
-              <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                  Jabatan Kedinasan / Posisi
-                </label>
-                <input
-                  type="text"
-                  value={jabatan}
-                  onChange={(e) => setJabatan(e.target.value)}
-                  placeholder="Contoh: Super Administrator CRUD SIPINTAR / Gadik Madya"
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-surface)',
-                    color: 'var(--color-text-main)',
-                    fontSize: '13px',
-                  }}
-                />
-              </div>
-
-              {/* Baris 4: Email & Nomor Telepon */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                    Email Kedinasan
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nama@sespimma.polri.go.id"
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-surface)',
-                      color: 'var(--color-text-main)',
-                      fontSize: '13px',
-                    }}
-                  />
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🎖️</span>
+                  <span>1. Identitas Kedinasan & Jabatan</span>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
-                    Nomor Telepon / WhatsApp
-                  </label>
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="0812xxxxxxxx"
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-surface)',
-                      color: 'var(--color-text-main)',
-                      fontSize: '13px',
-                    }}
-                  />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {/* Baris: NRP/NIP & Pangkat/Golongan */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                        NRP / NIP (Kunci Akun)
+                      </label>
+                      <input
+                        type="text"
+                        value={currentUser?.nrp_nip || ''}
+                        disabled
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-surface-hover)',
+                          color: 'var(--color-text-muted)',
+                          fontSize: '13px',
+                          cursor: 'not-allowed',
+                          fontWeight: 600,
+                        }}
+                      />
+                      <span style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>Identitas resmi kedinasan (terkunci)</span>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                        Pangkat / Golongan
+                      </label>
+                      <input
+                        type="text"
+                        list="pangkat-suggestions"
+                        value={pangkatGolongan}
+                        onChange={(e) => setPangkatGolongan(e.target.value)}
+                        placeholder="Contoh: AKBP / IV-B atau KOMPOL / IV-A"
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-text-main)',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                        }}
+                      />
+                      <datalist id="pangkat-suggestions">
+                        {PANGKAT_GOLONGAN_SUGGESTIONS.map((p) => (
+                          <option key={p} value={p} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+
+                  {/* Baris: Nama Lengkap */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                      Nama Lengkap Beserta Gelar
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={namaLengkap}
+                      onChange={(e) => setNamaLengkap(e.target.value)}
+                      placeholder="Contoh: Dewi Susilo Pangestuti, S.Ak."
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text-main)',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                      }}
+                    />
+                  </div>
+
+                  {/* Baris: Jabatan Saat Ini */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                      Jabatan Saat Ini
+                    </label>
+                    <input
+                      type="text"
+                      value={jabatan}
+                      onChange={(e) => setJabatan(e.target.value)}
+                      placeholder="Contoh: Gadik Madya Sespimma Lemdiklat Polri / Super Administrator CRUD"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text-main)',
+                        fontSize: '13px',
+                      }}
+                    />
+                  </div>
+
+                  {/* Baris: Email & Telepon */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                        Email Kedinasan
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="nama@sespimma.polri.go.id"
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-text-main)',
+                          fontSize: '13px',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                        Nomor Telepon / WhatsApp
+                      </label>
+                      <input
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="0812xxxxxxxx"
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-text-main)',
+                          fontSize: '13px',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* --- KELOMPOK 2: RIWAYAT PENDIDIKAN & SERTIFIKASI --- */}
+              <div style={{ paddingTop: '16px', borderTop: '1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08))' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🎓</span>
+                  <span>2. Riwayat Pendidikan & Sertifikasi</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {/* Pendidikan Umum Terakhir */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                      Pendidikan Umum Terakhir
+                    </label>
+                    <input
+                      type="text"
+                      value={pendidikanUmumTerakhir}
+                      onChange={(e) => setPendidikanUmumTerakhir(e.target.value)}
+                      placeholder="Contoh: S1 Akuntansi (S.Ak) / S2 Magister Hukum (M.H.)"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text-main)',
+                        fontSize: '13px',
+                      }}
+                    />
+                  </div>
+
+                  {/* Pendidikan Kedinasan / Profesi yang Relevan */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                      Pendidikan Kedinasan / Profesi yang Relevan
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={pendidikanKedinasan}
+                      onChange={(e) => setPendidikanKedinasan(e.target.value)}
+                      placeholder="Contoh: PKN Tingkat II Angkatan XXIX Nawasena TA 2026, Sespimma Lemdiklat Polri, Dikjur Manajemen Keuangan Polri"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text-main)',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+
+                  {/* Sertifikasi */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                      Sertifikasi
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={sertifikasi}
+                      onChange={(e) => setSertifikasi(e.target.value)}
+                      placeholder="Contoh: Sertifikasi Asesor Kompetensi BNSP, Pendidik Vokasi Kepolisian, Sertifikasi Akuntan Pemerintah"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text-main)',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* --- KELOMPOK 3: PEMETAAN KOMPETENSI PERSONEL --- */}
+              <div style={{ paddingTop: '16px', borderTop: '1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08))' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>💡</span>
+                  <span>3. Pemetaan Kompetensi Personel</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {/* Kompetensi Utama */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                      Kompetensi Utama (Kepakaran Pokok)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={kompetensiUtama}
+                      onChange={(e) => setKompetensiUtama(e.target.value)}
+                      placeholder="Contoh: Manajemen Keuangan Negara & Polri, Tata Kelola Akuntansi Pemerintahan Presisi"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text-main)',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+
+                  {/* Kompetensi Bidang / Teknis */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                      Kompetensi Bidang / Teknis
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={kompetensi}
+                      onChange={(e) => setKompetensi(e.target.value)}
+                      placeholder="Contoh: Pemeriksaan Keuangan Internal, Penganggaran Berbasis Kinerja, Evaluasi Hanjar Kurikulum"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text-main)',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+
+                  {/* Kompetensi Pendukung */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                      Kompetensi Pendukung
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={kompetensiPendukung}
+                      onChange={(e) => setKompetensiPendukung(e.target.value)}
+                      placeholder="Contoh: Analisis Laporan Keuangan, Kepemimpinan Strategis Sespimma, Literasi Regulasi Keuangan Negara"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text-main)',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Submit Button Profile */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
                 <button
                   type="submit"
                   disabled={isSubmittingProfile}
                   style={{
-                    padding: '10px 20px',
+                    padding: '11px 22px',
                     fontSize: '13.5px',
                     fontWeight: 700,
                     borderRadius: '6px',
@@ -984,4 +1200,3 @@ export default function ProfilPenggunaPage() {
     </div>
   );
 }
-

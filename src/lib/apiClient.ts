@@ -115,7 +115,14 @@ class SipintarApiClient {
       email?: string;
       avatar_url?: string;
       pangkat?: string;
+      pangkat_golongan?: string;
       jabatan?: string;
+      pendidikan_umum_terakhir?: string;
+      pendidikan_kedinasan?: string;
+      sertifikasi?: string;
+      kompetensi_utama?: string;
+      kompetensi?: string;
+      kompetensi_pendukung?: string;
     }) => {
       const res = await this.request<any>('/auth/profile', {
         method: 'PUT',

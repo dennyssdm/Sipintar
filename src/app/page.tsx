@@ -608,7 +608,7 @@ function LoginForm() {
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12 6 12 12 16 14" />
                     </svg>
-                    <div>Sesi login Anda telah berakhir (batas 6 jam). Silakan masuk kembali.</div>
+                    <div>Sesi login Anda telah berakhir. Silakan masuk kembali.</div>
                   </div>
                 )}
 
@@ -823,28 +823,6 @@ function LoginForm() {
                   >
                     Daftar Akun Baru
                   </button>
-                </div>
-
-                {/* Notifikasi Keamanan Sesi 6 Jam */}
-                <div
-                  style={{
-                    marginTop: '14px',
-                    paddingTop: '12px',
-                    borderTop: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
-                    fontSize: '11px',
-                    color: 'var(--color-text-muted, #94a3b8)',
-                    textAlign: 'center',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  <span>Keamanan Sesi: Otomatis logout setelah 6 jam</span>
                 </div>
               </div>
             </div>
