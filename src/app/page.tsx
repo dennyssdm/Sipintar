@@ -64,12 +64,6 @@ function LoginForm() {
     }
   };
 
-  const handleQuickLogin = (quickId: string, quickPass: string) => {
-    setIdentifier(quickId);
-    setPassword(quickPass);
-    setErrorMsg(null);
-  };
-
   const handleRegisterSuccess = (role: string, user?: AuthSessionUser) => {
     setRegisterOpen(false);
     if (user) {
@@ -803,87 +797,6 @@ function LoginForm() {
                     )}
                   </button>
                 </form>
-
-                {/* Akses Cepat Pengujian (1-Klik untuk Evaluator) */}
-                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Akses Cepat Pengujian Akun (Kata Sandi: Password123!)
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogin('dennyboy', 'Password123!')}
-                      style={{
-                        padding: '6px 8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        color: '#4ade80',
-                        border: '1px solid rgba(34, 197, 94, 0.25)',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                      title="Superadmin CRUD: Full access Create, Read, Update, Delete"
-                    >
-                      👑 Superadmin (dennyboy)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogin('livi', 'Password123!')}
-                      style={{
-                        padding: '6px 8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                        color: '#38bdf8',
-                        border: '1px solid rgba(56, 189, 248, 0.25)',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                      title="Admin CRU: Create, Read, Update (Tanpa Delete)"
-                    >
-                      🛡️ Admin CRU (livi)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogin('76030706', 'Password123!')}
-                      style={{
-                        padding: '6px 8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                        color: '#fbbf24',
-                        border: '1px solid rgba(251, 191, 36, 0.25)',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                      title="Tenaga Pendidik / Gadik Madya (AKBP Dewi Susilo Pangestuti)"
-                    >
-                      👨‍🏫 Gadik (AKBP Dewi)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogin('80010001', 'Password123!')}
-                      style={{
-                        padding: '6px 8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                        color: '#c084fc',
-                        border: '1px solid rgba(168, 85, 247, 0.25)',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                      title="Peserta Didik Sespimma (Serdik AKP Hendra)"
-                    >
-                      🎓 Serdik (AKP Hendra)
-                    </button>
-                  </div>
-                </div>
 
                 {/* Tautan Pendaftaran Anggota Baru */}
                 <div
